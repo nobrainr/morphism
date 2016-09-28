@@ -9,6 +9,7 @@ node_js:
   - v5
   - v4
 
-install: true
+
 before_script:
   - npm install -g gulp
+script: gulp
