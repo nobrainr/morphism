@@ -45,6 +45,10 @@ let results = Morphism(schema, dataToCrunch);
         status: 'morphed'
     }
 */
+
+// Or in a curried way
+let mapper = Morphism(schema);
+let results = mapper(dataToCrunch);
 ```
 ## License
 
