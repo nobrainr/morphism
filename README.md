@@ -12,7 +12,39 @@ $ npm install --save morphism
 ```js
 var morphism = require('morphism');
 
-morphism('Rainbow');
+let dataToCrunch = [{
+            'firstName': 'John',
+            'lastName': 'Smith',
+            'age': 25,
+            'address':
+            {
+                'city': 'New York',
+                'state': 'NY',
+                'postalCode': '10021'
+            }
+        }];
+
+let schema = { 
+                pseudo: 'firstName',
+                lastName: 'lastName',
+                city: 'address.city'
+                state: {
+                    path: 'address.state',
+                    fn: (state) => state.toLowerCase()
+                },
+                status: () => 'morphed'
+            };
+
+let results = Morphism(schema, dataToCrunch);
+/** results[0]
+    {
+        pseudo: 'John',
+        lastName: 'Smith',
+        city: 'New York',
+        state:'ny',
+        status: 'morphed'
+    }
+*/
 ```
 ## License
 
