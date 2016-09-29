@@ -1,5 +1,5 @@
 import expect from 'expect';
-import { Morphism } from '../lib';
+import Morphism from '../lib/morphism';
 
 describe('morphism', function () {
 

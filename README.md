@@ -20,7 +20,7 @@ Morphism is curried function that allows a partial application with a semantic c
 
 #### As a Mapper factory
 ```js
-var Morphism = require('morphism');
+const Morphism = require('morphism'); // (ES6 Import) import Morphism from 'morphism';
 
 let mapping = { ... }
 let collectionOfObjects = [ ... ]
@@ -34,7 +34,7 @@ myAwesomeMapper(anotherCollection);
 
 #### As a Static instance
 ```js
-var Morphism = require('morphism');
+const Morphism = require('morphism'); 
 
 let mapping = { ... }
 let collectionOfObjects = [ ... ]
