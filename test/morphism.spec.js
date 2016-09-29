@@ -29,12 +29,12 @@ describe('morphism', function () {
         }];
     });
 
-    describe('structural', function () {
+    describe('Structural', function () {
         it('should export Morphism function curried function', function () {
             expect(Morphism).toBeA('function');
         });
 
-        it('should provide a function when map configuration only is given', function () {
+        it('should provide a mapper function from the partial application', function () {
             let fn = Morphism({});
             expect(fn).toBeA('function');
         });
@@ -42,13 +42,49 @@ describe('morphism', function () {
         it('should provide an array of results when Morphism applied on array of data', function () {
             expect(Morphism({}, this.dataToCrunch)).toBeA('object');
         });
+
+
     });
 
-    describe('flat projection', function () {
-
-        beforeEach(function () {
+    describe('Mapper Instance', function () {
+        it('should provide a pure idempotent mapper function from the partial application', function () {
+            let schema = {
+                user: ['firstName', 'lastName'],
+                city: 'address.city'
+            };
+            let desiredResult = {
+                user: {
+                    firstName: 'John',
+                    lastName: 'Smith'
+                },
+                city: 'New York'
+            };
+            let mapper = Morphism(schema);
+            let results = mapper(this.dataToCrunch);
+            expect(results[0]).toEqual(desiredResult);
+            expect(results[0]).toEqual(mapper(this.dataToCrunch)[0]);
 
         });
+    });
+
+    describe('Paths Aggregation', function () {
+        it('should return a object of aggregated values given a array of paths', function () {
+            let schema = {
+                user: ['firstName', 'lastName']
+            };
+
+            let desiredResult = {
+                user: {
+                    firstName: 'John',
+                    lastName: 'Smith'
+                }
+            };
+            let results = Morphism(schema, this.dataToCrunch);
+            expect(results[0]).toEqual(desiredResult);
+        });
+    });
+
+    describe('Flat projection', function () {
 
         it('should flatten data from specified path', function () {
             let schema = {
@@ -81,13 +117,19 @@ describe('morphism', function () {
             expect(results[0]).toEqual(desiredResult);
         });
 
-        it('should set the value as default when anonymous function is provided', function () {
+        it('should pass the object value to the function when no path is specified', function () {
             let schema = {
-                status: () => 'morphism-ed'
+                firstName: 'firstName',
+                lastName: 'lastName',
+                city: 'address.city',
+                status: (o) => o.phoneNumber[0].type
             };
 
             let desiredResult = {
-                status: 'morphism-ed'
+                firstName: 'John',
+                lastName: 'Smith',
+                city: 'New York',
+                status: 'home'
             };
             let results = Morphism(schema, this.dataToCrunch);
             expect(results[0]).toEqual(desiredResult);
