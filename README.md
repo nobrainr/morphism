@@ -1,60 +1,143 @@
-# morphism [![NPM version][npm-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Dependency Status][daviddm-image]][daviddm-url] [![Coverage percentage][coveralls-image]][coveralls-url]
+# Morphism 
+[![NPM version][npm-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Dependency Status][daviddm-image]][daviddm-url] [![Coverage percentage][coveralls-image]][coveralls-url]
 > Helps you to transform any object structure to another
 
-## Installation
+## Communication
 
+- Twitter: [@renaudin_yann][twitter-account]
+- [GitHub Issues](https://github.com/emyann/morphism/issues)
+
+## Installation
 ```sh
 $ npm install --save morphism
 ```
 
-## Usage
+## What does it do?
+Morphism uses a semantic configuration to go through the collection of graph objects you have to process. Then it extracts and computes the value from the specified path(s). Finally, it sets this value to the destination property from the schema.
 
+### Usage
+Morphism is curried function that allows a partial application with a semantic configuration. You can use it in 2 ways:
+
+#### As a Mapper factory
 ```js
-var morphism = require('morphism');
+var Morphism = require('morphism');
 
-let dataToCrunch = [{
-            'firstName': 'John',
-            'lastName': 'Smith',
-            'age': 25,
-            'address':
-            {
-                'city': 'New York',
-                'state': 'NY',
-                'postalCode': '10021'
-            }
-        }];
+let mapping = { ... }
+let collectionOfObjects = [ ... ]
+let anotherCollection = [ ... ]
 
-let schema = { 
+// produces a reusable mapper from the configuration
+let myAwesomeMapper = Morphism(mapping);
+myAwesomeMapper(collectionOfObjects);
+myAwesomeMapper(anotherCollection);
+```
+
+#### As a Static instance
+```js
+var Morphism = require('morphism');
+
+let mapping = { ... }
+let collectionOfObjects = [ ... ]
+
+// extracts the data straight away 
+let results = Morphism(mapping, collectionOfObjects);
+```
+### Dataset sample
+```js
+// We'll use this set of data all along the examples
+let data = [{
+                'firstName': 'John',
+                'lastName': 'Smith',
+                'address':
+                {
+                    'city': 'New York',
+                    'country': 'USA'
+                },
+                'phoneNumber':
+                    [
+                        {
+                            'type': 'home',
+                            'number': '212 555-1234'
+                        },
+                        {
+                            'type': 'fax',
+                            'number': '646 555-4567'
+                        }
+                    ]
+                }];
+```
+
+
+### Simple mapping
+```js
+let data = [ ... ];
+let mapping = { 
                 pseudo: 'firstName',
                 lastName: 'lastName',
-                city: 'address.city'
-                state: {
-                    path: 'address.state',
-                    fn: (state) => state.toLowerCase()
-                },
-                status: () => 'morphed'
-            };
+                city: 'address.city' // get a value from a deep path
+               };
 
-let results = Morphism(schema, dataToCrunch);
-/** results[0]
-    {
-        pseudo: 'John',
-        lastName: 'Smith',
-        city: 'New York',
-        state:'ny',
-        status: 'morphed'
-    }
-*/
+let results = Morphism(mapping, data);
 
-// Or in a curried way
-let mapper = Morphism(schema);
-let results = mapper(dataToCrunch);
+console.log(results[0]) ==>  
+        {
+            pseudo: 'John',
+            lastName: 'Smith',
+            city: 'New York'
+        }
 ```
+### Value transformation
+```js
+let data = [ ... ];
+let mapping = { 
+                pseudo: 'firstName',
+                lastName: 'lastName',
+                city: {
+                    path: 'address.city',
+                    fn: (city) => city.toLowerCase() // compute a function on the specified path value
+                },
+                nbContacts: (object) => object.phoneNumber.length // compute a function on the iteratee object
+
+               };
+
+let mapper = Morphism(mapping);
+let results = mapper(data);
+
+console.log(results[0]) ==>  
+        {
+            pseudo: 'John',
+            lastName: 'Smith',
+            city: 'new york',// <== toLowerCase
+            nbContacts: 2 // <== computed from the object
+        }
+```
+
+### Values Aggregation
+```js
+let data = [ ... ];
+
+let mapping = { 
+                user: ['firstName','lastName'] // aggregate the values to an object
+                city: 'address.city'
+               };
+
+let results = Morphism(mapping, data);
+
+console.log(results[0]) ==>  
+        {
+            user: {
+                'firstName': 'John',
+                'lastName': 'Smith'
+            },
+            city: 'New York'
+        }
+```
+
 ## License
 
-MIT © [Yann Renaudin]()
+MIT © [Yann Renaudin][twitter-account]
 
-
+[twitter-account]: https://twitter.com/renaudin_yann
 [npm-image]: https://badge.fury.io/js/morphism.svg
 [npm-url]: https://npmjs.org/package/morphism
 [travis-image]: https://travis-ci.org/emyann/morphism.svg?branch=master
