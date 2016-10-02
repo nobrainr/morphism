@@ -12,4 +12,11 @@ node_js:
 
 before_script:
   - npm install -g gulp
+
 script: gulp
+
+deploy:
+  provider: npm
+  api_key: "$NPM_TOKEN"
+  on:
+    tags: true
