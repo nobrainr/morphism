@@ -1,0 +1,41 @@
+{
+  "name": "morphism",
+  "description": "Helps you to transform any object structure to another",
+  "main": "dist/index.js",
+  "authors": [
+    "Yann Renaudin"
+  ],
+  "license": "MIT",
+  "keywords": [
+    "Javascript",
+    "Json",
+    "Object",
+    "Mapper",
+    "Data",
+    "Mapping",
+    "Functional",
+    "Programming"
+  ],
+  "homepage": "https://github.com/emyann/morphism",
+  "moduleType": [
+    "es6",
+    "node"
+  ],
+  "ignore": [
+    "**/.*",
+    ".babelrc",
+    ".editorconfig",
+    ".eslintrc.json",
+    ".gitattributes",
+    ".gitignore",
+    ".travis.yml",
+    "npm-debug.log",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "lodash": "^4.16.2"
+  }
+}
