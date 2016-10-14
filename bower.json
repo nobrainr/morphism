@@ -18,13 +18,24 @@
   ],
   "homepage": "https://github.com/emyann/morphism",
   "moduleType": [
-    "es6"
+    "es6",
+    "node"
   ],
   "ignore": [
     "**/.*",
+    ".babelrc",
+    ".editorconfig",
+    ".eslintrc.json",
+    ".gitattributes",
+    ".gitignore",
+    ".travis.yml",
+    "npm-debug.log",
     "node_modules",
     "bower_components",
     "test",
     "tests"
-  ]
+  ],
+  "dependencies": {
+    "lodash": "^4.16.2"
+  }
 }
