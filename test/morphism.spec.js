@@ -1,5 +1,6 @@
 import expect from 'expect';
 import Morphism from '../lib/morphism';
+import { User } from './models.mocks';
 
 describe('morphism', function () {
 
@@ -135,4 +136,51 @@ describe('morphism', function () {
             expect(results[0]).toEqual(desiredResult);
         });
     });
+
+    describe('Mappers Registry', function () {
+        beforeEach(function(){
+
+        });
+
+        it('should throw an exception when using Registration function without parameters', function () {
+            expect(Morphism.register).toThrow(Error);
+        });
+
+        it('should return and store a mapper function after a registration', function () {
+            let schema = {
+                phoneNumber: 'phoneNumber[0].number'
+            };
+            let mapper = Morphism.register(User, schema);
+            expect(mapper).toBeA('function');
+            expect(Morphism.getMapper(User)).toEqual(mapper);
+        });
+
+        it('should allow to map data using a registered mapper', function () {
+            let schema = {
+                phoneNumber: 'phoneNumber[0].number'
+            };
+            let desiredResult = new User('John','Smith','212 555-1234');
+
+            Morphism.register(User, schema);
+            expect(Morphism.map(User, this.dataToCrunch)).toExist();
+            expect(Morphism.map(User, this.dataToCrunch)[0]).toEqual(desiredResult);
+        });
+
+        it('should [huge test]', function () {
+            let schema = {
+                firstName: 'firstName',
+                phoneNumber: 'phoneNumber[0].number'
+            };
+            let desiredResult = new User('John','Smith','212 555-1234');
+
+            Morphism.register(User, schema);
+            expect(Morphism.map(User, this.dataToCrunch)).toExist();
+            expect(Morphism.map(User, this.dataToCrunch)[0]).toEqual(desiredResult);
+        });
+    });
+
+    describe('Autofill Properties', function () {
+
+    });
 });
+

@@ -133,6 +133,28 @@ console.log(results[0]) ==>
         }
 ```
 
+### Registry of Mappers
+
+Morphism provides a local registry in which you can store your mappers' configuration. 
+
+```js
+class User {
+    constructor(firstName, lastName, phoneNumber){
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.phoneNumber = phoneNumber;
+    }
+}
+
+let mapUser = Morphism.register(User, schema);
+
+// Map using the registered type and the registry
+Morphism.map(User, data)
+
+// Or Map using the mapper reference
+mapUser(data);
+```
+
 ## License
 
 MIT © [Yann Renaudin][twitter-account]
