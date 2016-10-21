@@ -2,7 +2,7 @@ import expect from 'expect';
 import Morphism from '../lib/morphism';
 import { User } from './models.mocks';
 
-describe('morphism', function () {
+describe('Morphism', function () {
 
     beforeEach(function () {
         this.dataToCrunch = [{
@@ -28,6 +28,8 @@ describe('morphism', function () {
                 }
             ]
         }];
+        Morphism.deleteMapper(User);
+        this.mapUser = Morphism.register(User);
     });
 
     describe('Structural', function () {
@@ -44,6 +46,9 @@ describe('morphism', function () {
             expect(Morphism({}, this.dataToCrunch)).toBeA('object');
         });
 
+        it('should throw an exception when setting a mapper with a falsy schema', function () {
+            expect(() => { Morphism.setMapper(User, null); }).toThrow();
+        });
 
     });
 
@@ -138,49 +143,52 @@ describe('morphism', function () {
     });
 
     describe('Mappers Registry', function () {
-        beforeEach(function(){
-
-        });
 
         it('should throw an exception when using Registration function without parameters', function () {
             expect(Morphism.register).toThrow(Error);
         });
 
-        it('should return and store a mapper function after a registration', function () {
+        it('should throw an exception when trying to register a mapper type more than once', function () {
+            expect(() => { Morphism.register(User, {}); }).toThrow(Error);
+        });
+
+        it('should return the stored mapper after a registration', function () {
             let schema = {
                 phoneNumber: 'phoneNumber[0].number'
             };
-            let mapper = Morphism.register(User, schema);
+            let mapper = Morphism.setMapper(User, schema);
             expect(mapper).toBeA('function');
-            expect(Morphism.getMapper(User)).toEqual(mapper);
+            expect(this.mapUser).toEqual(mapper);
+        });
+
+        it('should get a stored mapper after a registration', function () {
+            Morphism.setMapper(User, {});
+            expect(Morphism.getMapper(User)).toBeA('function');
         });
 
         it('should allow to map data using a registered mapper', function () {
             let schema = {
                 phoneNumber: 'phoneNumber[0].number'
             };
-            let desiredResult = new User('John','Smith','212 555-1234');
-
-            Morphism.register(User, schema);
+            Morphism.setMapper(User, schema);
+            let desiredResult = new User('John', 'Smith', '212 555-1234');
             expect(Morphism.map(User, this.dataToCrunch)).toExist();
             expect(Morphism.map(User, this.dataToCrunch)[0]).toEqual(desiredResult);
         });
 
-        it('should [huge test]', function () {
+        it('should allow to map data using a mapper updated schema', function () {
             let schema = {
-                firstName: 'firstName',
                 phoneNumber: 'phoneNumber[0].number'
             };
-            let desiredResult = new User('John','Smith','212 555-1234');
-
-            Morphism.register(User, schema);
-            expect(Morphism.map(User, this.dataToCrunch)).toExist();
-            expect(Morphism.map(User, this.dataToCrunch)[0]).toEqual(desiredResult);
+            let mapper = Morphism.setMapper(User, schema);
+            let desiredResult = new User('John', 'Smith', '212 555-1234');
+            expect(mapper(this.dataToCrunch)[0]).toEqual(desiredResult);
         });
-    });
 
-    describe('Autofill Properties', function () {
-
+        it('should throw an exception when trying to set an non-registered type', function () {
+            Morphism.deleteMapper(User);
+            expect(() => { Morphism.setMapper(User, {}); }).toThrow();
+        });
     });
 });
 
