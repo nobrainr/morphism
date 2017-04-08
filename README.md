@@ -3,12 +3,12 @@
 [![NPM version][npm-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Dependency Status][daviddm-image]][daviddm-url] [![Coverage percentage][coveralls-image]][coveralls-url]
 > Helps you to transform any object structure to another
 
-## Contribution
+## Contribution ✌🏽
 
 - Twitter: [@renaudin_yann][twitter-account]
-- Pull requests and stars are always welcome. For bugs and feature requests, [please create an issue](https://github.com/emyann/morphism/issues)
+- Pull requests and stars are always welcome 🙏🏽 For bugs and feature requests, [please create an issue](https://github.com/emyann/morphism/issues)
 
-## Getting started
+## Getting started 🚀
 
 Install `morphism` using npm.
 
@@ -32,11 +32,11 @@ If you're using [browserify](http://browserify.org/), the `morphism` npm module
 also works from the browser.
 
 
-## What does it do?
+## What does it do? 💡
 
 Morphism uses a semantic configuration to go through the collection of graph objects you have to process. Then it extracts and computes the value from the specified path(s). Finally, it sets this value to the destination property from the schema.
 
-## Usage
+## Usage 🍔
 Morphism is curried function that allows a partial application with a semantic configuration. You can use it in 2 ways:
 
 ### As a Mapper factory
