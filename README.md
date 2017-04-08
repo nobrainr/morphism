@@ -3,10 +3,10 @@
 [![NPM version][npm-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Dependency Status][daviddm-image]][daviddm-url] [![Coverage percentage][coveralls-image]][coveralls-url]
 > Helps you to transform any object structure to another
 
-## Communication
+## Contribution
 
 - Twitter: [@renaudin_yann][twitter-account]
-- [GitHub Issues](https://github.com/emyann/morphism/issues)
+- Pull requests and stars are always welcome. For bugs and feature requests, [please create an issue](https://github.com/emyann/morphism/issues)
 
 ## Getting started
 
