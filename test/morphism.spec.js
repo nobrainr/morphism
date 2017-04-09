@@ -190,5 +190,21 @@ describe('Morphism', function () {
             expect(() => { Morphism.setMapper(User, {}); }).toThrow();
         });
     });
+
+    describe('Class Type Mapping', function () {
+
+        it('should use the constructor default value if source does not have field to map', function () {
+            let schema = {
+                type: 'type'
+            };
+            let desiredResult = {
+                type: 'User'
+            };
+            let mapper = Morphism.register(User, schema);
+            let results = mapper(this.dataToCrunch);
+            expect(results[0]).toEqual(desiredResult);
+        });
+
+    });
 });
 
