@@ -158,10 +158,10 @@ let results = Morphism(mapping, data);
 
 ### Mappers Registry
 
-Morphism provides a powerful local registry where you can store your mappings' configuration by specifying a Type.
+Morphism provides a powerful local registry where you can store your mappings' configuration by specifying a Class Type.
 The transformation sequences are stored as a function in a WeakMap to speed the processing.
 
-**Register a mapping configuration**
+**Register a mapping configuration along with a Class**
 ```js
 class User {
     constructor(firstName, lastName, phoneNumber){
