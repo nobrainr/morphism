@@ -119,7 +119,7 @@ let collectionOfObjects = [ ... ]
 // extracts the data straight away 
 let results = Morphism(mapping, collectionOfObjects);
 ```
-
+## Mapping Schema Examples
 ### Dataset sample
 ```js
 // We'll use this set of data all along the examples
