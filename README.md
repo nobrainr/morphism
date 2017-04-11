@@ -85,6 +85,15 @@ Morphism.map(User, data)
 
 // Or Map using the mapper reference
 mapUser(data);
+
+/// *** OUTPUT *** ///
+
+[{
+    'firstName': 'John',
+    'lastName': 'Smith',
+    'phoneNumber': '212 555-1234',
+    'city': 'New York'
+ }]
 ```
 
 ### As a Mapper factory
