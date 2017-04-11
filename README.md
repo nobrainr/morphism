@@ -41,12 +41,41 @@ Morphism is curried function that allows a partial application with a semantic c
 
 ### Along with an ES6 Class
 ```js
+// Target type you want to have
 class User {
     constructor(firstName, lastName, phoneNumber){
         this.firstName = firstName;
         this.lastName = lastName;
         this.phoneNumber = phoneNumber;
-    }
+        this.city = null;
+   }
+}
+
+// Data source you want to map
+let data = [{
+                'firstName': 'John',
+                'lastName': 'Smith',
+                'address':
+                    {
+                        'city': 'New York',
+                        'country': 'USA'
+                    },
+                'phoneNumber':
+                    [
+                        {
+                            'type': 'home',
+                            'number': '212 555-1234'
+                        },
+                        {
+                            'type': 'fax',
+                            'number': '646 555-4567'
+                        }
+                    ]
+             }];
+// Mapping Schema ( see more examples below )
+let schema = {
+    city: 'adress.city',
+    phoneNumber: (object) => object.phoneNumber.filter(c => c.type === 'home')[0].number;
 }
 
 let mapUser = Morphism.register(User, schema);
