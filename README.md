@@ -37,7 +37,26 @@ also works from the browser.
 Morphism uses a semantic configuration to go through the collection of graph objects you have to process. Then it extracts and computes the value from the specified path(s). Finally, it sets this value to the destination property from the schema.
 
 ## Usage 
-Morphism is curried function that allows a partial application with a semantic configuration. You can use it in 2 ways:
+Morphism is curried function that allows a partial application with a semantic configuration. You can use it in many ways:
+
+### Along with an ES6 Class
+```js
+class User {
+    constructor(firstName, lastName, phoneNumber){
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.phoneNumber = phoneNumber;
+    }
+}
+
+let mapUser = Morphism.register(User, schema);
+
+// Map using the registered type and the registry
+Morphism.map(User, data)
+
+// Or Map using the mapper reference
+mapUser(data);
+```
 
 ### As a Mapper factory
 ```js
@@ -62,6 +81,7 @@ let collectionOfObjects = [ ... ]
 // extracts the data straight away 
 let results = Morphism(mapping, collectionOfObjects);
 ```
+
 ### Dataset sample
 ```js
 // We'll use this set of data all along the examples
