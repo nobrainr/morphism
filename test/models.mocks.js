@@ -3,6 +3,8 @@ export class User {
         this.firstName = firstName;
         this.lastName = lastName;
         this.phoneNumber = phoneNumber;
+
+        this.type = 'User'; // Use to test default value scenario
     }
 }
 

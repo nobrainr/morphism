@@ -190,5 +190,35 @@ describe('Morphism', function () {
             expect(() => { Morphism.setMapper(User, {}); }).toThrow();
         });
     });
+
+    describe('Class Type Mapping', function () {
+
+        beforeEach(()=>{
+            Morphism.deleteMapper(User);
+        });
+
+        it('should use the constructor default value if source value is undefined', function () {
+            let sourceData = {
+                firstName: 'John',
+                lastName: 'Smith',
+                type: undefined // <== this field should fallback to the type constructor default value
+            };
+            let desiredResult = new User('John', 'Smith');
+            let mapper = Morphism.register(User, {});
+
+            expect(mapper([sourceData])[0]).toEqual(desiredResult);
+        });
+
+        it('should override the default value if source value is defined', function () {
+            let sourceData = {
+                phoneNumber: null
+            };
+
+            let mapper = Morphism.register(User, {});
+            let result = mapper([sourceData])[0];
+            expect(result.phoneNumber).toEqual(null);
+        });
+
+    });
 });
 
