@@ -197,7 +197,7 @@ describe('Morphism', function () {
             Morphism.deleteMapper(User);
         });
 
-        it('should use the constructor default value if source does not have field to map', function () {
+        it('should use the constructor default value if source value is undefined', function () {
             let phoneNumber = [
                 {
                     type: 'home',
@@ -212,6 +212,16 @@ describe('Morphism', function () {
 
             let mapper = Morphism.register(User, {});
             expect(mapper(this.dataToCrunch)[0]).toEqual(desiredResult);
+        });
+
+        it('should override the default value if source value is defined', function () {
+            let sourceData = {
+                phoneNumber: null
+            };
+
+            let mapper = Morphism.register(User, {});
+            let result = mapper([sourceData])[0];
+            expect(result.phoneNumber).toEqual(null);
         });
 
     });
