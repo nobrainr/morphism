@@ -193,16 +193,25 @@ describe('Morphism', function () {
 
     describe('Class Type Mapping', function () {
 
+        beforeEach(()=>{
+            Morphism.deleteMapper(User);
+        });
+
         it('should use the constructor default value if source does not have field to map', function () {
-            let schema = {
-                type: 'type'
-            };
-            let desiredResult = {
-                type: 'User'
-            };
-            let mapper = Morphism.register(User, schema);
-            let results = mapper(this.dataToCrunch);
-            expect(results[0]).toEqual(desiredResult);
+            let phoneNumber = [
+                {
+                    type: 'home',
+                    number: '212 555-1234'
+                },
+                {
+                    type: 'fax',
+                    number: '646 555-4567'
+                }
+            ];
+            let desiredResult = new User('John', 'Smith', phoneNumber);
+
+            let mapper = Morphism.register(User, {});
+            expect(mapper(this.dataToCrunch)[0]).toEqual(desiredResult);
         });
 
     });
