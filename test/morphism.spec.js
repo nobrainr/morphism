@@ -198,20 +198,15 @@ describe('Morphism', function () {
         });
 
         it('should use the constructor default value if source value is undefined', function () {
-            let phoneNumber = [
-                {
-                    type: 'home',
-                    number: '212 555-1234'
-                },
-                {
-                    type: 'fax',
-                    number: '646 555-4567'
-                }
-            ];
-            let desiredResult = new User('John', 'Smith', phoneNumber);
-
+            let sourceData = {
+                firstName: 'John',
+                lastName: 'Smith',
+                type: undefined // <== this field should fallback to the type constructor default value
+            };
+            let desiredResult = new User('John', 'Smith');
             let mapper = Morphism.register(User, {});
-            expect(mapper(this.dataToCrunch)[0]).toEqual(desiredResult);
+
+            expect(mapper([sourceData])[0]).toEqual(desiredResult);
         });
 
         it('should override the default value if source value is defined', function () {
