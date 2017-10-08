@@ -370,8 +370,7 @@ describe('Morphism', function () {
 
         it('should fallback to constructor default value and ignore function when path value is undefined', function () {
             let mock = {
-                lastname: 'user-lastname',
-
+                lastname: 'user-lastname'
             };
             let schema = {
                 type : {
