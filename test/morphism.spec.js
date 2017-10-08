@@ -43,11 +43,49 @@ describe('Morphism', function () {
         });
 
         it('should provide an array of results when Morphism applied on array of data', function () {
-            expect(Morphism({}, this.dataToCrunch)).toBeA('object');
+            expect(Morphism({}, [])).toBeAn('array');
+            expect(Morphism({}, [])).toEqual([]);
+        });
+
+        it('should provide an Object as result when Morphism is applied on an Object', function () {
+            expect(Morphism({}, [])).toBeAn('object');
+            expect(Morphism({}, {})).toEqual({});
         });
 
         it('should throw an exception when setting a mapper with a falsy schema', function () {
             expect(() => { Morphism.setMapper(User, null); }).toThrow();
+        });
+
+        it('should throw an exception when trying to access a path from an undefined object', function () {
+            Morphism.setMapper(User, {
+                fieldWillThrow: {
+                    path: 'fieldWillThrow.becauseNotReachable',
+                    fn: (object) => {
+                        let failHere = object.value;
+                        return failHere;
+                    }
+                }
+            });
+            let applyMapping = () => Morphism.map(User, {
+                fieldWillThrow : 'value'
+            });
+            expect(applyMapping).toThrow();
+        });
+
+        it('should rethrow an exception when applying a function on path throws an error', function () {
+            const err = new TypeError('an internal error');
+            Morphism.setMapper(User, {
+                fieldWillThrow: {
+                    path: 'fieldWillThrow',
+                    fn: () => {
+                        throw err;
+                    }
+                }
+            });
+            let applyMapping = () => Morphism.map(User, {
+                fieldWillThrow : 'value'
+            });
+            expect(applyMapping).toThrow(TypeError);
         });
 
     });
@@ -70,6 +108,77 @@ describe('Morphism', function () {
             expect(results[0]).toEqual(desiredResult);
             expect(results[0]).toEqual(mapper(this.dataToCrunch)[0]);
 
+        });
+    });
+
+    describe('Schema', function () {
+        describe('Function Predicate', function () {
+            it('should support es6 destructuring as function predicate', function () {
+                let schema = {
+                    target: ({source}) => source
+                };
+                let mock = {
+                    source: 'value'
+                };
+                let expected = {
+                    target: 'value'
+                };
+                let result = Morphism(schema, mock);
+                expect(result).toEqual(expected);
+            });
+
+            it('should support nesting mapping', function () {
+                let nestedSchema = {
+                    target1: 'source',
+                    target2: ({nestedSource}) => nestedSource.source
+                };
+                let schema = {
+                    complexTarget: ({complexSource}) => Morphism(nestedSchema, complexSource)
+                };
+                let mock = {
+                    complexSource: {
+                        source: 'value1',
+                        nestedSource: {
+                            source: 'value2'
+                        }
+                    }
+                };
+                let expected = {
+                    complexTarget: {
+                        target1: 'value1',
+                        target2: 'value2'
+                    }
+                };
+                let result = Morphism(schema, mock);
+                expect(result).toEqual(expected);
+            });
+
+            it('should be resilient when doing nesting mapping and using destructuration on array', function () {
+                let nestedSchema = {
+                    target: 'source',
+                    nestedTargets: ({ nestedSources }) => Morphism(
+                        { nestedTarget: ({ nestedSource }) => nestedSource },
+                        nestedSources)
+                };
+                let schema = {
+                    complexTarget: ({complexSource}) => Morphism(nestedSchema, complexSource)
+                };
+                let mock = {
+                    complexSource: {
+                        source: 'value1',
+                        nestedSources: []
+                    }
+                };
+                let expected = {
+                    complexTarget: {
+                        target: 'value1',
+                        nestedTargets: []
+                    }
+                };
+                let result = Morphism(schema, mock);
+                expect(result).toEqual(expected);
+
+            });
         });
     });
 
@@ -204,9 +313,15 @@ describe('Morphism', function () {
                 type: undefined // <== this field should fallback to the type constructor default value
             };
             let desiredResult = new User('John', 'Smith');
-            let mapper = Morphism.register(User, {});
-
+            let mapper = Morphism.register(User);
+            expect(desiredResult.type).toEqual('User');
             expect(mapper([sourceData])[0]).toEqual(desiredResult);
+        });
+
+
+        it('should return undefined if undefined is given to map without doing any processing', function () {
+            Morphism.register(User, { a: 'firstName'});
+            expect(Morphism.map(User, undefined)).toEqual(undefined);
         });
 
         it('should override the default value if source value is defined', function () {
@@ -216,9 +331,60 @@ describe('Morphism', function () {
 
             let mapper = Morphism.register(User, {});
             let result = mapper([sourceData])[0];
+            expect((new User()).phoneNumber).toEqual(undefined);
             expect(result.phoneNumber).toEqual(null);
         });
 
+        it('should provide an Object as result when Morphism is applied on a typed Object', function () {
+            let mock = {
+                number: '12345'
+            };
+
+            let mapper = Morphism.register(User, { phoneNumber: 'number' });
+            let result = mapper(mock);
+            expect(result.phoneNumber).toEqual(mock.number);
+            expect(result).toBeA(User);
+        });
+
+        it('should provide an Object as result when Morphism is applied on a typed Object usin .map', function () {
+            let mock = {
+                number: '12345'
+            };
+
+            Morphism.register(User, { phoneNumber: 'number' });
+            let result = Morphism.map(User, mock);
+            expect(result.phoneNumber).toEqual(mock.number);
+            expect(result).toBeA(User);
+        });
+
+        it('should provide a List of Objects as result when Morphism is applied on a list', function () {
+            let mock = {
+                number: '12345'
+            };
+
+            Morphism.register(User, { phoneNumber: 'number' });
+            let result = Morphism.map(User, [mock]);
+            expect(result[0].phoneNumber).toEqual(mock.number);
+            expect(result[0]).toBeA(User);
+        });
+
+        it('should fallback to constructor default value and ignore function when path value is undefined', function () {
+            let mock = {
+                lastname: 'user-lastname',
+
+            };
+            let schema = {
+                type : {
+                    path: 'unreachable.path',
+                    fn: (value) => value
+                }
+            };
+
+            Morphism.register(User, schema);
+            expect((new User()).type).toEqual('User');
+
+            let result = Morphism.map(User, mock);
+            expect(result.type).toEqual('User');
+        });
     });
 });
-
