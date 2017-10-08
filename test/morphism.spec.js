@@ -32,7 +32,7 @@ describe('Morphism', function () {
         this.mapUser = Morphism.register(User);
     });
 
-    describe('Structural', function () {
+    describe('Plain Objects', function () {
         it('should export Morphism function curried function', function () {
             expect(Morphism).toBeA('function');
         });
@@ -88,6 +88,37 @@ describe('Morphism', function () {
             expect(applyMapping).toThrow(TypeError);
         });
 
+        it('should allow to use a mapper as an iteratee first function', function () {
+            let mocks = [
+                {source: 'value'},
+                {source: 'value'},
+                {source: 'value'}
+            ];
+            let schema={
+                target:'source'
+            };
+            const mapper = Morphism(schema);
+            let results = mocks.map(mapper);
+            results.forEach(res => {
+                expect(res).toEqual({target: 'value'});
+            });
+        });
+
+        it('should allow to use a mapper declaration as an iteratee first function', function () {
+            let mocks = [
+                {source: 'value'},
+                {source: 'value'},
+                {source: 'value'}
+            ];
+            let schema={
+                target:'source'
+            };
+
+            let results = mocks.map(Morphism(schema));
+            results.forEach(res => {
+                expect(res).toEqual({target: 'value'});
+            });
+        });
     });
 
     describe('Mapper Instance', function () {
@@ -417,6 +448,71 @@ describe('Morphism', function () {
 
             let result = Morphism.map(User, mock);
             expect(result.type).toEqual('User');
+        });
+
+        describe('Projection', () => {
+            it('should allow to map property one to one when using `Morphism.map(Type,object)` without registration', function () {
+                let mock =  {field: 'value'};
+                class Target {
+                    constructor(field){
+                        this.field = field;
+                    }
+                }
+                const result = Morphism.map(Target, mock);
+                expect(result).toEqual(new Target('value'));
+            });
+
+            it('should allow to map property one to one when using `Morphism.map(Type,data)` without registration', function () {
+                let mocks = [
+                    {field: 'value'},
+                    {field: 'value'},
+                    {field: 'value'}
+                ];
+                class Target {
+                    constructor(field){
+                        this.field = field;
+                    }
+                }
+                const results = Morphism.map(Target, mocks);
+                results.forEach(res => {
+                    expect(res).toEqual(new Target('value'));
+                });
+            });
+
+            it('should allow to use Morphism.map as an iteratee first function', function () {
+                let mocks = [
+                    {field: 'value'},
+                    {field: 'value'},
+                    {field: 'value'}
+                ];
+                class Target {
+                    constructor(field){
+                        this.field = field;
+                    }
+                }
+                const results = mocks.map(Morphism.map(Target));
+                results.forEach(res => {
+                    expect(res).toEqual(new Target('value'));
+                });
+            });
+
+            it('should allow to use mapper from `Morphism.map(Type, undefined)` as an iteratee first function', function () {
+                let mocks = [
+                    {field: 'value'},
+                    {field: 'value'},
+                    {field: 'value'}
+                ];
+                class Target {
+                    constructor(field){
+                        this.field = field;
+                    }
+                }
+                const mapper = Morphism.map(Target);
+                const results = mocks.map(mapper);
+                results.forEach(res => {
+                    expect(res).toEqual(new Target('value'));
+                });
+            });
         });
     });
 });
