@@ -107,7 +107,6 @@ describe('Morphism', function () {
             let results = mapper(this.dataToCrunch);
             expect(results[0]).toEqual(desiredResult);
             expect(results[0]).toEqual(mapper(this.dataToCrunch)[0]);
-
         });
     });
 
@@ -197,9 +196,43 @@ describe('Morphism', function () {
             let results = Morphism(schema, this.dataToCrunch);
             expect(results[0]).toEqual(desiredResult);
         });
+
+        it('should return a object of aggregated values given a array of paths (nested path case)', function () {
+            let schema = {
+                user: ['firstName', 'address.city']
+            };
+
+            let desiredResult = {
+                user: {
+                    firstName: 'John',
+                    address: {
+                        city: 'New York'
+                    }
+                }
+            };
+            let results = Morphism(schema, this.dataToCrunch);
+            expect(results[0]).toEqual(desiredResult);
+        });
+
+
+        it('should provide an aggregate as a result from an array of paths when applying a function',()=>{
+            let data = {a:1 , b: { c: 2 }};
+            let rules = {
+                ac: {
+                    path: ['a','b.c'],
+                    fn: aggregate => {
+                        expect(aggregate).toEqual({ a:1, b:{ c:2 } });
+                        return aggregate;
+                    }
+                }
+            };
+            let res = Morphism(rules, data);
+
+            expect(res).toEqual({ac: { a:1, b:{ c:2 } }});
+        });
     });
 
-    describe('Flat projection', function () {
+    describe('Flattening and Projection', function () {
 
         it('should flatten data from specified path', function () {
             let schema = {
