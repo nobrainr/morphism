@@ -382,6 +382,12 @@ describe('Morphism', function () {
             expect(mapper([sourceData])[0]).toEqual(desiredResult);
         });
 
+        it('should allow straight mapping from a Type', () => {
+            let userName = 'user-name';
+            let user = Morphism(null,{firstName: userName}, User);
+            expect(user).toEqual(new User(userName));
+        });
+
 
         it('should return undefined if undefined is given to map without doing any processing', function () {
             Morphism.register(User, { a: 'firstName'});
