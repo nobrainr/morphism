@@ -11,7 +11,7 @@
 # Morphism
 
 [![NPM version][npm-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Dependency Status][daviddm-image]][daviddm-url] [![Coverage percentage][coveralls-image]][coveralls-url]
-> Mapper and Deserializer for JavaScript Object Literals, and ES6 Class Objects. Scale your data processing. 🚀
+> Mapper for JavaScript Object Literals, and ES6 Class Objects. Scale your data processing. 🚀
 
 ## Contribution 
 
@@ -49,7 +49,9 @@ Morphism uses a configuration object schema to go through the collection of grap
 Mapping code is boring and it can occur in many places in an application, but mostly in the boundaries between layers, such as between the UI/Domain layers, or Service/Domain layers. Concerns of one layer often conflict with concerns in another, so object-object mapping leads to segregated models, where concerns for each layer can affect only types in that layer.
 
 ### How do I use Morphism? 🍔
-Morphism is curried function that allows a partial application with a semantic configuration. You can use it in many ways:
+Morphism is a curried function
+Morphism will map null values.
+Morphism will fallback to constructor property value when source is undefined.
 
 ## Object Literals
 ### Flattening
