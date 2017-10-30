@@ -394,7 +394,7 @@ describe('Morphism', function () {
             };
             let schema = {
                 firstName : 'userName'
-            }
+            };
             let user = Morphism(schema, dataSource, User);
             expect(user).toEqual(new User(dataSource.userName));
         });
