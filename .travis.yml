@@ -1,7 +1,4 @@
 branches:
-    only:
-        - master
-        - develop
     except:
         - /^v\d+\.\d+\.\d+$/
 
@@ -10,8 +7,6 @@ node_js:
     - v8
     - v7
     - v6
-    - v5
-    - v4
 
 before_script:
   - npm install -g gulp
@@ -20,6 +15,3 @@ script: gulp
 after_success:
   - npm run semantic-release
 
-branches:
-    except:
-        - /^v\d+\.\d+\.\d+$/
