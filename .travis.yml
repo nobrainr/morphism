@@ -1,15 +1,17 @@
 branches:
-  only:
-  - master
-  - develop
+    except:
+        - /^v\d+\.\d+\.\d+$/
 
 language: node_js
 node_js:
-  - v6
-  - v5
-  - v4
-
+    - v8
+    - v7
+    - v6
 
 before_script:
   - npm install -g gulp
 script: gulp
+
+after_success:
+  - npm run semantic-release
+
