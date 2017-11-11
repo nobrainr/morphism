@@ -1,6 +1,9 @@
 branches:
-  except:
-    - /^v\d+\.\d+\.\d+$/
+    only:
+        - master
+        - develop
+    except:
+        - /^v\d+\.\d+\.\d+$/
 
 language: node_js
 node_js:
@@ -14,3 +17,7 @@ script: gulp
 
 after_success:
   - npm run semantic-release
+
+branches:
+    except:
+        - /^v\d+\.\d+\.\d+$/
