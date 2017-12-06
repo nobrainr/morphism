@@ -283,3 +283,14 @@ MIT © [Yann Renaudin][twitter-account]
 [daviddm-url]: https://david-dm.org/emyann/morphism
 [coveralls-image]: https://coveralls.io/repos/emyann/morphism/badge.svg
 [coveralls-url]: https://coveralls.io/r/emyann/morphism
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-110532012-2"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-110532012-2');
+</script>
