@@ -33,11 +33,17 @@ Or using ES6 import style
 import Morphism from 'morphism';
 ```
 
-### What is Morphism? 👥
+<details>
+<summary> What is Morphism? 👥 </summary>
 
 > In many fields of mathematics, **morphism** refers to a structure-preserving map from one mathematical structure to another.
 
 Morphism maps any Javascript Object into another. It works by transforming an input object of one type into an output object of a different type. What makes Morphism interesting is that it provides some interesting conventions to take the dirty work out of figuring out how to map an Object A to an Object|Type B. But you'll still have the control over the way how your business logic is applied during those transformations.
+</details>
+
+ <!-- ### What is Morphism? 👥  -->
+
+
 
 ### How do I use Morphism? 🍔
 
