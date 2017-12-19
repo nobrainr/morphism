@@ -34,7 +34,8 @@ import Morphism from 'morphism';
 ```
 
 <details>
-<summary> What is Morphism? 👥 </summary>
+<summary> ### What is Morphism? 👥 </summary>
+<br>
 
 > In many fields of mathematics, **morphism** refers to a structure-preserving map from one mathematical structure to another.
 
