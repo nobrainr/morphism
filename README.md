@@ -1,19 +1,14 @@
 # Morphism
 
-[twitter-account]: https://twitter.com/renaudin_yann
-[npm-image]: https://badge.fury.io/js/morphism.svg
-[npm-url]: https://npmjs.org/package/morphism
-[travis-image]: https://travis-ci.org/emyann/morphism.svg?branch=master
-[travis-url]: https://travis-ci.org/emyann/morphism
-[daviddm-image]: https://david-dm.org/emyann/morphism.svg?theme=shields.io
-[daviddm-url]: https://david-dm.org/emyann/morphism
-[coveralls-image]: https://coveralls.io/repos/emyann/morphism/badge.svg
-[coveralls-url]: https://coveralls.io/r/emyann/morphism
-
 [![NPM version][npm-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Dependency Status][daviddm-image]][daviddm-url] [![Coverage percentage][coveralls-image]][coveralls-url]
-> Mapper for JavaScript Object Literals, and ES6 Class Objects. Scale your data processing. 🚀
+> Helps you to transform any object structure to another
 
-## Getting Started 🚀
+## Contribution 
+
+- Twitter: [@renaudin_yann][twitter-account]
+- Pull requests and stars are always welcome 🙏🏽 For bugs and feature requests, [please create an issue](https://github.com/emyann/morphism/issues)
+
+## Getting started 🚀 
 
 Install `morphism` using npm.
 
@@ -24,7 +19,7 @@ npm install --save morphism
 Then require it into any module.
 
 ```js
-const Morphism = require('morphism');
+const Morphism = require('morphism'); 
 ```
 
 Or using ES6 import style
@@ -33,65 +28,215 @@ Or using ES6 import style
 import Morphism from 'morphism';
 ```
 
-<details>
-<summary> <h3> What is Morphism? 👥 </h3> </summary>
-<br>
-
-> In many fields of mathematics, **morphism** refers to a structure-preserving map from one mathematical structure to another.
-
-Morphism maps any Javascript Object into another. It works by transforming an input object of one type into an output object of a different type. What makes Morphism interesting is that it provides some interesting conventions to take the dirty work out of figuring out how to map an Object A to an Object|Type B. But you'll still have the control over the way how your business logic is applied during those transformations.
-</details>
-
- <!-- ### What is Morphism? 👥  -->
+If you're using [browserify](http://browserify.org/), the `morphism` npm module
+also works from the browser.
 
 
+## What does it do? 🤔
 
-### How do I use Morphism? 🍔
+Morphism uses a semantic configuration to go through the collection of graph objects you have to process. Then it extracts and computes the value from the specified path(s). Finally, it sets this value to the destination property from the schema.
 
-Morphism is a curried function
-Morphism will map null values.
-Morphism will fallback to constructor property value when source is undefined.
+## Usage 🍔
+Morphism is curried function that allows a partial application with a semantic configuration. You can use it in many ways:
 
-Morphism uses a configuration object schema to go through the collection of graph objects you have to process. Then it extracts and computes the value from the specified path(s). Finally, it sets this value to the destination property from the schema.
-
-### Why use Morphism? 🤔
-
-Mapping code is boring and it can occur in many places in an application, but mostly in the boundaries between layers, such as between the UI/Domain layers, or Service/Domain layers. Concerns of one layer often conflict with concerns in another, so object-object mapping leads to segregated models, where concerns for each layer can affect only types in that layer.
-
-When you're consuming an API, it's always dangerous to have `new Object()` statements spread all over the place. Morphism helps you transform on-the-fly  your JSON responses into your Domain Model Objects. It can also act as Factory by providing a local registry to store a mapping along with a Class Type.
-
----
-
-## Data Transformation
-
-### Input/Ouput Dimension
-
-By design, the output result always match the dimension of the input data source.
-
+### Along with an ES6 Class
 ```js
-expect(Morphism(schema, [])).toEqual([]);
-expect(Morphism(schema, {})).toEqual({});
+// Target type you want to have
+class User {
+    constructor(firstName, lastName, phoneNumber){
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.phoneNumber = phoneNumber;
+        this.city = null;
+   }
+}
+
+// Data source you want to map
+let data = [{
+                'firstName': 'John',
+                'lastName': 'Smith',
+                'address':
+                    {
+                        'city': 'New York',
+                        'country': 'USA'
+                    },
+                'phoneNumber':
+                    [
+                        {
+                            'type': 'home',
+                            'number': '212 555-1234'
+                        },
+                        {
+                            'type': 'fax',
+                            'number': '646 555-4567'
+                        }
+                    ]
+             }];
+// Mapping Schema ( see more examples below )
+let schema = {
+    city: 'adress.city',
+    phoneNumber: (object) => object.phoneNumber.filter(c => c.type === 'home')[0].number;
+}
+
+let mapUser = Morphism.register(User, schema);
+
+// Map using the registered type and the registry
+Morphism.map(User, data)
+
+// Or Map using the mapper reference
+mapUser(data);
+
+/// *** OUTPUT *** ///
+
+[{
+    'firstName': 'John',
+    'lastName': 'Smith',
+    'phoneNumber': '212 555-1234',
+    'city': 'New York'
+ }]
 ```
 
-### Flattening
+### As a Mapper factory
+```js
 
-### Projection
+let mapping = { ... }
+let collectionOfObjects = [ ... ]
+let anotherCollection = [ ... ]
 
-### Aggregation
+// produces a reusable mapper from the configuration
+let myAwesomeMapper = Morphism(mapping);
+myAwesomeMapper(collectionOfObjects);
+myAwesomeMapper(anotherCollection);
+```
 
-### Nested Mappings
+### As a Static instance
+```js
+const Morphism = require('morphism'); 
 
-## ES6 Class Objects
+let mapping = { ... }
+let collectionOfObjects = [ ... ]
 
-### Factory
+// extracts the data straight away 
+let results = Morphism(mapping, collectionOfObjects);
+```
+## Mapping Schema Examples 💡
+### Dataset sample
+```js
+// We'll use this set of data all along the examples
+let data = [{
+                'firstName': 'John',
+                'lastName': 'Smith',
+                'address':
+                {
+                    'city': 'New York',
+                    'country': 'USA'
+                },
+                'phoneNumber':
+                    [
+                        {
+                            'type': 'home',
+                            'number': '212 555-1234'
+                        },
+                        {
+                            'type': 'fax',
+                            'number': '646 555-4567'
+                        }
+                    ]
+                }];
+```
 
-### Registry
 
-Morphism provides a local registry to store a mapping along with a Class Type.
+### Flattening and Projection
+
+```js
+let data = [ ... ];
+let mapping = { 
+                pseudo: 'firstName', // Simple Projection
+                lastName: 'lastName',
+                city: 'address.city' // Flatten a value from a deep path
+               };
+
+let results = Morphism(mapping, data);
+
+// results[0]: {
+//                 pseudo: 'John',
+//                 lastName: 'Smith',
+//                 city: 'New York'
+//             }
+```
 
 
-### Configuration
+### Computing over Flattening / Projection
 
+```js
+let data = [ ... ];
+let mapping = { 
+                pseudo: 'firstName',
+                lastName: 'lastName',
+                city: {
+                    path: 'address.city',
+                    fn: (city) => city.toLowerCase() // compute a function on the specified path value
+                },
+                nbContacts: (object) => object.phoneNumber.length // compute a function on the iteratee object
+
+               };
+
+let mapper = Morphism(mapping);
+let results = mapper(data);
+
+// results[0]): {
+//                 pseudo: 'John',
+//                 lastName: 'Smith',
+//                 city: 'new york',// <== toLowerCase
+//                 nbContacts: 2 // <== computed from the object
+//              }
+```
+
+
+### Values Aggregation
+
+```js
+let data = [ ... ];
+
+let mapping = {
+                user: ['firstName','lastName'] // aggregate the values to an object
+                city: 'address.city'
+               };
+
+let results = Morphism(mapping, data);
+
+// results[0]: {
+//                 user: {
+//                     'firstName': 'John',
+//                     'lastName': 'Smith'
+//                 },
+//                 city: 'New York'
+//             }
+```
+
+### Mappers Registry 📚
+
+Morphism provides a powerful local registry where you can store your mappings' configuration by specifying a Class Type.
+The transformation sequences are stored as a function in a WeakMap to speed the processing.
+
+**Register a mapping configuration along with a Class**
+```js
+class User {
+    constructor(firstName, lastName, phoneNumber){
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.phoneNumber = phoneNumber;
+    }
+}
+
+let mapUser = Morphism.register(User, schema);
+
+// Map using the registered type and the registry
+Morphism.map(User, data)
+
+// Or Map using the mapper reference
+mapUser(data);
+```
 
 ### API 📚
 
@@ -123,10 +268,18 @@ Morphism.setMapper(type, schema:{});
 Morphism.deleteMapper(type, schema:{});
 ```
 
-## Contributing
 
-- Pull requests and stars are always welcome 🙏🏽 For bugs, feature requests and questions, [please create an issue](https://github.com/emyann/morphism/issues)
 
 ## License
 
 MIT © [Yann Renaudin][twitter-account]
+
+[twitter-account]: https://twitter.com/renaudin_yann
+[npm-image]: https://badge.fury.io/js/morphism.svg
+[npm-url]: https://npmjs.org/package/morphism
+[travis-image]: https://travis-ci.org/emyann/morphism.svg?branch=master
+[travis-url]: https://travis-ci.org/emyann/morphism
+[daviddm-image]: https://david-dm.org/emyann/morphism.svg?theme=shields.io
+[daviddm-url]: https://david-dm.org/emyann/morphism
+[coveralls-image]: https://coveralls.io/repos/emyann/morphism/badge.svg
+[coveralls-url]: https://coveralls.io/r/emyann/morphism
