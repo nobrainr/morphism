@@ -20,7 +20,7 @@ const plugins = [
     })
 ];
 
-if(!isProd){
+if (!isProd) {
     plugins.push(new DashboardPlugin());
 }
 
@@ -46,7 +46,14 @@ var config = {
                 exclude: ['node_modules'],
                 use: ['awesome-typescript-loader', 'source-map-loader']
             },
-            { test: /\.css$/, loaders: ['style-loader', 'css-loader'] }
+            {
+                test: /\.(js|ts)$/,
+                loader: 'istanbul-instrumenter-loader',
+                exclude: [/\/node_modules\//],
+                query: {
+                    esModules: true
+                }
+            }
         ]
     },
     resolve: {
