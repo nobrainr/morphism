@@ -1,12 +1,10 @@
 import {
-    assign,
     assignInWith,
     set,
     get,
-    isString,
     mapValues,
     isFunction,
-    isUndefined,
+    isString,
     zipObject,
     memoize
 } from 'lodash';
@@ -16,6 +14,10 @@ const aggregator = (paths: any, object: any) => {
         return set(delta, path, get(object, path));
     }, {});
 };
+
+function isUndefined(value: any) {
+    return value === undefined
+}
 
 function isObject(value: any) {
     const type = typeof value;
@@ -148,7 +150,7 @@ Morphism = (schema: any, items: any, type: any) => {
 const getSchemaForType = (type: any, baseSchema: any) => {
     let typeFields = Object.keys(new type());
     let defaultSchema = zipObject(typeFields, typeFields);
-    let finalSchema = assign(defaultSchema, baseSchema);
+    let finalSchema = Object.assign(defaultSchema, baseSchema);
     return finalSchema;
 };
 /**

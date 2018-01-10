@@ -32,8 +32,8 @@ var config = {
     },
     output: {
         path: path.resolve('./dist'),
-        filename: '[name].bundle.js',
-        sourceMapFilename: '[name].bundle.map',
+        filename: 'morphism.js',
+        sourceMapFilename: 'morphism.map',
         devtoolModuleFilenameTemplate: function (info) {
             return 'file:///' + info.absoluteResourcePath;
         }
