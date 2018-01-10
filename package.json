@@ -24,6 +24,7 @@
     "@types/jasmine": "^2.5.53",
     "@types/lodash": "^4.14.70",
     "awesome-typescript-loader": "^3.2.1",
+    "coveralls": "^3.0.0",
     "cross-env": "^5.0.1",
     "expect": "^1.20.2",
     "istanbul-instrumenter-loader": "^3.0.0",
@@ -36,6 +37,7 @@
     "karma-sourcemap-loader": "^0.3.7",
     "karma-spec-reporter": "0.0.31",
     "karma-webpack": "^2.0.4",
+    "rimraf": "^2.6.1",
     "semantic-release": "^8.2.0",
     "source-map-loader": "^0.2.1",
     "tslint": "^5.5.0",
@@ -43,8 +45,7 @@
     "typescript": "^2.6.2",
     "webpack": "^3.3.0",
     "webpack-dashboard": "^0.4.0",
-    "webpack-dev-server": "2.5.1",
-    "rimraf": "^2.6.1"
+    "webpack-dev-server": "2.5.1"
   },
   "eslintConfig": {
     "extends": "xo-space",
