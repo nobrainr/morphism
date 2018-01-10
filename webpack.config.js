@@ -1,13 +1,23 @@
 const webpack = require('webpack');
 const path = require('path');
 const DashboardPlugin = require('webpack-dashboard/plugin');
+const UglifyJsPlugin = require("uglifyjs-webpack-plugin");
 const nodeEnv = process.env.NODE_ENV || 'development';
 const isProd = nodeEnv === 'production';
 
 const plugins = [
-    new webpack.optimize.UglifyJsPlugin({
-        compress: { warnings: false },
-        output: { comments: false },
+    new UglifyJsPlugin({
+        parallel: true,
+        uglifyOptions: {
+          ie8: false,
+          ecma: 6,
+          warnings: true,
+          mangle: isProd, // debug false
+          output: {
+            comments: false,
+            beautify: !isProd,  // debug true
+          }
+        },
         sourceMap: true
     }),
     new webpack.LoaderOptionsPlugin({
@@ -33,6 +43,8 @@ var config = {
     output: {
         path: path.resolve('./dist'),
         filename: 'morphism.js',
+        library: 'morphism',
+        libraryTarget: 'commonjs-module',
         sourceMapFilename: 'morphism.map',
         devtoolModuleFilenameTemplate: function (info) {
             return 'file:///' + info.absoluteResourcePath;

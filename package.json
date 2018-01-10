@@ -11,7 +11,7 @@
   "files": [
     "dist"
   ],
-  "main": "dist/morphism.js",
+  "main": "./dist/morphism.js",
   "keywords": [
     "Javascript",
     "Json",
@@ -43,6 +43,7 @@
     "tslint": "^5.5.0",
     "tslint-loader": "^3.5.3",
     "typescript": "^2.6.2",
+    "uglifyjs-webpack-plugin": "^1.0.0-rc.0",
     "webpack": "^3.3.0",
     "webpack-dashboard": "^0.4.0",
     "webpack-dev-server": "2.5.1"
