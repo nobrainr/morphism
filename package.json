@@ -12,6 +12,7 @@
     "dist"
   ],
   "main": "./dist/morphism.js",
+  "types": "./dist/morphism.d.ts",
   "keywords": [
     "Javascript",
     "Json",

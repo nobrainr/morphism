@@ -3,9 +3,10 @@
     "target": "es5",
     "module": "commonjs",
     "sourceMap": true,
+    "declaration": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "allowJs": true,
+    "outDir": "dist",
     "lib": [
       "es2015",
       "dom"

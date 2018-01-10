@@ -38,7 +38,7 @@ var config = {
     devtool: isProd ? 'hidden-source-map' : 'source-map',
     context: path.resolve('./src'),
     entry: {
-        app: './index.ts'
+        app: './morphism.ts'
     },
     output: {
         path: path.resolve('./dist'),
