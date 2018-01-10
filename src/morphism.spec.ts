@@ -80,7 +80,7 @@ describe('Morphism', function () {
         it('should throw an exception when trying to access a path from an undefined object', function () {
             Morphism.setMapper(User, {
                 fieldWillThrow: {
-                    path: 'fieldWillThr:ow.becauseNotReachable',
+                    path: 'fieldWillThrow.becauseNotReachable',
                     fn: (object: any) => {
                         let failHere = object.value;
                         return failHere;
