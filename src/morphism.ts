@@ -91,12 +91,6 @@ const transformItems = (schema: any, customizer: any) => (input: any) => {
 let Morphism: {
     (schema: any, items?: any, type?: any): any
     [key: string]: any;
-    // register: any;
-    // map: any;
-    // getMapper: any;
-    // setMapper: any;
-    // deleteMapper: any;
-    // mappers: any;
 }
 /**
  * Object Literals Mapper (Curried Function)
@@ -236,23 +230,6 @@ class MorphismRegistry {
         return _registry.cache.delete(type);
     }
 }
-
-let wrapper = (function(Morphism) {
-    const _Morphism = Morphism;
-
-
-
-    return function(type: any) {
-        // your code
-
-        const result = _Morphism.apply(this, arguments); // use .apply() to call it
-
-        // more of your code
-
-        return result;
-    };
-})(Morphism);
-
 
 /** API */
 Morphism.register = MorphismRegistry.register;
