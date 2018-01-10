@@ -1,0 +1,7 @@
+{
+  "globalDependencies": {
+  },
+  "dependencies": {
+    "lodash": "registry:npm/lodash#4.0.0+20160723033700"
+  }
+}
