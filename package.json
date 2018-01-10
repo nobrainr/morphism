@@ -1,6 +1,6 @@
 {
   "name": "morphism",
-  "version": "0.5.0",
+  "version": "0.6.1",
   "description": "Helps you to transform any object structure to another",
   "homepage": "https://emyann.github.io/morphism/",
   "author": {
