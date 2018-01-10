@@ -17,6 +17,6 @@ before_install:
   - sh -e /etc/init.d/xvfb start
 
 after_success:
-  - cat ./tests/coverage/lcov.info | ./node_modules/bin/coveralls
+  - cat ./tests/coverage/lcov.info | ./node_modules/.bin/coveralls
   - npm run semantic-release
 
