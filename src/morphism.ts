@@ -26,20 +26,21 @@ function isObject(value: any) {
 
 
 /**
- * Low Level transformer function (without type consideration).
+ * Low Level transformer function.
  * Take a plain object as input and transform its values using a specified schema.
  * @param  {Object} object
  * @param  {Map<string, string> | Map<string, Function>} schema Transformation schema
  * @param  {Array} items Items to be forwarded to Actions
+ * @param  {} constructed Created tranformed object of a given type
  */
-function transformValuesFromObject(object: any, schema: any, items: any[]) {
+function transformValuesFromObject(object: any, schema: any, items: any[], constructed: any) {
 
     return mapValues(schema, (action, targetProperty) => { // iterate on every action of the schema
         if (isString(action)) { // Action<String>: string path => [ target: 'source' ]
             return get(object, action);
         }
         else if (isFunction(action)) { // Action<Function>: Free Computin - a callback called with the current object and collection [ destination: (object) => {...} ]
-            return action.call(undefined, object, items);
+            return action.call(undefined, object, items, constructed);
         }
         else if (Array.isArray(action)) { // Action<Array>: Aggregator - string paths => : [ destination: ['source1', 'source2', 'source3'] ]
             return aggregator(action, object);
@@ -53,7 +54,7 @@ function transformValuesFromObject(object: any, schema: any, items: any[]) {
             }
             let result;
             try {
-                result = action.fn.call(undefined, value, object, items);
+                result = action.fn.call(undefined, value, object, items, constructed);
             } catch (e) {
                 e.message = `Unable to set target property [${targetProperty}].
                                 \n An error occured when applying [${action.fn.name}] on property [${action.path}]
@@ -66,24 +67,24 @@ function transformValuesFromObject(object: any, schema: any, items: any[]) {
     });
 }
 
-const transformItems = (schema: any, customizer: any) => (input: any) => {
+const transformItems = (schema: any, customizer: any, constructed: any) => (input: any) => {
     if (!input) {
         return input;
     }
     if (Array.isArray(input)) {
         return input.map(obj => {
             if (customizer) {
-                return customizer(transformValuesFromObject(obj, schema, input));
+                return customizer(transformValuesFromObject(obj, schema, input, constructed));
             } else {
-                return transformValuesFromObject(obj, schema, input);
+                return transformValuesFromObject(obj, schema, input, null);
             }
         });
     } else {
         const object = input;
         if (customizer) {
-            return customizer(transformValuesFromObject(object, schema, [object]));
+            return customizer(transformValuesFromObject(object, schema, [object], constructed));
         } else {
-            return transformValuesFromObject(object, schema, [object]);
+            return transformValuesFromObject(object, schema, [object], null);
         }
     }
 
@@ -117,25 +118,31 @@ let Morphism: {
  *  const output = Morphism(schema, input);
  */
 Morphism = (schema: any, items: any, type: any) => {
+        let constructed: any = null;
+
+        if(type) {
+            constructed = new type();
+        }
+
         const customizer = (data: any) => {
             const undefinedValueCheck = (destination: any, source: any) => {
                 if (isUndefined(source)) return destination;
             };
-            return assignInWith(new type(), data, undefinedValueCheck);
+            return assignInWith(constructed, data, undefinedValueCheck);
         };
         if (items === undefined && type === undefined) {
-            return transformItems(schema, null);
+            return transformItems(schema, null, null);
         } else if (schema && items && type) {
-            return transformItems(schema, customizer)(items);
+            return transformItems(schema, customizer, constructed)(items);
         } else if (schema && items) {
-            return transformItems(schema, null)(items);
+            return transformItems(schema, null, null)(items);
         } else if (type && items) {
             let finalSchema = getSchemaForType(type, schema);
-            return transformItems(finalSchema, customizer)(items);
+            return transformItems(finalSchema, customizer, constructed)(items);
         } else if (type) {
             let finalSchema = getSchemaForType(type, schema);
             return (futureInput: any) => {
-                return transformItems(finalSchema, customizer)(futureInput);
+                return transformItems(finalSchema, customizer, constructed)(futureInput);
             };
         }
     };
