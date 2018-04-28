@@ -6,12 +6,25 @@ class User {
     phoneNumber: string;
     type: string;
 
+    groups: Array<any>; 
+
     constructor(firstName?: string, lastName?: string, phoneNumber?: string) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.phoneNumber = phoneNumber;
 
         this.type = 'User'; // Use to test default value scenario
+        this.groups = new Array<any>();
+    }
+
+    /**
+     * Use to test runtime access to the created object context
+     * @param {} group
+     * @param {} externalTrigger
+     */
+    addToGroup(group: any, externalTrigger: any) {
+        this.groups.push(group);
+        externalTrigger(this, group);
     }
 }
 
@@ -422,6 +435,33 @@ describe('Morphism', function () {
             expect(user).toEqual(new User(dataSource.userName));
         });
 
+        it('should pass created object context for complex interractions within object', function () {
+            let dataSource = {
+                groups: [
+                    'main', 'test'
+                ]
+            };
+
+            let triggered = false;
+            let trigger = (user: User, group: any) => {
+                triggered = true;
+            };
+
+            let schema = {
+                groups: (object : any, items : any, constructed : User) => {
+                    if(object.groups) {
+                        for (let group of object.groups) {
+                            constructed.addToGroup(group, trigger);
+                        }
+                    }
+                }
+            };
+            let user = Morphism(schema, dataSource, User);
+            let expectedUser = new User()
+            expectedUser.groups = dataSource.groups;
+            expect(user).toEqual(expectedUser);
+            expect(triggered).toEqual(true);
+        });
 
         it('should return undefined if undefined is given to map without doing any processing', function () {
             Morphism.register(User, { a: 'firstName'});
