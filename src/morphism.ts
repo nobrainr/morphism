@@ -1,4 +1,4 @@
-import { assignInWith, set, get, isFunction, zipObject, memoize } from 'lodash';
+import { assignInWith, set, get, isFunction, memoize } from 'lodash';
 
 const aggregator = (paths: any, object: any) => {
   return paths.reduce((delta: any, path: any) => {
@@ -17,6 +17,12 @@ function isObject(value: any) {
 
 function isString(value: any): value is string {
   return typeof value === 'string' || value instanceof String;
+}
+
+function zipObject(props: string[], values: any[]) {
+  return props.reduce((prev, prop, i) => {
+    return { ...prev, [prop]: values[i] };
+  }, {});
 }
 
 export interface Schema {
