@@ -1,4 +1,4 @@
-import { assignInWith, set, get, isFunction, isString, zipObject, memoize, MapCache } from 'lodash';
+import { assignInWith, set, get, isFunction, zipObject, memoize } from 'lodash';
 
 const aggregator = (paths: any, object: any) => {
   return paths.reduce((delta: any, path: any) => {
@@ -13,6 +13,10 @@ function isUndefined(value: any) {
 function isObject(value: any) {
   const type = typeof value;
   return value != null && (type === 'object' || type === 'function');
+}
+
+function isString(value: any): value is string {
+  return typeof value === 'string' || value instanceof String;
 }
 
 export interface Schema {
@@ -96,7 +100,7 @@ let Morphism: {
   getMapper?: (type: any) => any;
   setMapper?: (type: any, schema: Schema) => any;
   deleteMapper?: (type: any) => any;
-  mappers?: MapCache;
+  mappers?: Map<any, any>;
 };
 /**
  * Object Literals Mapper (Curried Function)
@@ -217,7 +221,7 @@ class MorphismRegistry {
   }
 
   static get mappers() {
-    return _registry.cache;
+    return _registry.cache as Map<any, any>;
   }
 
   static exists(type: any) {
