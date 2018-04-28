@@ -1,4 +1,4 @@
-import { assignInWith, set, get, mapValues, isFunction, isString, zipObject, memoize, MapCache } from 'lodash';
+import { assignInWith, set, get, isFunction, isString, zipObject, memoize, MapCache } from 'lodash';
 
 const aggregator = (paths: any, object: any) => {
   return paths.reduce((delta: any, path: any) => {
@@ -32,38 +32,40 @@ export interface Schema {
  * @param  {} constructed Created tranformed object of a given type
  */
 function transformValuesFromObject(object: any, schema: Schema, items: any[], constructed: any) {
-  return mapValues(schema, (action, targetProperty) => {
-    // iterate on every action of the schema
-    if (isString(action)) {
-      // Action<String>: string path => [ target: 'source' ]
-      return get(object, action);
-    } else if (isFunction(action)) {
-      // Action<Function>: Free Computin - a callback called with the current object and collection [ destination: (object) => {...} ]
-      return action.call(undefined, object, items, constructed);
-    } else if (Array.isArray(action)) {
-      // Action<Array>: Aggregator - string paths => : [ destination: ['source1', 'source2', 'source3'] ]
-      return aggregator(action, object);
-    } else if (isObject(action)) {
-      // Action<Object>: a path and a function: [ destination : { path: 'source', fn:(fieldValue, items) }]
-      let value;
-      if (Array.isArray(action.path)) {
-        value = aggregator(action.path, object);
-      } else if (isString(action.path)) {
-        value = get(object, action.path);
-      }
-      let result;
-      try {
-        result = action.fn.call(undefined, value, object, items, constructed);
-      } catch (e) {
-        e.message = `Unable to set target property [${targetProperty}].
+  return Object.entries(schema)
+    .map(([targetProperty, action]) => {
+      // iterate on every action of the schema
+      if (isString(action)) {
+        // Action<String>: string path => [ target: 'source' ]
+        return { [targetProperty]: get(object, action) };
+      } else if (isFunction(action)) {
+        // Action<Function>: Free Computin - a callback called with the current object and collection [ destination: (object) => {...} ]
+        return { [targetProperty]: action.call(undefined, object, items, constructed) };
+      } else if (Array.isArray(action)) {
+        // Action<Array>: Aggregator - string paths => : [ destination: ['source1', 'source2', 'source3'] ]
+        return { [targetProperty]: aggregator(action, object) };
+      } else if (isObject(action)) {
+        // Action<Object>: a path and a function: [ destination : { path: 'source', fn:(fieldValue, items) }]
+        let value;
+        if (Array.isArray(action.path)) {
+          value = aggregator(action.path, object);
+        } else if (isString(action.path)) {
+          value = get(object, action.path);
+        }
+        let result;
+        try {
+          result = action.fn.call(undefined, value, object, items, constructed);
+        } catch (e) {
+          e.message = `Unable to set target property [${targetProperty}].
                                 \n An error occured when applying [${action.fn.name}] on property [${action.path}]
                                 \n Internal error: ${e.message}`;
-        throw e;
-      }
+          throw e;
+        }
 
-      return result;
-    }
-  });
+        return { [targetProperty]: result };
+      }
+    })
+    .reduce((finalObject, keyValue) => ({ ...finalObject, ...keyValue }), {});
 }
 
 const transformItems = (schema: Schema, customizer: any, constructed: any) => (input: any) => {
