@@ -1,13 +1,4 @@
-import {
-    assignInWith,
-    set,
-    get,
-    mapValues,
-    isFunction,
-    isString,
-    zipObject,
-    memoize
-} from 'lodash';
+import { assignInWith, set, get, mapValues, isFunction, isString, zipObject, memoize } from 'lodash';
 
 const aggregator = (paths: any, object: any) => {
     return paths.reduce((delta: any, path: any) => {
@@ -16,14 +7,13 @@ const aggregator = (paths: any, object: any) => {
 };
 
 function isUndefined(value: any) {
-    return value === undefined
+    return value === undefined;
 }
 
 function isObject(value: any) {
     const type = typeof value;
     return value != null && (type === 'object' || type === 'function');
 }
-
 
 /**
  * Low Level transformer function.
@@ -34,18 +24,19 @@ function isObject(value: any) {
  * @param  {} constructed Created tranformed object of a given type
  */
 function transformValuesFromObject(object: any, schema: any, items: any[], constructed: any) {
-
-    return mapValues(schema, (action, targetProperty) => { // iterate on every action of the schema
-        if (isString(action)) { // Action<String>: string path => [ target: 'source' ]
+    return mapValues(schema, (action, targetProperty) => {
+        // iterate on every action of the schema
+        if (isString(action)) {
+            // Action<String>: string path => [ target: 'source' ]
             return get(object, action);
-        }
-        else if (isFunction(action)) { // Action<Function>: Free Computin - a callback called with the current object and collection [ destination: (object) => {...} ]
+        } else if (isFunction(action)) {
+            // Action<Function>: Free Computin - a callback called with the current object and collection [ destination: (object) => {...} ]
             return action.call(undefined, object, items, constructed);
-        }
-        else if (Array.isArray(action)) { // Action<Array>: Aggregator - string paths => : [ destination: ['source1', 'source2', 'source3'] ]
+        } else if (Array.isArray(action)) {
+            // Action<Array>: Aggregator - string paths => : [ destination: ['source1', 'source2', 'source3'] ]
             return aggregator(action, object);
-        }
-        else if (isObject(action)) { // Action<Object>: a path and a function: [ destination : { path: 'source', fn:(fieldValue, items) }]
+        } else if (isObject(action)) {
+            // Action<Object>: a path and a function: [ destination : { path: 'source', fn:(fieldValue, items) }]
             let value;
             if (Array.isArray(action.path)) {
                 value = aggregator(action.path, object);
@@ -59,7 +50,7 @@ function transformValuesFromObject(object: any, schema: any, items: any[], const
                 e.message = `Unable to set target property [${targetProperty}].
                                 \n An error occured when applying [${action.fn.name}] on property [${action.path}]
                                 \n Internal error: ${e.message}`;
-                throw (e);
+                throw e;
             }
 
             return result;
@@ -87,12 +78,11 @@ const transformItems = (schema: any, customizer: any, constructed: any) => (inpu
             return transformValuesFromObject(object, schema, [object], null);
         }
     }
-
 };
 let Morphism: {
-    (schema: any, items?: any, type?: any): any
+    (schema: any, items?: any, type?: any): any;
     [key: string]: any;
-}
+};
 /**
  * Object Literals Mapper (Curried Function)
  * Only gives a Schema as parameter will output a mapper function to pass items to.
@@ -118,35 +108,34 @@ let Morphism: {
  *  const output = Morphism(schema, input);
  */
 Morphism = (schema: any, items: any, type: any) => {
-        let constructed: any = null;
+    let constructed: any = null;
 
-        if(type) {
-            constructed = new type();
-        }
+    if (type) {
+        constructed = new type();
+    }
 
-        const customizer = (data: any) => {
-            const undefinedValueCheck = (destination: any, source: any) => {
-                if (isUndefined(source)) return destination;
-            };
-            return assignInWith(constructed, data, undefinedValueCheck);
+    const customizer = (data: any) => {
+        const undefinedValueCheck = (destination: any, source: any) => {
+            if (isUndefined(source)) return destination;
         };
-        if (items === undefined && type === undefined) {
-            return transformItems(schema, null, null);
-        } else if (schema && items && type) {
-            return transformItems(schema, customizer, constructed)(items);
-        } else if (schema && items) {
-            return transformItems(schema, null, null)(items);
-        } else if (type && items) {
-            let finalSchema = getSchemaForType(type, schema);
-            return transformItems(finalSchema, customizer, constructed)(items);
-        } else if (type) {
-            let finalSchema = getSchemaForType(type, schema);
-            return (futureInput: any) => {
-                return transformItems(finalSchema, customizer, constructed)(futureInput);
-            };
-        }
+        return assignInWith(constructed, data, undefinedValueCheck);
     };
-
+    if (items === undefined && type === undefined) {
+        return transformItems(schema, null, null);
+    } else if (schema && items && type) {
+        return transformItems(schema, customizer, constructed)(items);
+    } else if (schema && items) {
+        return transformItems(schema, null, null)(items);
+    } else if (type && items) {
+        let finalSchema = getSchemaForType(type, schema);
+        return transformItems(finalSchema, customizer, constructed)(items);
+    } else if (type) {
+        let finalSchema = getSchemaForType(type, schema);
+        return (futureInput: any) => {
+            return transformItems(finalSchema, customizer, constructed)(futureInput);
+        };
+    }
+};
 
 const getSchemaForType = (type: any, baseSchema: any) => {
     let typeFields = Object.keys(new type());
@@ -175,7 +164,7 @@ class MorphismRegistry {
      *
      * @param {Type} type Class Type to be registered
      * @param {Object} schema Configuration of how properties are computed from the source
-        * @param {Object | Array } items Object or Collection to be mapped
+     * @param {Object | Array } items Object or Collection to be mapped
      * @returns {Function<T>} Mapper function to be used against a data source
      */
     static register(type: any, schema?: any) {
@@ -230,7 +219,6 @@ class MorphismRegistry {
             _registry.cache.set(type, fn);
             return _registry(type);
         }
-
     }
 
     static deleteMapper(type: any) {

@@ -6,7 +6,7 @@ class User {
     phoneNumber: string;
     type: string;
 
-    groups: Array<any>; 
+    groups: Array<any>;
 
     constructor(firstName?: string, lastName?: string, phoneNumber?: string) {
         this.firstName = firstName;
@@ -30,67 +30,67 @@ class User {
 
 class Track {
     id: any;
-    title: any
+    title: any;
     constructor(id: any, title: any) {
         this.id = id;
         this.title = title;
     }
 }
 
-
-describe('Morphism', function () {
-
-    beforeEach(function () {
-        this.dataToCrunch = [{
-            'firstName': 'John',
-            'lastName': 'Smith',
-            'age': 25,
-            'address':
+describe('Morphism', function() {
+    beforeEach(function() {
+        this.dataToCrunch = [
             {
-                'streetAddress': '21 2nd Street',
-                'city': 'New York',
-                'state': 'NY',
-                'postalCode': '10021'
-            },
-            'phoneNumber':
-            [
-                {
-                    'type': 'home',
-                    'number': '212 555-1234'
+                firstName: 'John',
+                lastName: 'Smith',
+                age: 25,
+                address: {
+                    streetAddress: '21 2nd Street',
+                    city: 'New York',
+                    state: 'NY',
+                    postalCode: '10021'
                 },
-                {
-                    'type': 'fax',
-                    'number': '646 555-4567'
-                }
-            ]
-        }];
+                phoneNumber: [
+                    {
+                        type: 'home',
+                        number: '212 555-1234'
+                    },
+                    {
+                        type: 'fax',
+                        number: '646 555-4567'
+                    }
+                ]
+            }
+        ];
         Morphism.deleteMapper(User);
         this.mapUser = Morphism.register(User);
     });
 
-    describe('Plain Objects', function () {
-        it('should export Morphism function curried function', function () {
+    describe('Plain Objects', function() {
+        it('should export Morphism function curried function', function() {
             expect(typeof Morphism).toEqual('function');
         });
 
-        it('should provide a mapper function from the partial application', function () {
+        it('should provide a mapper function from the partial application', function() {
             let fn = Morphism({});
             expect(typeof fn).toEqual('function');
         });
 
-        it('should provide an array of results when Morphism applied on array of data', function () {
+        it('should provide an array of results when Morphism applied on array of data', function() {
             expect(Morphism({}, [])).toEqual([]);
         });
 
-        it('should provide an Object as result when Morphism is applied on an Object', function () {
+        it('should provide an Object as result when Morphism is applied on an Object', function() {
             expect(Morphism({}, {})).toEqual({});
         });
 
-        it('should throw an exception when setting a mapper with a falsy schema', function () {
-            expect(() => { Morphism.setMapper(User, null); }).toThrow();
+        it('should throw an exception when setting a mapper with a falsy schema', function() {
+            expect(() => {
+                Morphism.setMapper(User, null);
+            }).toThrow();
         });
 
-        it('should throw an exception when trying to access a path from an undefined object', function () {
+        it('should throw an exception when trying to access a path from an undefined object', function() {
             Morphism.setMapper(User, {
                 fieldWillThrow: {
                     path: 'fieldWillThrow.becauseNotReachable',
@@ -100,13 +100,14 @@ describe('Morphism', function () {
                     }
                 }
             });
-            let applyMapping = () => Morphism.map(User, {
-                fieldWillThrow : 'value'
-            });
+            let applyMapping = () =>
+                Morphism.map(User, {
+                    fieldWillThrow: 'value'
+                });
             expect(applyMapping).toThrow();
         });
 
-        it('should rethrow an exception when applying a function on path throws an error', function () {
+        it('should rethrow an exception when applying a function on path throws an error', function() {
             const err = new TypeError('an internal error');
             Morphism.setMapper(User, {
                 fieldWillThrow: {
@@ -116,47 +117,40 @@ describe('Morphism', function () {
                     }
                 }
             });
-            let applyMapping = () => Morphism.map(User, {
-                fieldWillThrow : 'value'
-            });
+            let applyMapping = () =>
+                Morphism.map(User, {
+                    fieldWillThrow: 'value'
+                });
             expect(applyMapping).toThrow(err);
         });
 
-        it('should allow to use a mapper as an iteratee first function', function () {
-            let mocks = [
-                {source: 'value'},
-                {source: 'value'},
-                {source: 'value'}
-            ];
+        it('should allow to use a mapper as an iteratee first function', function() {
+            let mocks = [{ source: 'value' }, { source: 'value' }, { source: 'value' }];
             let schema = {
                 target: 'source'
             };
             const mapper = Morphism(schema);
             let results = mocks.map(mapper);
             results.forEach(res => {
-                expect(res).toEqual({target: 'value'});
+                expect(res).toEqual({ target: 'value' });
             });
         });
 
-        it('should allow to use a mapper declaration as an iteratee first function', function () {
-            let mocks = [
-                {source: 'value'},
-                {source: 'value'},
-                {source: 'value'}
-            ];
+        it('should allow to use a mapper declaration as an iteratee first function', function() {
+            let mocks = [{ source: 'value' }, { source: 'value' }, { source: 'value' }];
             let schema = {
                 target: 'source'
             };
 
             let results = mocks.map(Morphism(schema));
             results.forEach(res => {
-                expect(res).toEqual({target: 'value'});
+                expect(res).toEqual({ target: 'value' });
             });
         });
     });
 
-    describe('Mapper Instance', function () {
-        it('should provide a pure idempotent mapper function from the partial application', function () {
+    describe('Mapper Instance', function() {
+        it('should provide a pure idempotent mapper function from the partial application', function() {
             let schema = {
                 user: ['firstName', 'lastName'],
                 city: 'address.city'
@@ -175,11 +169,11 @@ describe('Morphism', function () {
         });
     });
 
-    describe('Schema', function () {
-        describe('Function Predicate', function () {
-            it('should support es6 destructuring as function predicate', function () {
+    describe('Schema', function() {
+        describe('Function Predicate', function() {
+            it('should support es6 destructuring as function predicate', function() {
                 let schema = {
-                    target: ({source}: any) => source
+                    target: ({ source }: any) => source
                 };
                 let mock = {
                     source: 'value'
@@ -191,13 +185,13 @@ describe('Morphism', function () {
                 expect(result).toEqual(expected);
             });
 
-            it('should support nesting mapping', function () {
+            it('should support nesting mapping', function() {
                 let nestedSchema = {
                     target1: 'source',
-                    target2: ({nestedSource}: any) => nestedSource.source
+                    target2: ({ nestedSource }: any) => nestedSource.source
                 };
                 let schema = {
-                    complexTarget: ({complexSource}: any) => Morphism(nestedSchema, complexSource)
+                    complexTarget: ({ complexSource }: any) => Morphism(nestedSchema, complexSource)
                 };
                 let mock = {
                     complexSource: {
@@ -217,15 +211,14 @@ describe('Morphism', function () {
                 expect(result).toEqual(expected);
             });
 
-            it('should be resilient when doing nesting mapping and using destructuration on array', function () {
+            it('should be resilient when doing nesting mapping and using destructuration on array', function() {
                 let nestedSchema = {
                     target: 'source',
-                    nestedTargets: ({ nestedSources }: any) => Morphism(
-                        { nestedTarget: ({ nestedSource }: any) => nestedSource },
-                        nestedSources)
+                    nestedTargets: ({ nestedSources }: any) =>
+                        Morphism({ nestedTarget: ({ nestedSource }: any) => nestedSource }, nestedSources)
                 };
                 let schema = {
-                    complexTarget: ({complexSource}: any) => Morphism(nestedSchema, complexSource)
+                    complexTarget: ({ complexSource }: any) => Morphism(nestedSchema, complexSource)
                 };
                 let mock: any = {
                     complexSource: {
@@ -241,13 +234,12 @@ describe('Morphism', function () {
                 };
                 let result = Morphism(schema, mock);
                 expect(result).toEqual(expected);
-
             });
         });
     });
 
-    describe('Paths Aggregation', function () {
-        it('should return a object of aggregated values given a array of paths', function () {
+    describe('Paths Aggregation', function() {
+        it('should return a object of aggregated values given a array of paths', function() {
             let schema = {
                 user: ['firstName', 'lastName']
             };
@@ -262,7 +254,7 @@ describe('Morphism', function () {
             expect(results[0]).toEqual(desiredResult);
         });
 
-        it('should return a object of aggregated values given a array of paths (nested path case)', function () {
+        it('should return a object of aggregated values given a array of paths (nested path case)', function() {
             let schema = {
                 user: ['firstName', 'address.city']
             };
@@ -279,9 +271,8 @@ describe('Morphism', function () {
             expect(results[0]).toEqual(desiredResult);
         });
 
-
         it('should provide an aggregate as a result from an array of paths when applying a function', () => {
-            let data = {a: 1 , b: { c: 2 }};
+            let data = { a: 1, b: { c: 2 } };
             let rules = {
                 ac: {
                     path: ['a', 'b.c'],
@@ -293,13 +284,12 @@ describe('Morphism', function () {
             };
             let res = Morphism(rules, data);
 
-            expect(res).toEqual({ac: { a: 1, b: { c: 2 } }});
+            expect(res).toEqual({ ac: { a: 1, b: { c: 2 } } });
         });
     });
 
-    describe('Flattening and Projection', function () {
-
-        it('should flatten data from specified path', function () {
+    describe('Flattening and Projection', function() {
+        it('should flatten data from specified path', function() {
             let schema = {
                 firstName: 'firstName',
                 lastName: 'lastName',
@@ -315,7 +305,7 @@ describe('Morphism', function () {
             expect(results[0]).toEqual(desiredResult);
         });
 
-        it('should compute function on data from specified path', function () {
+        it('should compute function on data from specified path', function() {
             let schema = {
                 state: {
                     path: 'address.state',
@@ -330,7 +320,7 @@ describe('Morphism', function () {
             expect(results[0]).toEqual(desiredResult);
         });
 
-        it('should pass the object value to the function when no path is specified', function () {
+        it('should pass the object value to the function when no path is specified', function() {
             let schema = {
                 firstName: 'firstName',
                 lastName: 'lastName',
@@ -349,33 +339,34 @@ describe('Morphism', function () {
         });
     });
 
-    describe('Mappers Registry', function () {
-
-        it('should throw an exception when using Registration function without parameters', function () {
+    describe('Mappers Registry', function() {
+        it('should throw an exception when using Registration function without parameters', function() {
             expect(Morphism.register).toThrow();
         });
 
-        it('should throw an exception when trying to register a mapper type more than once', function () {
-            expect(() => { Morphism.register(User, {}); }).toThrow();
+        it('should throw an exception when trying to register a mapper type more than once', function() {
+            expect(() => {
+                Morphism.register(User, {});
+            }).toThrow();
         });
 
-        it('should return the stored mapper after a registration', function () {
+        it('should return the stored mapper after a registration', function() {
             let schema = {
                 phoneNumber: 'phoneNumber[0].number'
             };
             let mapper = Morphism.setMapper(User, schema);
-            let mapperSaved =   Morphism.getMapper(User, schema);
+            let mapperSaved = Morphism.getMapper(User, schema);
             expect(typeof mapper).toEqual('function');
             expect(typeof mapperSaved).toEqual('function');
             expect(mapperSaved).toEqual(mapper);
         });
 
-        it('should get a stored mapper after a registration', function () {
+        it('should get a stored mapper after a registration', function() {
             Morphism.setMapper(User, {});
             expect(typeof Morphism.getMapper(User)).toEqual('function');
         });
 
-        it('should allow to map data using a registered mapper', function () {
+        it('should allow to map data using a registered mapper', function() {
             let schema = {
                 phoneNumber: 'phoneNumber[0].number'
             };
@@ -385,7 +376,7 @@ describe('Morphism', function () {
             expect(Morphism.map(User, this.dataToCrunch)[0]).toEqual(desiredResult);
         });
 
-        it('should allow to map data using a mapper updated schema', function () {
+        it('should allow to map data using a mapper updated schema', function() {
             let schema = {
                 phoneNumber: 'phoneNumber[0].number'
             };
@@ -394,19 +385,20 @@ describe('Morphism', function () {
             expect(mapper(this.dataToCrunch)[0]).toEqual(desiredResult);
         });
 
-        it('should throw an exception when trying to set an non-registered type', function () {
+        it('should throw an exception when trying to set an non-registered type', function() {
             Morphism.deleteMapper(User);
-            expect(() => { Morphism.setMapper(User, {}); }).toThrow();
+            expect(() => {
+                Morphism.setMapper(User, {});
+            }).toThrow();
         });
     });
 
-    describe('Class Type Mapping', function () {
-
+    describe('Class Type Mapping', function() {
         beforeEach(() => {
             Morphism.deleteMapper(User);
         });
 
-        it('should use the constructor default value if source value is undefined', function () {
+        it('should use the constructor default value if source value is undefined', function() {
             let sourceData: any = {
                 firstName: 'John',
                 lastName: 'Smith',
@@ -420,7 +412,7 @@ describe('Morphism', function () {
 
         it('should allow straight mapping from a Type without a schema', () => {
             let userName = 'user-name';
-            let user = Morphism(null, {firstName: userName}, User);
+            let user = Morphism(null, { firstName: userName }, User);
             expect(user).toEqual(new User(userName));
         });
 
@@ -429,17 +421,15 @@ describe('Morphism', function () {
                 userName: 'a-user-name'
             };
             let schema = {
-                firstName : 'userName'
+                firstName: 'userName'
             };
             let user = Morphism(schema, dataSource, User);
             expect(user).toEqual(new User(dataSource.userName));
         });
 
-        it('should pass created object context for complex interractions within object', function () {
+        it('should pass created object context for complex interractions within object', function() {
             let dataSource = {
-                groups: [
-                    'main', 'test'
-                ]
+                groups: ['main', 'test']
             };
 
             let triggered = false;
@@ -448,8 +438,8 @@ describe('Morphism', function () {
             };
 
             let schema = {
-                groups: (object : any, items : any, constructed : User) => {
-                    if(object.groups) {
+                groups: (object: any, items: any, constructed: User) => {
+                    if (object.groups) {
                         for (let group of object.groups) {
                             constructed.addToGroup(group, trigger);
                         }
@@ -457,29 +447,29 @@ describe('Morphism', function () {
                 }
             };
             let user = Morphism(schema, dataSource, User);
-            let expectedUser = new User()
+            let expectedUser = new User();
             expectedUser.groups = dataSource.groups;
             expect(user).toEqual(expectedUser);
             expect(triggered).toEqual(true);
         });
 
-        it('should return undefined if undefined is given to map without doing any processing', function () {
-            Morphism.register(User, { a: 'firstName'});
+        it('should return undefined if undefined is given to map without doing any processing', function() {
+            Morphism.register(User, { a: 'firstName' });
             expect(Morphism.map(User, undefined)).toEqual(undefined);
         });
 
-        it('should override the default value if source value is defined', function () {
+        it('should override the default value if source value is defined', function() {
             let sourceData: any = {
                 phoneNumber: null
             };
 
             let mapper = Morphism.register(User, {});
             let result = mapper([sourceData])[0];
-            expect((new User()).phoneNumber).toEqual(undefined);
+            expect(new User().phoneNumber).toEqual(undefined);
             expect(result.phoneNumber).toEqual(null);
         });
 
-        it('should provide an Object as result when Morphism is applied on a typed Object', function () {
+        it('should provide an Object as result when Morphism is applied on a typed Object', function() {
             let mock = {
                 number: '12345'
             };
@@ -490,7 +480,7 @@ describe('Morphism', function () {
             expect(result instanceof User).toEqual(true);
         });
 
-        it('should provide an Object as result when Morphism is applied on a typed Object usin .map', function () {
+        it('should provide an Object as result when Morphism is applied on a typed Object usin .map', function() {
             let mock = {
                 number: '12345'
             };
@@ -501,7 +491,7 @@ describe('Morphism', function () {
             expect(result instanceof User).toEqual(true);
         });
 
-        it('should provide a List of Objects as result when Morphism is applied on a list', function () {
+        it('should provide a List of Objects as result when Morphism is applied on a list', function() {
             let mock = {
                 number: '12345'
             };
@@ -512,29 +502,29 @@ describe('Morphism', function () {
             expect(result[0] instanceof User).toBe(true);
         });
 
-        it('should fallback to constructor default value and ignore function when path value is undefined', function () {
+        it('should fallback to constructor default value and ignore function when path value is undefined', function() {
             let mock = {
                 lastname: 'user-lastname'
             };
             let schema = {
-                type : {
+                type: {
                     path: 'unreachable.path',
                     fn: (value: any) => value
                 }
             };
 
             Morphism.register(User, schema);
-            expect((new User()).type).toEqual('User');
+            expect(new User().type).toEqual('User');
 
             let result = Morphism.map(User, mock);
             expect(result.type).toEqual('User');
         });
 
         describe('Projection', () => {
-            it('should allow to map property one to one when using `Morphism.map(Type,object)` without registration', function () {
-                let mock =  {field: 'value'};
+            it('should allow to map property one to one when using `Morphism.map(Type,object)` without registration', function() {
+                let mock = { field: 'value' };
                 class Target {
-                    field: any
+                    field: any;
                     constructor(field: any) {
                         this.field = field;
                     }
@@ -543,14 +533,10 @@ describe('Morphism', function () {
                 expect(result).toEqual(new Target('value'));
             });
 
-            it('should allow to map property one to one when using `Morphism.map(Type,data)` without registration', function () {
-                let mocks = [
-                    {field: 'value'},
-                    {field: 'value'},
-                    {field: 'value'}
-                ];
+            it('should allow to map property one to one when using `Morphism.map(Type,data)` without registration', function() {
+                let mocks = [{ field: 'value' }, { field: 'value' }, { field: 'value' }];
                 class Target {
-                    field: any
+                    field: any;
                     constructor(field: any) {
                         this.field = field;
                     }
@@ -561,14 +547,10 @@ describe('Morphism', function () {
                 });
             });
 
-            it('should allow to use Morphism.map as an iteratee first function', function () {
-                let mocks = [
-                    {field: 'value'},
-                    {field: 'value'},
-                    {field: 'value'}
-                ];
+            it('should allow to use Morphism.map as an iteratee first function', function() {
+                let mocks = [{ field: 'value' }, { field: 'value' }, { field: 'value' }];
                 class Target {
-                    field: any
+                    field: any;
                     constructor(field: any) {
                         this.field = field;
                     }
@@ -579,14 +561,10 @@ describe('Morphism', function () {
                 });
             });
 
-            it('should allow to use mapper from `Morphism.map(Type, undefined)` as an iteratee first function', function () {
-                let mocks = [
-                    {field: 'value'},
-                    {field: 'value'},
-                    {field: 'value'}
-                ];
+            it('should allow to use mapper from `Morphism.map(Type, undefined)` as an iteratee first function', function() {
+                let mocks = [{ field: 'value' }, { field: 'value' }, { field: 'value' }];
                 class Target {
-                    field: any
+                    field: any;
                     constructor(field: any) {
                         this.field = field;
                     }
