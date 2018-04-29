@@ -1,4 +1,4 @@
-import { assignInWith, set, memoize } from 'lodash';
+import { set } from 'lodash';
 
 const aggregator = (paths: any, object: any) => {
   return paths.reduce((delta: any, path: any) => {
@@ -6,12 +6,31 @@ const aggregator = (paths: any, object: any) => {
   }, {});
 };
 
-// function memoize(a: any): any {
-//   const f: { [k: string]: any } = () => {};
-//   f.cache = {};
-//   return f;
-// }
-// function assignInWith(a: any, b: any, c?: any) {}
+const memoize = (func: any, resolver?: any) => {
+  if (typeof func !== 'function' || (resolver != null && typeof resolver !== 'function')) {
+    throw new TypeError('Expected a function');
+  }
+  const memoized: any = function(...args: any[]) {
+    const key = resolver ? resolver.apply(this, args) : args[0];
+    const cache = memoized.cache;
+
+    if (cache.has(key)) {
+      return cache.get(key);
+    }
+    const result = func.apply(this, args);
+    memoized.cache = cache.set(key, result) || cache;
+    return result;
+  };
+  memoized.cache = new Map();
+  return memoized;
+};
+
+function assignInWith(target: any, source: any, customizer: (targetValue: any, sourceValue: any) => any) {
+  Object.entries(source).forEach(([field, value]) => {
+    target[field] = customizer(target[field], value);
+  });
+  return target;
+}
 // // function set(a: any, b: any, c?: any) {}
 
 function isUndefined(value: any) {
@@ -83,14 +102,14 @@ function transformValuesFromObject(object: any, schema: Schema, items: any[], co
         return { [targetProperty]: aggregator(action, object) };
       } else if (isObject(action)) {
         // Action<Object>: a path and a function: [ destination : { path: 'source', fn:(fieldValue, items) }]
-        let value;
-        if (Array.isArray(action.path)) {
-          value = aggregator(action.path, object);
-        } else if (isString(action.path)) {
-          value = get(object, action.path);
-        }
         let result;
         try {
+          let value;
+          if (Array.isArray(action.path)) {
+            value = aggregator(action.path, object);
+          } else if (isString(action.path)) {
+            value = get(object, action.path);
+          }
           result = action.fn.call(undefined, value, object, items, constructed);
         } catch (e) {
           e.message = `Unable to set target property [${targetProperty}].
@@ -168,7 +187,16 @@ Morphism = (schema: Schema, items?: any, type?: any): typeof type => {
 
   const customizer = (data: any) => {
     const undefinedValueCheck = (destination: any, source: any) => {
-      if (isUndefined(source)) return destination;
+      // Take the Object class value property if the incoming property is undefined
+      if (isUndefined(source)) {
+        if (!isUndefined(destination)) {
+          return destination;
+        } else {
+          return; // No Black Magic Fuckery here, if the source and the destination are undefined, we don't do anything
+        }
+      } else {
+        return source;
+      }
     };
     return assignInWith(constructed, data, undefinedValueCheck);
   };
@@ -288,3 +316,10 @@ Morphism.mappers = MorphismRegistry.mappers;
 /** API */
 
 export default Morphism;
+
+class UndefinedFinalValue extends Error {
+  constructor(message?: string) {
+    super(message); // 'Error' breaks prototype chain here
+    Object.setPrototypeOf(this, new.target.prototype); // restore prototype chain
+  }
+}
