@@ -1,5 +1,3 @@
-import { set } from 'lodash';
-
 const aggregator = (paths: any, object: any) => {
   return paths.reduce((delta: any, path: any) => {
     return set(delta, path, get(object, path));
@@ -49,7 +47,20 @@ function isString(value: any): value is string {
 function isFunction(value: any): value is (...args: any[]) => any {
   return typeof value === 'function';
 }
+function set(object: object, path: string, value: any) {
+  path = path.replace(/\[(\w+)\]/g, '.$1'); // convert indexes to properties
+  path = path.replace(/^\./, ''); // strip a leading dot
+  const paths = path.split('.');
+  const lastProperty = paths.pop();
+  const finalValue = paths.reduceRight(
+    (finalObject, prop) => {
+      return { [prop]: finalObject };
+    },
+    { [lastProperty]: value }
+  );
 
+  return { ...object, ...finalValue };
+}
 function get(object: object, path: string) {
   path = path.replace(/\[(\w+)\]/g, '.$1'); // convert indexes to properties
   path = path.replace(/^\./, ''); // strip a leading dot
@@ -70,13 +81,13 @@ function zipObject(props: string[], values: any[]) {
     return { ...prev, [prop]: values[i] };
   }, {});
 }
-
+export type Many<T> = T | T[];
 export interface Schema {
   [targetProperty: string]:
     | string
-    | ((iteratee: object | object[], source: object | object[], target: any) => any)
+    | ((iteratee: Many<object>, source: Many<object>, target: any) => any)
     | string[]
-    | { path: string | string[]; fn: (fieldValue: object | object[], items: object | object[]) => any };
+    | { path: string | string[]; fn: (fieldValue: Many<object>, items: Many<object>) => any };
 }
 
 /**
