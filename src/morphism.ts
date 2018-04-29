@@ -1,10 +1,34 @@
-import { assignInWith, set, get, mapValues, isFunction, isString, zipObject, memoize, MapCache } from 'lodash';
-
 const aggregator = (paths: any, object: any) => {
   return paths.reduce((delta: any, path: any) => {
     return set(delta, path, get(object, path));
   }, {});
 };
+
+const memoize = (func: any, resolver?: any) => {
+  if (typeof func !== 'function' || (resolver != null && typeof resolver !== 'function')) {
+    throw new TypeError('Expected a function');
+  }
+  const memoized: any = function(...args: any[]) {
+    const key = resolver ? resolver.apply(this, args) : args[0];
+    const cache = memoized.cache;
+
+    if (cache.has(key)) {
+      return cache.get(key);
+    }
+    const result = func.apply(this, args);
+    memoized.cache = cache.set(key, result) || cache;
+    return result;
+  };
+  memoized.cache = new Map();
+  return memoized;
+};
+
+function assignInWith(target: any, source: any, customizer: (targetValue: any, sourceValue: any) => any) {
+  Object.entries(source).forEach(([field, value]) => {
+    target[field] = customizer(target[field], value);
+  });
+  return target;
+}
 
 function isUndefined(value: any) {
   return value === undefined;
@@ -15,12 +39,54 @@ function isObject(value: any) {
   return value != null && (type === 'object' || type === 'function');
 }
 
+function isString(value: any): value is string {
+  return typeof value === 'string' || value instanceof String;
+}
+
+function isFunction(value: any): value is (...args: any[]) => any {
+  return typeof value === 'function';
+}
+function set(object: object, path: string, value: any) {
+  path = path.replace(/\[(\w+)\]/g, '.$1'); // convert indexes to properties
+  path = path.replace(/^\./, ''); // strip a leading dot
+  const paths = path.split('.');
+  const lastProperty = paths.pop();
+  const finalValue = paths.reduceRight(
+    (finalObject, prop) => {
+      return { [prop]: finalObject };
+    },
+    { [lastProperty]: value }
+  );
+
+  return { ...object, ...finalValue };
+}
+function get(object: object, path: string) {
+  path = path.replace(/\[(\w+)\]/g, '.$1'); // convert indexes to properties
+  path = path.replace(/^\./, ''); // strip a leading dot
+  const a = path.split('.');
+  for (let i = 0, n = a.length; i < n; ++i) {
+    const k = a[i];
+    if (isObject(object) && k in object) {
+      object = object[k];
+    } else {
+      return;
+    }
+  }
+  return object;
+}
+
+function zipObject(props: string[], values: any[]) {
+  return props.reduce((prev, prop, i) => {
+    return { ...prev, [prop]: values[i] };
+  }, {});
+}
+export type Many<T> = T | T[];
 export interface Schema {
   [targetProperty: string]:
     | string
-    | ((iteratee: object | object[], source: object | object[], target: any) => any)
+    | ((iteratee: Many<object>, source: Many<object>, target: any) => any)
     | string[]
-    | { path: string | string[]; fn: (fieldValue: object | object[], items: object | object[]) => any };
+    | { path: string | string[]; fn: (fieldValue: Many<object>, items: Many<object>) => any };
 }
 
 /**
@@ -32,38 +98,40 @@ export interface Schema {
  * @param  {} constructed Created tranformed object of a given type
  */
 function transformValuesFromObject(object: any, schema: Schema, items: any[], constructed: any) {
-  return mapValues(schema, (action, targetProperty) => {
-    // iterate on every action of the schema
-    if (isString(action)) {
-      // Action<String>: string path => [ target: 'source' ]
-      return get(object, action);
-    } else if (isFunction(action)) {
-      // Action<Function>: Free Computin - a callback called with the current object and collection [ destination: (object) => {...} ]
-      return action.call(undefined, object, items, constructed);
-    } else if (Array.isArray(action)) {
-      // Action<Array>: Aggregator - string paths => : [ destination: ['source1', 'source2', 'source3'] ]
-      return aggregator(action, object);
-    } else if (isObject(action)) {
-      // Action<Object>: a path and a function: [ destination : { path: 'source', fn:(fieldValue, items) }]
-      let value;
-      if (Array.isArray(action.path)) {
-        value = aggregator(action.path, object);
-      } else if (isString(action.path)) {
-        value = get(object, action.path);
-      }
-      let result;
-      try {
-        result = action.fn.call(undefined, value, object, items, constructed);
-      } catch (e) {
-        e.message = `Unable to set target property [${targetProperty}].
+  return Object.entries(schema)
+    .map(([targetProperty, action]) => {
+      // iterate on every action of the schema
+      if (isString(action)) {
+        // Action<String>: string path => [ target: 'source' ]
+        return { [targetProperty]: get(object, action) };
+      } else if (isFunction(action)) {
+        // Action<Function>: Free Computin - a callback called with the current object and collection [ destination: (object) => {...} ]
+        return { [targetProperty]: action.call(undefined, object, items, constructed) };
+      } else if (Array.isArray(action)) {
+        // Action<Array>: Aggregator - string paths => : [ destination: ['source1', 'source2', 'source3'] ]
+        return { [targetProperty]: aggregator(action, object) };
+      } else if (isObject(action)) {
+        // Action<Object>: a path and a function: [ destination : { path: 'source', fn:(fieldValue, items) }]
+        let result;
+        try {
+          let value;
+          if (Array.isArray(action.path)) {
+            value = aggregator(action.path, object);
+          } else if (isString(action.path)) {
+            value = get(object, action.path);
+          }
+          result = action.fn.call(undefined, value, object, items, constructed);
+        } catch (e) {
+          e.message = `Unable to set target property [${targetProperty}].
                                 \n An error occured when applying [${action.fn.name}] on property [${action.path}]
                                 \n Internal error: ${e.message}`;
-        throw e;
-      }
+          throw e;
+        }
 
-      return result;
-    }
-  });
+        return { [targetProperty]: result };
+      }
+    })
+    .reduce((finalObject, keyValue) => ({ ...finalObject, ...keyValue }), {});
 }
 
 const transformItems = (schema: Schema, customizer: any, constructed: any) => (input: any) => {
@@ -94,7 +162,7 @@ let Morphism: {
   getMapper?: (type: any) => any;
   setMapper?: (type: any, schema: Schema) => any;
   deleteMapper?: (type: any) => any;
-  mappers?: MapCache;
+  mappers?: Map<any, any>;
 };
 /**
  * Object Literals Mapper (Curried Function)
@@ -129,7 +197,16 @@ Morphism = (schema: Schema, items?: any, type?: any): typeof type => {
 
   const customizer = (data: any) => {
     const undefinedValueCheck = (destination: any, source: any) => {
-      if (isUndefined(source)) return destination;
+      // Take the Object class value property if the incoming property is undefined
+      if (isUndefined(source)) {
+        if (!isUndefined(destination)) {
+          return destination;
+        } else {
+          return; // No Black Magic Fuckery here, if the source and the destination are undefined, we don't do anything
+        }
+      } else {
+        return source;
+      }
     };
     return assignInWith(constructed, data, undefinedValueCheck);
   };
@@ -215,7 +292,7 @@ class MorphismRegistry {
   }
 
   static get mappers() {
-    return _registry.cache;
+    return _registry.cache as Map<any, any>;
   }
 
   static exists(type: any) {
@@ -249,3 +326,10 @@ Morphism.mappers = MorphismRegistry.mappers;
 /** API */
 
 export default Morphism;
+
+class UndefinedFinalValue extends Error {
+  constructor(message?: string) {
+    super(message); // 'Error' breaks prototype chain here
+    Object.setPrototypeOf(this, new.target.prototype); // restore prototype chain
+  }
+}

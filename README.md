@@ -1,14 +1,17 @@
 # Morphism
 
 [![NPM version][npm-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Dependency Status][daviddm-image]][daviddm-url] [![Coverage percentage][coveralls-image]][coveralls-url]
+
+[![npm bundle size (minified + gzip)](https://img.shields.io/bundlephobia/minzip/morphism.svg?style=for-the-badge)](https://bundlephobia.com/result?p=morphism)
+
 > Helps you to transform any object structure to another
 
-## Contribution 
+## Contribution
 
-- Twitter: [@renaudin_yann][twitter-account]
-- Pull requests and stars are always welcome 🙏🏽 For bugs and feature requests, [please create an issue](https://github.com/emyann/morphism/issues)
+* Twitter: [@renaudin_yann][twitter-account]
+* Pull requests and stars are always welcome 🙏🏽 For bugs and feature requests, [please create an issue](https://github.com/emyann/morphism/issues)
 
-## Getting started 🚀 
+## Getting started 🚀
 
 Install `morphism` using npm.
 
@@ -19,7 +22,7 @@ npm install --save morphism
 Then require it into any module.
 
 ```js
-const Morphism = require('morphism'); 
+const Morphism = require('morphism');
 ```
 
 Or using ES6 import style
@@ -31,15 +34,16 @@ import Morphism from 'morphism';
 If you're using [browserify](http://browserify.org/), the `morphism` npm module
 also works from the browser.
 
-
 ## What does it do? 🤔
 
 Morphism uses a semantic configuration to go through the collection of graph objects you have to process. Then it extracts and computes the value from the specified path(s). Finally, it sets this value to the destination property from the schema.
 
 ## Usage 🍔
+
 Morphism is curried function that allows a partial application with a semantic configuration. You can use it in many ways:
 
 ### Along with an ES6 Class
+
 ```js
 // Target type you want to have
 class User {
@@ -97,8 +101,8 @@ mapUser(data);
 ```
 
 ### As a Mapper factory
-```js
 
+```js
 let mapping = { ... }
 let collectionOfObjects = [ ... ]
 let anotherCollection = [ ... ]
@@ -110,47 +114,50 @@ myAwesomeMapper(anotherCollection);
 ```
 
 ### As a Static instance
+
 ```js
-const Morphism = require('morphism'); 
+const Morphism = require('morphism');
 
 let mapping = { ... }
 let collectionOfObjects = [ ... ]
 
-// extracts the data straight away 
+// extracts the data straight away
 let results = Morphism(mapping, collectionOfObjects);
 ```
+
 ## Mapping Schema Examples 💡
+
 ### Dataset sample
+
 ```js
 // We'll use this set of data all along the examples
-let data = [{
-                'firstName': 'John',
-                'lastName': 'Smith',
-                'address':
-                {
-                    'city': 'New York',
-                    'country': 'USA'
-                },
-                'phoneNumber':
-                    [
-                        {
-                            'type': 'home',
-                            'number': '212 555-1234'
-                        },
-                        {
-                            'type': 'fax',
-                            'number': '646 555-4567'
-                        }
-                    ]
-                }];
+let data = [
+  {
+    firstName: 'John',
+    lastName: 'Smith',
+    address: {
+      city: 'New York',
+      country: 'USA'
+    },
+    phoneNumber: [
+      {
+        type: 'home',
+        number: '212 555-1234'
+      },
+      {
+        type: 'fax',
+        number: '646 555-4567'
+      }
+    ]
+  }
+];
 ```
-
 
 ### Flattening and Projection
 
 ```js
 let data = [ ... ];
-let mapping = { 
+let mapping = {
                 pseudo: 'firstName', // Simple Projection
                 lastName: 'lastName',
                 city: 'address.city' // Flatten a value from a deep path
@@ -165,12 +172,11 @@ let results = Morphism(mapping, data);
 //             }
 ```
 
-
 ### Computing over Flattening / Projection
 
 ```js
 let data = [ ... ];
-let mapping = { 
+let mapping = {
                 pseudo: 'firstName',
                 lastName: 'lastName',
                 city: {
@@ -191,7 +197,6 @@ let results = mapper(data);
 //                 nbContacts: 2 // <== computed from the object
 //              }
 ```
-
 
 ### Values Aggregation
 
@@ -220,19 +225,20 @@ Morphism provides a powerful local registry where you can store your mappings' c
 The transformation sequences are stored as a function in a WeakMap to speed the processing.
 
 **Register a mapping configuration along with a Class**
+
 ```js
 class User {
-    constructor(firstName, lastName, phoneNumber){
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.phoneNumber = phoneNumber;
-    }
+  constructor(firstName, lastName, phoneNumber) {
+    this.firstName = firstName;
+    this.lastName = lastName;
+    this.phoneNumber = phoneNumber;
+  }
 }
 
 let mapUser = Morphism.register(User, schema);
 
 // Map using the registered type and the registry
-Morphism.map(User, data)
+Morphism.map(User, data);
 
 // Or Map using the mapper reference
 mapUser(data);
@@ -245,7 +251,7 @@ mapUser(data);
 Register a mapper for a specific type. The schema is optional.
 
 ```js
-Morphism.register(type, schema:{});
+Morphism.register(type, (schema: {}));
 ```
 
 #### Map
@@ -253,22 +259,20 @@ Morphism.register(type, schema:{});
 Map a collection of objects to the specified type
 
 ```js
-Morphism.map(type, data:[]);
+Morphism.map(type, (data: []));
 ```
 
 #### Get or Set an existing mapper configuration
 
 ```js
-Morphism.setMapper(type, schema:{});
+Morphism.setMapper(type, (schema: {}));
 ```
 
 #### Delete a registered mapper
 
 ```js
-Morphism.deleteMapper(type, schema:{});
+Morphism.deleteMapper(type, (schema: {}));
 ```
-
-
 
 ## License
 
