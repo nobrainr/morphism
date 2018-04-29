@@ -1,10 +1,18 @@
-import { assignInWith, set, get, isFunction, memoize } from 'lodash';
+import { assignInWith, set, memoize } from 'lodash';
 
 const aggregator = (paths: any, object: any) => {
   return paths.reduce((delta: any, path: any) => {
     return set(delta, path, get(object, path));
   }, {});
 };
+
+// function memoize(a: any): any {
+//   const f: { [k: string]: any } = () => {};
+//   f.cache = {};
+//   return f;
+// }
+// function assignInWith(a: any, b: any, c?: any) {}
+// // function set(a: any, b: any, c?: any) {}
 
 function isUndefined(value: any) {
   return value === undefined;
@@ -17,6 +25,25 @@ function isObject(value: any) {
 
 function isString(value: any): value is string {
   return typeof value === 'string' || value instanceof String;
+}
+
+function isFunction(value: any): value is (...args: any[]) => any {
+  return typeof value === 'function';
+}
+
+function get(object: object, path: string) {
+  path = path.replace(/\[(\w+)\]/g, '.$1'); // convert indexes to properties
+  path = path.replace(/^\./, ''); // strip a leading dot
+  const a = path.split('.');
+  for (let i = 0, n = a.length; i < n; ++i) {
+    const k = a[i];
+    if (isObject(object) && k in object) {
+      object = object[k];
+    } else {
+      return;
+    }
+  }
+  return object;
 }
 
 function zipObject(props: string[], values: any[]) {
