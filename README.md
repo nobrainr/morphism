@@ -1,17 +1,40 @@
 # Morphism
 
-[![NPM version][npm-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Dependency Status][daviddm-image]][daviddm-url] [![Coverage percentage][coveralls-image]][coveralls-url]
+[![NPM version][npm-image]][npm-url] [![Coverage percentage][coveralls-image]][coveralls-url] [![Build Status][travis-image]][travis-url]
 
-[![gzip size](http://img.badgesize.io/https://unpkg.com/morphism/dist/morphism.js?compression=gzip)](https://unpkg.com/morphism/dist/morphism.js)
+[![gzip size](http://img.badgesize.io/https://unpkg.com/morphism/dist/morphism.js?compression=gzip)](https://unpkg.com/morphism/dist/morphism.js) [![Dependency Status][daviddm-image]][daviddm-url]
 
-> In many fields of mathematics, morphism refers to a structure-preserving map from one mathematical structure to another.
+> In many fields of mathematics, morphism refers to a structure-preserving map from one mathematical structure to another. A morphism **f** with source **X** and target **Y** is written **f : X → Y**. Thus a morphism is represented by an arrow from its **source** to its **target**.
 
 _https://en.wikipedia.org/wiki/Morphism_
 
-## Contribution
+<div style="text-align:center">
+<img src="https://i.imgur.com/4muW6u2.jpg" width="800px">
+<span style="display:block; font-style:italic; text-align:right">Picture by @Gmulti</span>
+</div>
 
-* Twitter: [@renaudin_yann][twitter-account]
-* Pull requests and stars are always welcome 🙏🏽 For bugs and feature requests, [please create an issue](https://github.com/emyann/morphism/issues)
+---
+
+- [Morphism](#morphism)
+  - [Getting started 🚀](#getting-started)
+  - [What does it do? 🤔](#what-does-it-do)
+  - [Usage 🍔](#usage)
+    - [Along with an ES6 Class](#along-with-an-es6-class)
+    - [As a Mapper factory](#as-a-mapper-factory)
+    - [As a Static instance](#as-a-static-instance)
+  - [Mapping Schema Examples 💡](#mapping-schema-examples)
+    - [Dataset sample](#dataset-sample)
+    - [Flattening and Projection](#flattening-and-projection)
+    - [Computing over Flattening / Projection](#computing-over-flattening---projection)
+    - [Values Aggregation](#values-aggregation)
+    - [Mappers Registry 📚](#mappers-registry)
+    - [API 📚](#api)
+      - [Register](#register)
+      - [Map](#map)
+      - [Get or Set an existing mapper configuration](#get-or-set-an-existing-mapper-configuration)
+      - [Delete a registered mapper](#delete-a-registered-mapper)
+  - [Contribution](#contribution)
+  - [License](#license)
 
 ## Getting started 🚀
 
@@ -32,9 +55,6 @@ Or using ES6 import style
 ```js
 import Morphism from 'morphism';
 ```
-
-If you're using [browserify](http://browserify.org/), the `morphism` npm module
-also works from the browser.
 
 ## What does it do? 🤔
 
@@ -275,6 +295,11 @@ Morphism.setMapper(type, (schema: {}));
 ```js
 Morphism.deleteMapper(type, (schema: {}));
 ```
+
+## Contribution
+
+* Twitter: [@renaudin_yann][twitter-account]
+* Pull requests and stars are always welcome 🙏🏽 For bugs and feature requests, [please create an issue](https://github.com/emyann/morphism/issues)
 
 ## License
 
