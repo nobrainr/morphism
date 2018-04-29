@@ -2,7 +2,7 @@
 
 [![NPM version][npm-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Dependency Status][daviddm-image]][daviddm-url] [![Coverage percentage][coveralls-image]][coveralls-url]
 
-[![npm bundle size (minified + gzip)](https://img.shields.io/bundlephobia/minzip/morphism.svg?style=for-the-badge)](https://bundlephobia.com/result?p=morphism)
+[![gzip size](http://img.badgesize.io/https://unpkg.com/morphism/dist/morphism.js?compression=gzip)](https://unpkg.com/morphism/dist/morphism.js)
 
 > Helps you to transform any object structure to another
 
