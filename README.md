@@ -10,8 +10,8 @@ _https://en.wikipedia.org/wiki/Morphism_
 
 <div style="text-align:center">
 <img src="https://i.imgur.com/4muW6u2.jpg" width="800px">
-<span style="display:block; font-style:italic; text-align:right">Picture by @Gmulti</span>
 </div>
+<div style="display:block; font-style:italic; text-align:right">Picture by @Gmulti</div>
 
 ---
 
