@@ -16,7 +16,7 @@
       "cross-env NODE_ENV=production webpack --config ./webpack.config.js  --progress --profile --color --display-error-details --display-cached --bail",
     "clean": "npm cache clear && rimraf -- dist",
     "test": "karma start",
-    "semantic-release": "semantic-release --prepare && semantic-release --publish"
+    "semantic-release": "semantic-release"
   },
   "author": {
     "name": "Yann Renaudin",
