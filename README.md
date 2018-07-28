@@ -1,6 +1,8 @@
 # Morphism
 
-[![NPM version][npm-image]][npm-url] [![Coverage percentage][coveralls-image]][coveralls-url] [![CircleCI](https://img.shields.io/circleci/project/github/nobrainr/morphism.svg)](https://circleci.com/gh/nobrainr/morphism)
+[![NPM version][npm-image]][npm-url] [![Coverage percentage][coveralls-image]][coveralls-url]
+[![CircleCI](https://img.shields.io/circleci/project/github/nobrainr/morphism.svg)](https://circleci.com/gh/nobrainr/morphism)
+![npm](https://img.shields.io/npm/dm/morphism.svg?style=flat-square)
 
 [![gzip size](http://img.badgesize.io/https://unpkg.com/morphism/dist/morphism.js?compression=gzip)](https://unpkg.com/morphism/dist/morphism.js) [![Dependency Status][daviddm-image]][daviddm-url] ![Blazing Fast](https://img.shields.io/badge/speed-blazing%20%F0%9F%94%A5-brightgreen.svg)
 
@@ -306,9 +308,9 @@ Morphism.deleteMapper(type, (schema: {}));
 MIT © [Yann Renaudin][twitter-account]
 
 [twitter-account]: https://twitter.com/renaudin_yann
-[npm-image]: https://badge.fury.io/js/morphism.svg
+[npm-image]: https://badge.fury.io/js/morphism.svg?style=flat-square
 [npm-url]: https://npmjs.org/package/morphism
 [daviddm-image]: https://david-dm.org/emyann/morphism.svg?theme=shields.io
 [daviddm-url]: https://david-dm.org/emyann/morphism
-[coveralls-image]: https://coveralls.io/repos/emyann/morphism/badge.svg
+[coveralls-image]: https://coveralls.io/repos/emyann/morphism/badge.svg?style=flat-square
 [coveralls-url]: https://coveralls.io/r/emyann/morphism
