@@ -29,15 +29,6 @@ class User {
   }
 }
 
-class Track {
-  id: any;
-  title: any;
-  constructor(id: any, title: any) {
-    this.id = id;
-    this.title = title;
-  }
-}
-
 describe('Morphism', function() {
   beforeEach(function() {
     this.dataToCrunch = [
@@ -119,30 +110,6 @@ describe('Morphism', function() {
           fieldWillThrow: 'value'
         });
       expect(applyMapping).toThrow(err);
-    });
-
-    it('should allow to use a mapper as an iteratee first function', function() {
-      let mocks = [{ source: 'value' }, { source: 'value' }, { source: 'value' }];
-      let schema = {
-        target: 'source'
-      };
-      const mapper = Morphism(schema);
-      let results = mocks.map(mapper);
-      results.forEach(res => {
-        expect(res).toEqual({ target: 'value' });
-      });
-    });
-
-    it('should allow to use a mapper declaration as an iteratee first function', function() {
-      let mocks = [{ source: 'value' }, { source: 'value' }, { source: 'value' }];
-      let schema = {
-        target: 'source'
-      };
-
-      let results = mocks.map(Morphism(schema));
-      results.forEach(res => {
-        expect(res).toEqual({ target: 'value' });
-      });
     });
   });
 
