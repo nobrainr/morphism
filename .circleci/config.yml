@@ -54,12 +54,22 @@ jobs:
           # fallback to using the latest cache if no exact match is found
           - v1-dependencies-
       - run:
-          name: Alias deployment instance
-          command: npm run alias
+          name: Publish Package
+          command: npm run semantic-release
 
 workflows:
   version: 2
   test:
     jobs:
       - test-job
+      - build-job
+          # filters:
+          #   branches:
+          #     only:
+          #       - master
+          #       - beta
+      - publish-job:
+          requires:
+            - test-job
+            - build-job
 
