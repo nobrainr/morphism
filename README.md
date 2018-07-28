@@ -16,19 +16,19 @@ _https://en.wikipedia.org/wiki/Morphism_
 ---
 
 - [Morphism](#morphism)
-  - [Getting started 🚀](#getting-started)
-  - [What does it do? 🤔](#what-does-it-do)
-  - [Usage 🍔](#usage)
+  - [Getting started 🚀](#getting-started-%F0%9F%9A%80)
+  - [What does it do? 🤔](#what-does-it-do-%F0%9F%A4%94)
+  - [Usage 🍔](#usage-%F0%9F%8D%94)
     - [Along with an ES6 Class](#along-with-an-es6-class)
     - [As a Mapper factory](#as-a-mapper-factory)
     - [As a Static instance](#as-a-static-instance)
-  - [Mapping Schema Examples 💡](#mapping-schema-examples)
+  - [Mapping Schema Examples 💡](#mapping-schema-examples-%F0%9F%92%A1)
     - [Dataset sample](#dataset-sample)
     - [Flattening and Projection](#flattening-and-projection)
-    - [Computing over Flattening / Projection](#computing-over-flattening---projection)
+    - [Computing over Flattening / Projection](#computing-over-flattening--projection)
     - [Values Aggregation](#values-aggregation)
-    - [Mappers Registry 📚](#mappers-registry)
-    - [API 📚](#api)
+    - [Mappers Registry 📚](#mappers-registry-%F0%9F%93%9A)
+    - [API 📚](#api-%F0%9F%93%9A)
       - [Register](#register)
       - [Map](#map)
       - [Get or Set an existing mapper configuration](#get-or-set-an-existing-mapper-configuration)
@@ -100,7 +100,7 @@ let data = [{
              }];
 // Mapping Schema ( see more examples below )
 let schema = {
-    city: 'adress.city',
+    city: 'address.city',
     phoneNumber: (object) => object.phoneNumber.filter(c => c.type === 'home')[0].number;
 }
 
@@ -298,8 +298,8 @@ Morphism.deleteMapper(type, (schema: {}));
 
 ## Contribution
 
-* Twitter: [@renaudin_yann][twitter-account]
-* Pull requests and stars are always welcome 🙏🏽 For bugs and feature requests, [please create an issue](https://github.com/emyann/morphism/issues)
+- Twitter: [@renaudin_yann][twitter-account]
+- Pull requests and stars are always welcome 🙏🏽 For bugs and feature requests, [please create an issue](https://github.com/emyann/morphism/issues)
 
 ## License
 
