@@ -1,8 +1,8 @@
 {
   "name": "morphism",
-  "version": "0.8.1",
+  "version": "0.8.3",
   "description": "Library to transform any Object / JSON to JavaScript Object Literals, and ES6 Class Objects. Help you scale your data processing",
-  "homepage": "https://emyann.github.io/morphism/",
+  "homepage": "https://github.com/nobrainr/morphism",
   "scripts": {
     "start": "npm run server:dev",
     "server": "npm run server:dev",
@@ -66,7 +66,7 @@
       "mocha": true
     }
   },
-  "repository": "emyann/morphism",
+  "repository": "nobrainr/morphism",
   "license": "MIT",
   "dependencies": {}
 }
