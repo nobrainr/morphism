@@ -295,10 +295,3 @@ Morphism.mappers = MorphismRegistry.mappers;
 /** API */
 
 export default Morphism;
-
-class UndefinedFinalValue extends Error {
-  constructor(message?: string) {
-    super(message); // 'Error' breaks prototype chain here
-    Object.setPrototypeOf(this, new.target.prototype); // restore prototype chain
-  }
-}
