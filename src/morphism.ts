@@ -4,9 +4,13 @@ const aggregator = (paths: any, object: any) => {
   }, {});
 };
 
-function assignInWith(target: any, source: any, customizer: (targetValue: any, sourceValue: any) => any) {
+function assignInWith(target: any, source: any, customizer?: (targetValue: any, sourceValue: any) => any) {
   Object.entries(source).forEach(([field, value]) => {
-    target[field] = customizer(target[field], value);
+    if (customizer) {
+      target[field] = customizer(target[field], value);
+    } else {
+      target[field] = value;
+    }
   });
   return target;
 }
@@ -78,7 +82,7 @@ export interface Schema {
  * @param  {Array} items Items to be forwarded to Actions
  * @param  {} constructed Created tranformed object of a given type
  */
-function transformValuesFromObject(object: any, schema: Schema, items: any[], constructed: any) {
+function transformValuesFromObject(object: any, schema: Schema, items: any[], objectToCompute: {} | any) {
   return Object.entries(schema)
     .map(([targetProperty, action]) => {
       // iterate on every action of the schema
@@ -87,7 +91,7 @@ function transformValuesFromObject(object: any, schema: Schema, items: any[], co
         return { [targetProperty]: get(object, action) };
       } else if (isFunction(action)) {
         // Action<Function>: Free Computin - a callback called with the current object and collection [ destination: (object) => {...} ]
-        return { [targetProperty]: action.call(undefined, object, items, constructed) };
+        return { [targetProperty]: action.call(undefined, object, items, objectToCompute) };
       } else if (Array.isArray(action)) {
         // Action<Array>: Aggregator - string paths => : [ destination: ['source1', 'source2', 'source3'] ]
         return { [targetProperty]: aggregator(action, object) };
@@ -101,7 +105,7 @@ function transformValuesFromObject(object: any, schema: Schema, items: any[], co
           } else if (isString(action.path)) {
             value = get(object, action.path);
           }
-          result = action.fn.call(undefined, value, object, items, constructed);
+          result = action.fn.call(undefined, value, object, items, objectToCompute);
         } catch (e) {
           e.message = `Unable to set target property [${targetProperty}].
                                 \n An error occured when applying [${action.fn.name}] on property [${action.path}]
@@ -112,27 +116,45 @@ function transformValuesFromObject(object: any, schema: Schema, items: any[], co
         return { [targetProperty]: result };
       }
     })
-    .reduce((finalObject, keyValue) => ({ ...finalObject, ...keyValue }), {});
+    .reduce((finalObject, keyValue) => {
+      const undefinedValueCheck = (destination: any, source: any) => {
+        // Take the Object class value property if the incoming property is undefined
+        if (isUndefined(source)) {
+          if (!isUndefined(destination)) {
+            return destination;
+          } else {
+            return; // No Black Magic Fuckery here, if the source and the destination are undefined, we don't do anything
+          }
+        } else {
+          return source;
+        }
+      };
+      return assignInWith(finalObject, keyValue, undefinedValueCheck);
+    }, objectToCompute);
 }
 
-const transformItems = (schema: Schema, customizer: any, constructed: any) => (input: any) => {
+const transformItems = (schema: Schema, type?: any) => (input: any) => {
   if (!input) {
     return input;
   }
   if (Array.isArray(input)) {
     return input.map(obj => {
-      if (customizer) {
-        return customizer(transformValuesFromObject(obj, schema, input, constructed));
+      if (type) {
+        const classObject = new type();
+        return transformValuesFromObject(obj, schema, input, classObject);
       } else {
-        return transformValuesFromObject(obj, schema, input, null);
+        const jsObject = {};
+        return transformValuesFromObject(obj, schema, input, jsObject);
       }
     });
   } else {
     const object = input;
-    if (customizer) {
-      return customizer(transformValuesFromObject(object, schema, [object], constructed));
+    if (type) {
+      const classObject = new type();
+      return transformValuesFromObject(object, schema, [object], classObject);
     } else {
-      return transformValuesFromObject(object, schema, [object], null);
+      const jsObject = {};
+      return transformValuesFromObject(object, schema, [object], jsObject);
     }
   }
 };
@@ -170,41 +192,20 @@ let Morphism: {
  *  const output = Morphism(schema, input);
  */
 Morphism = (schema: Schema, items?: any, type?: any): typeof type => {
-  let constructed: typeof type = null;
-
-  if (type) {
-    constructed = new type();
-  }
-
-  const customizer = (data: any) => {
-    const undefinedValueCheck = (destination: any, source: any) => {
-      // Take the Object class value property if the incoming property is undefined
-      if (isUndefined(source)) {
-        if (!isUndefined(destination)) {
-          return destination;
-        } else {
-          return; // No Black Magic Fuckery here, if the source and the destination are undefined, we don't do anything
-        }
-      } else {
-        return source;
-      }
-    };
-    return assignInWith(constructed, data, undefinedValueCheck);
-  };
   if (items === undefined && type === undefined) {
-    return transformItems(schema, null, null);
+    return transformItems(schema);
   } else if (schema && items && type) {
-    return transformItems(schema, customizer, constructed)(items);
+    let finalSchema = getSchemaForType(type, schema);
+    return transformItems(finalSchema, type)(items);
   } else if (schema && items) {
-    return transformItems(schema, null, null)(items);
+    return transformItems(schema)(items);
   } else if (type && items) {
     let finalSchema = getSchemaForType(type, schema);
-    return transformItems(finalSchema, customizer, constructed)(items);
+    return transformItems(finalSchema, type)(items);
   } else if (type) {
     let finalSchema = getSchemaForType(type, schema);
     return (futureInput: any) => {
-      constructed = new type();
-      return transformItems(finalSchema, customizer, constructed)(futureInput);
+      return transformItems(finalSchema, type)(futureInput);
     };
   }
 };
