@@ -6,7 +6,7 @@ version: 2
 jobs:
   test-job:
     docker:
-      - image: circleci/node:8
+      - image: circleci/node:8-browsers
     working_directory: ~/repo
     steps:
       - checkout
