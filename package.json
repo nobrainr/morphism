@@ -12,7 +12,7 @@
     "build:dev": "webpack --mode development --config ./webpack.config.js --progress --profile --color --display-error-details --display-cached",
     "build:prod": "cross-env NODE_ENV=production webpack --mode production --config ./webpack.config.js  --progress --profile --color --display-error-details --display-cached --bail",
     "clean": "npm cache clear && rimraf -- dist",
-    "test": " cross-env NODE_ENV=test karma start",
+    "test": "karma start",
     "semantic-release": "semantic-release"
   },
   "author": {
@@ -55,10 +55,9 @@
     "tslint": "^5.11.0",
     "tslint-loader": "^3.6.0",
     "typescript": "^2.9.2",
-    "uglifyjs-webpack-plugin": "^1.2.7",
     "webpack": "^4.16.3",
     "webpack-cli": "^2.1.5",
-    "webpack-dashboard": "^1.1.1",
+    "webpack-dashboard": "^2.0.0",
     "webpack-dev-server": "3.1.3"
   },
   "eslintConfig": {

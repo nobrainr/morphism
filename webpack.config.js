@@ -1,10 +1,8 @@
 const webpack = require('webpack');
 const path = require('path');
 const DashboardPlugin = require('webpack-dashboard/plugin');
-const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 const nodeEnv = process.env.NODE_ENV || 'development';
 const isProd = nodeEnv === 'production';
-const isTest = nodeEnv === 'test';
 
 const plugins = [
   new webpack.LoaderOptionsPlugin({
@@ -45,7 +43,7 @@ var config = {
         exclude: ['node_modules'],
         use: ['awesome-typescript-loader', 'source-map-loader']
       },
-      isTest
+      !isProd
         ? {
             test: /\.(js|ts)$/,
             loader: 'istanbul-instrumenter-loader',
