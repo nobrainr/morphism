@@ -4,25 +4,6 @@ const aggregator = (paths: any, object: any) => {
   }, {});
 };
 
-const memoize = (func: any, resolver?: any) => {
-  if (typeof func !== 'function' || (resolver != null && typeof resolver !== 'function')) {
-    throw new TypeError('Expected a function');
-  }
-  const memoized: any = function(...args: any[]) {
-    const key = resolver ? resolver.apply(this, args) : args[0];
-    const cache = memoized.cache;
-
-    if (cache.has(key)) {
-      return cache.get(key);
-    }
-    const result = func.apply(this, args);
-    memoized.cache = cache.set(key, result) || cache;
-    return result;
-  };
-  memoized.cache = new Map();
-  return memoized;
-};
-
 function assignInWith(target: any, source: any, customizer: (targetValue: any, sourceValue: any) => any) {
   Object.entries(source).forEach(([field, value]) => {
     target[field] = customizer(target[field], value);
@@ -222,6 +203,7 @@ Morphism = (schema: Schema, items?: any, type?: any): typeof type => {
   } else if (type) {
     let finalSchema = getSchemaForType(type, schema);
     return (futureInput: any) => {
+      constructed = new type();
       return transformItems(finalSchema, customizer, constructed)(futureInput);
     };
   }
@@ -233,20 +215,8 @@ const getSchemaForType = (type: any, baseSchema: any) => {
   let finalSchema = Object.assign(defaultSchema, baseSchema);
   return finalSchema;
 };
-/**
- * Type Mapper Factory
- * @param {type} type Class Type to be registered
- * @param {Object} schema Configuration of how properties are computed from the source
- * @param {Object | Array } items Object or Collection to be mapped
- */
-function factory(type: any, schema?: any, items?: any) {
-  let finalSchema = getSchemaForType(type, schema);
 
-  return Morphism(finalSchema, items, type);
-}
-
-// memoize.Cache = WeakMap;
-const _registry = memoize(factory);
+const _registry: any = { cache: new Map() };
 
 class MorphismRegistry {
   /**
@@ -263,10 +233,9 @@ class MorphismRegistry {
     } else if (MorphismRegistry.exists(type)) {
       throw new Error(`A mapper for ${type.name} has already been registered`);
     }
-    /**
-     * @param {Object | Array } items Object or Collection to be mapped
-     */
-    return _registry(type, schema); // Store the result of the executed function in a WeakMap cache object
+    const mapper = Morphism(schema, null, type);
+    _registry.cache.set(type, mapper);
+    return mapper;
   }
   /**
    *
@@ -284,7 +253,7 @@ class MorphismRegistry {
         return mapper;
       }
     }
-    return _registry(type)(data);
+    return MorphismRegistry.getMapper(type)(data);
   }
 
   static getMapper(type: any) {
@@ -305,9 +274,9 @@ class MorphismRegistry {
     } else if (!MorphismRegistry.exists(type)) {
       throw new Error(`The type ${type.name} is not registered. Register it using \`Mophism.register(${type.name}, schema)\``);
     } else {
-      let fn = factory(type, schema);
+      let fn = Morphism(schema, null, type);
       _registry.cache.set(type, fn);
-      return _registry(type);
+      return fn;
     }
   }
 
