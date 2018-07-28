@@ -4,28 +4,13 @@ const aggregator = (paths: any, object: any) => {
   }, {});
 };
 
-const memoize = (func: any, resolver?: any) => {
-  if (typeof func !== 'function' || (resolver != null && typeof resolver !== 'function')) {
-    throw new TypeError('Expected a function');
-  }
-  const memoized: any = function(...args: any[]) {
-    const key = resolver ? resolver.apply(this, args) : args[0];
-    const cache = memoized.cache;
-
-    if (cache.has(key)) {
-      return cache.get(key);
-    }
-    const result = func.apply(this, args);
-    memoized.cache = cache.set(key, result) || cache;
-    return result;
-  };
-  memoized.cache = new Map();
-  return memoized;
-};
-
-function assignInWith(target: any, source: any, customizer: (targetValue: any, sourceValue: any) => any) {
+function assignInWith(target: any, source: any, customizer?: (targetValue: any, sourceValue: any) => any) {
   Object.entries(source).forEach(([field, value]) => {
-    target[field] = customizer(target[field], value);
+    if (customizer) {
+      target[field] = customizer(target[field], value);
+    } else {
+      target[field] = value;
+    }
   });
   return target;
 }
@@ -97,7 +82,7 @@ export interface Schema {
  * @param  {Array} items Items to be forwarded to Actions
  * @param  {} constructed Created tranformed object of a given type
  */
-function transformValuesFromObject(object: any, schema: Schema, items: any[], constructed: any) {
+function transformValuesFromObject(object: any, schema: Schema, items: any[], objectToCompute: {} | any) {
   return Object.entries(schema)
     .map(([targetProperty, action]) => {
       // iterate on every action of the schema
@@ -106,7 +91,7 @@ function transformValuesFromObject(object: any, schema: Schema, items: any[], co
         return { [targetProperty]: get(object, action) };
       } else if (isFunction(action)) {
         // Action<Function>: Free Computin - a callback called with the current object and collection [ destination: (object) => {...} ]
-        return { [targetProperty]: action.call(undefined, object, items, constructed) };
+        return { [targetProperty]: action.call(undefined, object, items, objectToCompute) };
       } else if (Array.isArray(action)) {
         // Action<Array>: Aggregator - string paths => : [ destination: ['source1', 'source2', 'source3'] ]
         return { [targetProperty]: aggregator(action, object) };
@@ -120,7 +105,7 @@ function transformValuesFromObject(object: any, schema: Schema, items: any[], co
           } else if (isString(action.path)) {
             value = get(object, action.path);
           }
-          result = action.fn.call(undefined, value, object, items, constructed);
+          result = action.fn.call(undefined, value, object, items, objectToCompute);
         } catch (e) {
           e.message = `Unable to set target property [${targetProperty}].
                                 \n An error occured when applying [${action.fn.name}] on property [${action.path}]
@@ -131,27 +116,45 @@ function transformValuesFromObject(object: any, schema: Schema, items: any[], co
         return { [targetProperty]: result };
       }
     })
-    .reduce((finalObject, keyValue) => ({ ...finalObject, ...keyValue }), {});
+    .reduce((finalObject, keyValue) => {
+      const undefinedValueCheck = (destination: any, source: any) => {
+        // Take the Object class value property if the incoming property is undefined
+        if (isUndefined(source)) {
+          if (!isUndefined(destination)) {
+            return destination;
+          } else {
+            return; // No Black Magic Fuckery here, if the source and the destination are undefined, we don't do anything
+          }
+        } else {
+          return source;
+        }
+      };
+      return assignInWith(finalObject, keyValue, undefinedValueCheck);
+    }, objectToCompute);
 }
 
-const transformItems = (schema: Schema, customizer: any, constructed: any) => (input: any) => {
+const transformItems = (schema: Schema, type?: any) => (input: any) => {
   if (!input) {
     return input;
   }
   if (Array.isArray(input)) {
     return input.map(obj => {
-      if (customizer) {
-        return customizer(transformValuesFromObject(obj, schema, input, constructed));
+      if (type) {
+        const classObject = new type();
+        return transformValuesFromObject(obj, schema, input, classObject);
       } else {
-        return transformValuesFromObject(obj, schema, input, null);
+        const jsObject = {};
+        return transformValuesFromObject(obj, schema, input, jsObject);
       }
     });
   } else {
     const object = input;
-    if (customizer) {
-      return customizer(transformValuesFromObject(object, schema, [object], constructed));
+    if (type) {
+      const classObject = new type();
+      return transformValuesFromObject(object, schema, [object], classObject);
     } else {
-      return transformValuesFromObject(object, schema, [object], null);
+      const jsObject = {};
+      return transformValuesFromObject(object, schema, [object], jsObject);
     }
   }
 };
@@ -189,40 +192,20 @@ let Morphism: {
  *  const output = Morphism(schema, input);
  */
 Morphism = (schema: Schema, items?: any, type?: any): typeof type => {
-  let constructed: typeof type = null;
-
-  if (type) {
-    constructed = new type();
-  }
-
-  const customizer = (data: any) => {
-    const undefinedValueCheck = (destination: any, source: any) => {
-      // Take the Object class value property if the incoming property is undefined
-      if (isUndefined(source)) {
-        if (!isUndefined(destination)) {
-          return destination;
-        } else {
-          return; // No Black Magic Fuckery here, if the source and the destination are undefined, we don't do anything
-        }
-      } else {
-        return source;
-      }
-    };
-    return assignInWith(constructed, data, undefinedValueCheck);
-  };
   if (items === undefined && type === undefined) {
-    return transformItems(schema, null, null);
+    return transformItems(schema);
   } else if (schema && items && type) {
-    return transformItems(schema, customizer, constructed)(items);
+    let finalSchema = getSchemaForType(type, schema);
+    return transformItems(finalSchema, type)(items);
   } else if (schema && items) {
-    return transformItems(schema, null, null)(items);
+    return transformItems(schema)(items);
   } else if (type && items) {
     let finalSchema = getSchemaForType(type, schema);
-    return transformItems(finalSchema, customizer, constructed)(items);
+    return transformItems(finalSchema, type)(items);
   } else if (type) {
     let finalSchema = getSchemaForType(type, schema);
     return (futureInput: any) => {
-      return transformItems(finalSchema, customizer, constructed)(futureInput);
+      return transformItems(finalSchema, type)(futureInput);
     };
   }
 };
@@ -233,20 +216,8 @@ const getSchemaForType = (type: any, baseSchema: any) => {
   let finalSchema = Object.assign(defaultSchema, baseSchema);
   return finalSchema;
 };
-/**
- * Type Mapper Factory
- * @param {type} type Class Type to be registered
- * @param {Object} schema Configuration of how properties are computed from the source
- * @param {Object | Array } items Object or Collection to be mapped
- */
-function factory(type: any, schema?: any, items?: any) {
-  let finalSchema = getSchemaForType(type, schema);
 
-  return Morphism(finalSchema, items, type);
-}
-
-// memoize.Cache = WeakMap;
-const _registry = memoize(factory);
+const _registry: any = { cache: new Map() };
 
 class MorphismRegistry {
   /**
@@ -263,10 +234,9 @@ class MorphismRegistry {
     } else if (MorphismRegistry.exists(type)) {
       throw new Error(`A mapper for ${type.name} has already been registered`);
     }
-    /**
-     * @param {Object | Array } items Object or Collection to be mapped
-     */
-    return _registry(type, schema); // Store the result of the executed function in a WeakMap cache object
+    const mapper = Morphism(schema, null, type);
+    _registry.cache.set(type, mapper);
+    return mapper;
   }
   /**
    *
@@ -284,7 +254,7 @@ class MorphismRegistry {
         return mapper;
       }
     }
-    return _registry(type)(data);
+    return MorphismRegistry.getMapper(type)(data);
   }
 
   static getMapper(type: any) {
@@ -305,9 +275,9 @@ class MorphismRegistry {
     } else if (!MorphismRegistry.exists(type)) {
       throw new Error(`The type ${type.name} is not registered. Register it using \`Mophism.register(${type.name}, schema)\``);
     } else {
-      let fn = factory(type, schema);
+      let fn = Morphism(schema, null, type);
       _registry.cache.set(type, fn);
-      return _registry(type);
+      return fn;
     }
   }
 
@@ -326,10 +296,3 @@ Morphism.mappers = MorphismRegistry.mappers;
 /** API */
 
 export default Morphism;
-
-class UndefinedFinalValue extends Error {
-  constructor(message?: string) {
-    super(message); // 'Error' breaks prototype chain here
-    Object.setPrototypeOf(this, new.target.prototype); // restore prototype chain
-  }
-}

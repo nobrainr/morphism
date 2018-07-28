@@ -5,9 +5,9 @@ class User {
   firstName: string;
   lastName: string;
   phoneNumber: string;
-  type: string;
+  type?: string;
 
-  groups: Array<any>;
+  groups?: Array<any>;
 
   constructor(firstName?: string, lastName?: string, phoneNumber?: string) {
     this.firstName = firstName;
@@ -23,7 +23,7 @@ class User {
    * @param {} group
    * @param {} externalTrigger
    */
-  addToGroup(group: any, externalTrigger: any) {
+  addToGroup?(group: any, externalTrigger: any) {
     this.groups.push(group);
     externalTrigger(this, group);
   }
@@ -75,10 +75,6 @@ describe('Morphism', function() {
     it('should provide a mapper function from the partial application', function() {
       let fn = Morphism({});
       expect(typeof fn).toEqual('function');
-    });
-
-    it('should provide an array of results when Morphism applied on array of data', function() {
-      expect(Morphism({}, [])).toEqual([]);
     });
 
     it('should provide an Object as result when Morphism is applied on an Object', function() {
@@ -146,6 +142,62 @@ describe('Morphism', function() {
       let results = mocks.map(Morphism(schema));
       results.forEach(res => {
         expect(res).toEqual({ target: 'value' });
+      });
+    });
+  });
+
+  describe('Collection of Objects', function() {
+    it('should morph an empty array to an empty array || m({}, []) => []', function() {
+      expect(Morphism({}, [])).toEqual([]);
+    });
+
+    it('should morph a collection of objects with a stored function || mapObject([{}]) => [Object{}]', function() {
+      const input = [
+        {
+          firstName: 'John',
+          lastName: 'Smith',
+          number: '212 555-1234'
+        },
+        {
+          firstName: 'James',
+          lastName: 'Bond',
+          number: '212 555-5678'
+        }
+      ];
+
+      const output: User[] = [
+        {
+          firstName: 'John',
+          lastName: 'Smith',
+          phoneNumber: '212 555-1234'
+        },
+        {
+          firstName: 'James',
+          lastName: 'Bond',
+          phoneNumber: '212 555-5678'
+        }
+      ];
+
+      const schema = {
+        phoneNumber: (object: any) => object.number
+      };
+
+      Morphism.deleteMapper(User);
+      const mapUser = Morphism.register(User, schema);
+
+      const results: User[] = mapUser(input);
+      results.forEach((res, index) => {
+        expect(res).toEqual(jasmine.objectContaining(output[index]));
+      });
+
+      const results2: User[] = Morphism.map(User, input);
+      results2.forEach((res, index) => {
+        expect(res).toEqual(jasmine.objectContaining(output[index]));
+      });
+
+      const results3: User[] = input.map(userInput => Morphism.map(User, userInput));
+      results3.forEach((res, index) => {
+        expect(res).toEqual(jasmine.objectContaining(output[index]));
       });
     });
   });
