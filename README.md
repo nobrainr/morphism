@@ -1,6 +1,6 @@
 # Morphism
 
-[![NPM version][npm-image]][npm-url] [![Coverage percentage][coveralls-image]][coveralls-url] [![Build Status][travis-image]][travis-url]
+[![NPM version][npm-image]][npm-url] [![Coverage percentage][coveralls-image]][coveralls-url] [![CircleCI](https://img.shields.io/circleci/project/github/nobrainr/morphism.svg)](https://circleci.com/gh/nobrainr/morphism)
 
 [![gzip size](http://img.badgesize.io/https://unpkg.com/morphism/dist/morphism.js?compression=gzip)](https://unpkg.com/morphism/dist/morphism.js) [![Dependency Status][daviddm-image]][daviddm-url] ![Blazing Fast](https://img.shields.io/badge/speed-blazing%20%F0%9F%94%A5-brightgreen.svg)
 
@@ -308,8 +308,6 @@ MIT © [Yann Renaudin][twitter-account]
 [twitter-account]: https://twitter.com/renaudin_yann
 [npm-image]: https://badge.fury.io/js/morphism.svg
 [npm-url]: https://npmjs.org/package/morphism
-[travis-image]: https://travis-ci.org/emyann/morphism.svg?branch=master
-[travis-url]: https://travis-ci.org/emyann/morphism
 [daviddm-image]: https://david-dm.org/emyann/morphism.svg?theme=shields.io
 [daviddm-url]: https://david-dm.org/emyann/morphism
 [coveralls-image]: https://coveralls.io/repos/emyann/morphism/badge.svg
