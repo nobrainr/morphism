@@ -1,19 +1,16 @@
 {
   "name": "morphism",
   "version": "0.8.1",
-  "description":
-    "Library to transform any Object / JSON to JavaScript Object Literals, and ES6 Class Objects. Help you scale your data processing",
+  "description": "Library to transform any Object / JSON to JavaScript Object Literals, and ES6 Class Objects. Help you scale your data processing",
   "homepage": "https://emyann.github.io/morphism/",
   "scripts": {
     "start": "npm run server:dev",
     "server": "npm run server:dev",
     "server:dev": "webpack-dashboard -- webpack-dev-server --config ./webpack.config.js --hot --inline --progress --watch --open",
-    "server:prod":
-      "cross-env NODE_ENV=production webpack-dashboard -- webpack-dev-server --config ./webpack.config.js --port 3000 --host 0.0.0.0 --hot --inline --progress --profile --watch --open --content-base dist/",
+    "server:prod": "cross-env NODE_ENV=production webpack-dashboard -- webpack-dev-server --config ./webpack.config.js --port 3000 --host 0.0.0.0 --hot --inline --progress --profile --watch --open --content-base dist/",
     "build": "npm run build:dev",
     "build:dev": "webpack --config ./webpack.config.js --progress --profile --color --display-error-details --display-cached",
-    "build:prod":
-      "cross-env NODE_ENV=production webpack --config ./webpack.config.js  --progress --profile --color --display-error-details --display-cached --bail",
+    "build:prod": "cross-env NODE_ENV=production webpack --config ./webpack.config.js  --progress --profile --color --display-error-details --display-cached --bail",
     "clean": "npm cache clear && rimraf -- dist",
     "test": "karma start",
     "semantic-release": "semantic-release"
@@ -23,10 +20,19 @@
     "email": "renaudin.yann@gmail.com",
     "url": "https://twitter.com/renaudin_yann"
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "main": "./dist/morphism.js",
   "types": "./dist/morphism.d.ts",
-  "keywords": ["Javascript", "Json", "Object", "Mapper", "Data Mapping", "Functional Programming"],
+  "keywords": [
+    "Javascript",
+    "Json",
+    "Object",
+    "Mapper",
+    "Data Mapping",
+    "Functional Programming"
+  ],
   "devDependencies": {
     "@types/jasmine": "^2.5.53",
     "awesome-typescript-loader": "^5.0.0",
