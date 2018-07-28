@@ -190,13 +190,19 @@ describe('Morphism', function() {
         expect(res).toEqual(jasmine.objectContaining(output[index]));
       });
 
-      const results2: User[] = Morphism.map(User, input);
+      const mapUser2 = Morphism(schema, null, User);
+      const results2: User[] = mapUser2(input);
       results2.forEach((res, index) => {
         expect(res).toEqual(jasmine.objectContaining(output[index]));
       });
 
-      const results3: User[] = input.map(userInput => Morphism.map(User, userInput));
+      const results3: User[] = Morphism.map(User, input);
       results3.forEach((res, index) => {
+        expect(res).toEqual(jasmine.objectContaining(output[index]));
+      });
+
+      const results4: User[] = input.map(userInput => Morphism.map(User, userInput));
+      results4.forEach((res, index) => {
         expect(res).toEqual(jasmine.objectContaining(output[index]));
       });
     });

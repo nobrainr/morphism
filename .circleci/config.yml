@@ -62,12 +62,11 @@ workflows:
   test:
     jobs:
       - test-job
-      - build-job
-          # filters:
-          #   branches:
-          #     only:
-          #       - master
-          #       - beta
+      - build-job:
+          filters:
+            branches:
+              only:
+                - master
       - publish-job:
           requires:
             - test-job
