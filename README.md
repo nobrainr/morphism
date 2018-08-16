@@ -1,5 +1,9 @@
 # Morphism
 
+<div style="text-align:center">
+<img src="https://i.imgur.com/4muW6u2.jpg" width="800px">
+</div>
+
 [![NPM version][npm-image]][npm-url] [![Coverage percentage][coveralls-image]][coveralls-url]
 [![CircleCI](https://img.shields.io/circleci/project/github/nobrainr/morphism.svg)](https://circleci.com/gh/nobrainr/morphism)
 ![npm](https://img.shields.io/npm/dm/morphism.svg?style=flat-square)
@@ -10,10 +14,15 @@
 
 _https://en.wikipedia.org/wiki/Morphism_
 
-<div style="text-align:center">
-<img src="https://i.imgur.com/4muW6u2.jpg" width="800px">
-</div>
-<div style="display:block; font-style:italic; text-align:right">Picture by @Gmulti</div>
+```sh
+npm install --save morphism
+```
+
+- :atom_symbol: Write your schema once, Transform your data everywhere
+- :zero: Zero dependencies
+- :zap: [1.6 kB gzipped](https://bundlephobia.com/result?p=morphism@0.9.1)
+
+[View demo](https://repl.it/@yrnd1/morphism-playground)
 
 ---
 
