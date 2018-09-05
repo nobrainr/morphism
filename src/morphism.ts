@@ -169,40 +169,32 @@ const transformItems = (schema: Schema, type?: any) => (input: any) => {
     }
   }
 };
-let Morphism: {
+
+interface MorphismFunction {
+  /**
+   * Currying function that either outputs a mapping function or the transformed data.
+   *
+   * @example
+   * import { morphism } from './morphism'
+   * // => Outputs a function when only a schema is provided
+   * const fn = morphism(schema);
+   * const result = fn(data);
+   *
+   * // => Outputs the transformed data when a schema and the input data is provided
+   * const result = morphism(schema, data);
+   *
+   * // => Outputs the transformed data as an ES6 Class Object when a schema, the input data and an ES6 Class are provided
+   * const result = morphism(schema, data, Foo);
+   * // result is type of Foo
+   *
+   * @param  {Schema} schema Configuration schema to compute data source properties
+   * @param  {} items Object or Collection to be mapped
+   * @param  {} type
+   */
   (schema: Schema, items?: any, type?: any): typeof type;
-  register?: (type: any, schema?: Schema) => any;
-  map?: (type: any, data?: any) => any;
-  getMapper?: (type: any) => any;
-  setMapper?: (type: any, schema: Schema) => any;
-  deleteMapper?: (type: any) => any;
-  mappers?: Map<any, any>;
-};
-/**
- * Object Literals Mapper (Curried Function)
- * Only gives a Schema as parameter will output a mapper function to pass items to.
- * Pass a Schema and items to map the input straight away.
- *
- * @param  {Map<string, any> | any} schema Configuration schema to compute data source properties
- * @param  {} items Object or Collection to be mapped
- * @param  {} type
- * @example
- *
- * const mapper = Morphism(schema);
- *
- * // => Map a single Object
- *
- * const mappedObject= mapper(sourceObject);
- *
- * // => Map a collection of Objects
- *
- * const mappedObjects = collectionOfObjects.map(mapper);
- *
- * // => Map everything straight away
- *
- *  const output = Morphism(schema, input);
- */
-Morphism = (schema: Schema, items?: any, type?: any): typeof type => {
+}
+
+const morphism: MorphismFunction = (schema: Schema, items?: any, type?: any): typeof type => {
   if (items === undefined && type === undefined) {
     return transformItems(schema);
   } else if (schema && items && type) {
