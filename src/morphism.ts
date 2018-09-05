@@ -220,82 +220,117 @@ const getSchemaForType = (type: any, baseSchema: any) => {
   return finalSchema;
 };
 
-const _registry: any = { cache: new Map() };
-
-class MorphismRegistry {
+interface IMorphismRegistry {
   /**
-   * Register a mapping schema for a Type aimed to be used later
+   * Register a mapping schema for a Class.
    *
    * @param {Type} type Class Type to be registered
    * @param {Object} schema Configuration of how properties are computed from the source
-   * @param {Object | Array } items Object or Collection to be mapped
-   * @returns {Function<T>} Mapper function to be used against a data source
+   *
    */
-  static register(type: any, schema?: Schema) {
+  register: (type: any, schema?: Schema) => any;
+  /**
+   * Transform any input in the specified Class
+   *
+   * @param {Type} type Class Type of the ouput Data
+   * @param {Object} data Input data to transform
+   *
+   */
+  map: (type: any, data?: any) => any;
+  /**
+   * Get a specific mapping function for the provided Class
+   *
+   * @param {Type} type Class Type of the ouput Data
+   *
+   */
+  getMapper: (type: any) => any;
+  /**
+   * Set a schema for a specific Class Type
+   *
+   * @param {Type} type Class Type of the ouput Data
+   * @param {Schema} schema Class Type of the ouput Data
+   *
+   */
+  setMapper: (type: any, schema: Schema) => any;
+  /**
+   * Delete a registered schema associated to a Class
+   *
+   * @param type ES6 Class Type of the ouput Data
+   *
+   */
+  deleteMapper: (type: any) => any;
+  /**
+   * Get the list of the mapping function registered
+   *
+   * @param {Type} type Class Type of the ouput Data
+   *
+   */
+  mappers: Map<any, any>;
+}
+
+class MorphismRegistry implements IMorphismRegistry {
+  private _registry: any = { cache: new Map() };
+
+  register(type: any, schema?: Schema) {
     if (!type && !schema) {
       throw new Error('type paramater is required when register a mapping');
-    } else if (MorphismRegistry.exists(type)) {
+    } else if (this.exists(type)) {
       throw new Error(`A mapper for ${type.name} has already been registered`);
     }
-    const mapper = Morphism(schema, null, type);
-    _registry.cache.set(type, mapper);
+    const mapper = morphism(schema, null, type);
+    this._registry.cache.set(type, mapper);
     return mapper;
   }
-  /**
-   *
-   * @param   {Type} type
-   * @param   {Array|Object} data
-   * @returns {Array<type>|Object}
-   * @example
-   *
-   * let collectionOfType = Morphism.map(Type, [object1, object2, object3]);
-   */
-  static map(type: any, data?: any) {
-    if (!MorphismRegistry.exists(type)) {
-      const mapper = MorphismRegistry.register(type);
+
+  map(type: any, data?: any) {
+    if (!this.exists(type)) {
+      const mapper = this.register(type);
       if (data === undefined) {
         return mapper;
       }
     }
-    return MorphismRegistry.getMapper(type)(data);
+    return this.getMapper(type)(data);
   }
 
-  static getMapper(type: any) {
-    return _registry.cache.get(type);
+  getMapper(type: any) {
+    return this._registry.cache.get(type);
   }
 
-  static get mappers() {
-    return _registry.cache as Map<any, any>;
+  get mappers() {
+    return this._registry.cache as Map<any, any>;
   }
 
-  static exists(type: any) {
-    return _registry.cache.has(type);
+  exists(type: any) {
+    return this._registry.cache.has(type);
   }
 
-  static setMapper(type: any, schema: Schema) {
+  setMapper(type: any, schema: Schema) {
     if (!schema) {
       throw new Error(`The schema must be an Object. Found ${schema}`);
-    } else if (!MorphismRegistry.exists(type)) {
+    } else if (!this.exists(type)) {
       throw new Error(`The type ${type.name} is not registered. Register it using \`Mophism.register(${type.name}, schema)\``);
     } else {
-      let fn = Morphism(schema, null, type);
-      _registry.cache.set(type, fn);
+      let fn = morphism(schema, null, type);
+      this._registry.cache.set(type, fn);
       return fn;
     }
   }
 
-  static deleteMapper(type: any) {
-    return _registry.cache.delete(type);
+  deleteMapper(type: any) {
+    return this._registry.cache.delete(type);
   }
 }
 
+const morphismRegistry = new MorphismRegistry();
 /** API */
-Morphism.register = MorphismRegistry.register;
-Morphism.map = MorphismRegistry.map;
-Morphism.getMapper = MorphismRegistry.getMapper;
-Morphism.setMapper = MorphismRegistry.setMapper;
-Morphism.deleteMapper = MorphismRegistry.deleteMapper;
-Morphism.mappers = MorphismRegistry.mappers;
+const MorphismObject: MorphismFunction & IMorphismRegistry = morphism as any;
+MorphismObject.register = (t, s) => morphismRegistry.register(t, s);
+MorphismObject.map = (t, d) => morphismRegistry.map(t, d);
+MorphismObject.getMapper = t => morphismRegistry.getMapper(t);
+MorphismObject.setMapper = (t, s) => morphismRegistry.setMapper(t, s);
+MorphismObject.deleteMapper = t => morphismRegistry.deleteMapper(t);
+MorphismObject.mappers = morphismRegistry.mappers;
 /** API */
 
-export default Morphism;
+export { morphism, Schema, ActionFunction, ActionString, ActionAggregator, ActionSelector };
+export default MorphismObject;
