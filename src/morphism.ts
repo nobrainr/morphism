@@ -65,13 +65,24 @@ function zipObject(props: string[], values: any[]) {
     return { ...prev, [prop]: values[i] };
   }, {});
 }
-export type Many<T> = T | T[];
-export interface Schema {
-  [targetProperty: string]:
-    | string
-    | ((iteratee: Many<object>, source: Many<object>, target: any) => any)
-    | string[]
-    | { path: string | string[]; fn: (fieldValue: Many<object>, items: Many<object>) => any };
+
+type ActionString = string;
+interface ActionFunction {
+  /**
+   * A Function invoked per iteration
+   *
+   * @param  {any} iteratee The current element to transform
+   * @param  {any} source The source input to transform
+   * @param  {any} target The current element transformed
+   *
+   */
+  (iteratee: any, source: any | any[], target: any): any;
+}
+type ActionAggregator = string[];
+type ActionSelector = { path: string | string[]; fn: (fieldValue: any, items: any[]) => any };
+
+interface Schema {
+  [targetProperty: string]: ActionString | ActionFunction | ActionAggregator | ActionSelector;
 }
 
 /**
