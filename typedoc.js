@@ -1,6 +1,6 @@
 module.exports = {
   name: 'Morphism API',
-  out: './docs/',
+  out: './docs/typedoc',
 
   // readme: 'none',
   exclude: ['/**/*.spec.ts'],
