@@ -6,7 +6,7 @@ module.exports = {
   exclude: ['/**/*.spec.ts'],
 
   mode: 'modules',
-
+  externalPattern: '**/helpers.ts',
   excludeExternals: true,
   excludeNotExported: true,
   excludePrivate: true,
