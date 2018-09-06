@@ -1,77 +1,65 @@
-const aggregator = (paths: any, object: any) => {
-  return paths.reduce((delta: any, path: any) => {
-    return set(delta, path, get(object, path));
-  }, {});
+/**
+ * @module morphism
+ */
+import { isString, get, isFunction, isObject, zipObject, isUndefined, assignInWith, aggregator } from './helpers';
+
+/**
+ * A String path that indicates where to find the property in the source input
+ *
+ * ```
+ * "path.to.property"
+ * "sourceProperty"
+ * ```
+ *
+ */
+export type ActionString = string;
+export type ActionFunction = {
+  /**
+   * A Function invoked per iteration
+   * @param {} iteratee The current element to transform
+   * @param source The source input to transform
+   * @param target The current element transformed
+   *
+   */
+  (iteratee: any, source: any | any[], target: any): any;
 };
+export type ActionAggregator = string[];
+export type ActionSelector = { path: string | string[]; fn: (fieldValue: any, items: any[]) => any };
 
-function assignInWith(target: any, source: any, customizer?: (targetValue: any, sourceValue: any) => any) {
-  Object.entries(source).forEach(([field, value]) => {
-    if (customizer) {
-      target[field] = customizer(target[field], value);
-    } else {
-      target[field] = value;
-    }
-  });
-  return target;
-}
-
-function isUndefined(value: any) {
-  return value === undefined;
-}
-
-function isObject(value: any) {
-  const type = typeof value;
-  return value != null && (type === 'object' || type === 'function');
-}
-
-function isString(value: any): value is string {
-  return typeof value === 'string' || value instanceof String;
-}
-
-function isFunction(value: any): value is (...args: any[]) => any {
-  return typeof value === 'function';
-}
-function set(object: object, path: string, value: any) {
-  path = path.replace(/\[(\w+)\]/g, '.$1'); // convert indexes to properties
-  path = path.replace(/^\./, ''); // strip a leading dot
-  const paths = path.split('.');
-  const lastProperty = paths.pop();
-  const finalValue = paths.reduceRight(
-    (finalObject, prop) => {
-      return { [prop]: finalObject };
-    },
-    { [lastProperty]: value }
-  );
-
-  return { ...object, ...finalValue };
-}
-function get(object: object, path: string) {
-  path = path.replace(/\[(\w+)\]/g, '.$1'); // convert indexes to properties
-  path = path.replace(/^\./, ''); // strip a leading dot
-  const a = path.split('.');
-  for (let i = 0, n = a.length; i < n; ++i) {
-    const k = a[i];
-    if (isObject(object) && k in object) {
-      object = object[k];
-    } else {
-      return;
-    }
-  }
-  return object;
-}
-
-function zipObject(props: string[], values: any[]) {
-  return props.reduce((prev, prop, i) => {
-    return { ...prev, [prop]: values[i] };
-  }, {});
-}
-export type Many<T> = T | T[];
+/**
+ * An object-preserving map from one data structure to another.
+ *
+ * The keys of the schema match the desired destination structure.
+ * Each value corresponds to an Action applied by Morphism when iterating over the input data
+ * @example
+ * ```typescript
+ *
+ * const input = {
+ *   foo: {
+ *     baz: 'value1'
+ *   }
+ * };
+ *
+ * const schema: Schema = {
+ *   bar: 'foo', // ActionString
+ *   qux: ['foo', 'foo.baz'], // ActionAggregator
+ *   quux: (iteratee, source, destination) => { // ActionFunction
+ *     return iteratee.foo;
+ *   },
+ *   corge: { // ActionSelector
+ *     path: 'foo.baz',
+ *     fn: (propertyValue, source) => {
+ *       return propertyValue;
+ *     }
+ *   }
+ * };
+ *
+ * morphism(schema, input);
+ * ```
+ */
 export interface Schema {
-  [targetProperty: string]:
-    | string
-    | ((iteratee: Many<object>, source: Many<object>, target: any) => any)
-    | string[]
-    | { path: string | string[]; fn: (fieldValue: Many<object>, items: Many<object>) => any };
+  /** `destinationProperty` is the name of the property of the target object you want to produce */
+  [destinationProperty: string]: ActionString | ActionFunction | ActionAggregator | ActionSelector;
 }
 
 /**
@@ -80,7 +68,7 @@ export interface Schema {
  * @param  {Object} object
  * @param  {Map<string, string> | Map<string, Function>} schema Transformation schema
  * @param  {Array} items Items to be forwarded to Actions
- * @param  {} constructed Created tranformed object of a given type
+ * @param  {} objectToCompute Created tranformed object of a given type
  */
 function transformValuesFromObject(object: any, schema: Schema, items: any[], objectToCompute: {} | any) {
   return Object.entries(schema)
@@ -158,40 +146,61 @@ const transformItems = (schema: Schema, type?: any) => (input: any) => {
     }
   }
 };
-let Morphism: {
-  (schema: Schema, items?: any, type?: any): typeof type;
-  register?: (type: any, schema?: Schema) => any;
-  map?: (type: any, data?: any) => any;
-  getMapper?: (type: any) => any;
-  setMapper?: (type: any, schema: Schema) => any;
-  deleteMapper?: (type: any) => any;
-  mappers?: Map<any, any>;
+const getSchemaForType = (type: any, baseSchema: any) => {
+  let typeFields = Object.keys(new type());
+  let defaultSchema = zipObject(typeFields, typeFields);
+  let finalSchema = Object.assign(defaultSchema, baseSchema);
+  return finalSchema;
 };
+
+interface MorphismFunction {
+  /**
+   * Currying function that either outputs a mapping function or the transformed data.
+   *
+   * @example
+   * ```js
+    // => Outputs a function when only a schema is provided
+    const fn = morphism(schema);
+    const result = fn(data);
+
+    // => Outputs the transformed data when a schema and the input data is provided
+    const result = morphism(schema, data);
+
+    // => Outputs the transformed data as instance of the Class provided
+    const result = morphism(schema, data, Foo);
+    // result is instance of Foo
+  * ```
+  * @param  {Schema} schema Configuration schema to compute data source properties
+  * @param  {} items Object or Collection to be mapped
+  * @param  {} type
+  *
+  */
+  (schema: Schema, items?: any, type?: any): typeof type;
+}
+
 /**
- * Object Literals Mapper (Curried Function)
- * Only gives a Schema as parameter will output a mapper function to pass items to.
- * Pass a Schema and items to map the input straight away.
+ * Currying function that either outputs a mapping function or the transformed data.
  *
- * @param  {Map<string, any> | any} schema Configuration schema to compute data source properties
+ * @example
+ * ```js
+ *
+  // => Outputs a function when only a schema is provided
+  const fn = morphism(schema);
+  const result = fn(data);
+
+  // => Outputs the transformed data when a schema and the input data is provided
+  const result = morphism(schema, data);
+
+  // => Outputs the transformed data as an ES6 Class Object when a schema, the input data and an ES6 Class are provided
+  const result = morphism(schema, data, Foo);
+  // result is type of Foo
+ * ```
+ * @param  {Schema} schema Configuration schema to compute data source properties
  * @param  {} items Object or Collection to be mapped
  * @param  {} type
- * @example
  *
- * const mapper = Morphism(schema);
- *
- * // => Map a single Object
- *
- * const mappedObject= mapper(sourceObject);
- *
- * // => Map a collection of Objects
- *
- * const mappedObjects = collectionOfObjects.map(mapper);
- *
- * // => Map everything straight away
- *
- *  const output = Morphism(schema, input);
  */
-Morphism = (schema: Schema, items?: any, type?: any): typeof type => {
+export function morphism(schema: Schema, items?: any, type?: any): typeof type {
   if (items === undefined && type === undefined) {
     return transformItems(schema);
   } else if (schema && items && type) {
@@ -208,91 +217,116 @@ Morphism = (schema: Schema, items?: any, type?: any): typeof type => {
       return transformItems(finalSchema, type)(futureInput);
     };
   }
-};
+}
 
-const getSchemaForType = (type: any, baseSchema: any) => {
-  let typeFields = Object.keys(new type());
-  let defaultSchema = zipObject(typeFields, typeFields);
-  let finalSchema = Object.assign(defaultSchema, baseSchema);
-  return finalSchema;
-};
-
-const _registry: any = { cache: new Map() };
-
-class MorphismRegistry {
+interface IMorphismRegistry {
   /**
-   * Register a mapping schema for a Type aimed to be used later
+   * Register a mapping schema for a Class.
    *
    * @param {Type} type Class Type to be registered
    * @param {Object} schema Configuration of how properties are computed from the source
-   * @param {Object | Array } items Object or Collection to be mapped
-   * @returns {Function<T>} Mapper function to be used against a data source
+   *
    */
-  static register(type: any, schema?: Schema) {
+  register: (type: any, schema?: Schema) => any;
+  /**
+   * Transform any input in the specified Class
+   *
+   * @param {Type} type Class Type of the ouput Data
+   * @param {Object} data Input data to transform
+   *
+   */
+  map: (type: any, data?: any) => any;
+  /**
+   * Get a specific mapping function for the provided Class
+   *
+   * @param {Type} type Class Type of the ouput Data
+   *
+   */
+  getMapper: (type: any) => any;
+  /**
+   * Set a schema for a specific Class Type
+   *
+   * @param {Type} type Class Type of the ouput Data
+   * @param {Schema} schema Class Type of the ouput Data
+   *
+   */
+  setMapper: (type: any, schema: Schema) => any;
+  /**
+   * Delete a registered schema associated to a Class
+   *
+   * @param type ES6 Class Type of the ouput Data
+   *
+   */
+  deleteMapper: (type: any) => any;
+  /**
+   * Get the list of the mapping function registered
+   *
+   * @param {Type} type Class Type of the ouput Data
+   *
+   */
+  mappers: Map<any, any>;
+}
+
+class MorphismRegistry implements IMorphismRegistry {
+  private _registry: any = { cache: new Map() };
+
+  register(type: any, schema?: Schema) {
     if (!type && !schema) {
       throw new Error('type paramater is required when register a mapping');
-    } else if (MorphismRegistry.exists(type)) {
+    } else if (this.exists(type)) {
       throw new Error(`A mapper for ${type.name} has already been registered`);
     }
-    const mapper = Morphism(schema, null, type);
-    _registry.cache.set(type, mapper);
+    const mapper = morphism(schema, null, type);
+    this._registry.cache.set(type, mapper);
     return mapper;
   }
-  /**
-   *
-   * @param   {Type} type
-   * @param   {Array|Object} data
-   * @returns {Array<type>|Object}
-   * @example
-   *
-   * let collectionOfType = Morphism.map(Type, [object1, object2, object3]);
-   */
-  static map(type: any, data?: any) {
-    if (!MorphismRegistry.exists(type)) {
-      const mapper = MorphismRegistry.register(type);
+
+  map(type: any, data?: any) {
+    if (!this.exists(type)) {
+      const mapper = this.register(type);
       if (data === undefined) {
         return mapper;
       }
     }
-    return MorphismRegistry.getMapper(type)(data);
+    return this.getMapper(type)(data);
   }
 
-  static getMapper(type: any) {
-    return _registry.cache.get(type);
+  getMapper(type: any) {
+    return this._registry.cache.get(type);
   }
 
-  static get mappers() {
-    return _registry.cache as Map<any, any>;
+  get mappers() {
+    return this._registry.cache as Map<any, any>;
   }
 
-  static exists(type: any) {
-    return _registry.cache.has(type);
+  exists(type: any) {
+    return this._registry.cache.has(type);
   }
 
-  static setMapper(type: any, schema: Schema) {
+  setMapper(type: any, schema: Schema) {
     if (!schema) {
       throw new Error(`The schema must be an Object. Found ${schema}`);
-    } else if (!MorphismRegistry.exists(type)) {
+    } else if (!this.exists(type)) {
       throw new Error(`The type ${type.name} is not registered. Register it using \`Mophism.register(${type.name}, schema)\``);
     } else {
-      let fn = Morphism(schema, null, type);
-      _registry.cache.set(type, fn);
+      let fn = morphism(schema, null, type);
+      this._registry.cache.set(type, fn);
       return fn;
     }
   }
 
-  static deleteMapper(type: any) {
-    return _registry.cache.delete(type);
+  deleteMapper(type: any) {
+    return this._registry.cache.delete(type);
   }
 }
 
-/** API */
-Morphism.register = MorphismRegistry.register;
-Morphism.map = MorphismRegistry.map;
-Morphism.getMapper = MorphismRegistry.getMapper;
-Morphism.setMapper = MorphismRegistry.setMapper;
-Morphism.deleteMapper = MorphismRegistry.deleteMapper;
-Morphism.mappers = MorphismRegistry.mappers;
-/** API */
+const morphismRegistry = new MorphismRegistry();
+const MorphismObject: MorphismFunction & IMorphismRegistry = morphism as any;
+MorphismObject.register = (t, s) => morphismRegistry.register(t, s);
+MorphismObject.map = (t, d) => morphismRegistry.map(t, d);
+MorphismObject.getMapper = t => morphismRegistry.getMapper(t);
+MorphismObject.setMapper = (t, s) => morphismRegistry.setMapper(t, s);
+MorphismObject.deleteMapper = t => morphismRegistry.deleteMapper(t);
+MorphismObject.mappers = morphismRegistry.mappers;
 
-export default Morphism;
+export default MorphismObject;
