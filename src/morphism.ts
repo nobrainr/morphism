@@ -166,9 +166,9 @@ interface MorphismFunction {
     // => Outputs the transformed data when a schema and the input data is provided
     const result = morphism(schema, data);
 
-    // => Outputs the transformed data as an ES6 Class Object when a schema, the input data and an ES6 Class are provided
+    // => Outputs the transformed data as instance of the Class provided
     const result = morphism(schema, data, Foo);
-    // result is type of Foo
+    // result is instance of Foo
   * ```
   * @param  {Schema} schema Configuration schema to compute data source properties
   * @param  {} items Object or Collection to be mapped
