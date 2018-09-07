@@ -27,18 +27,21 @@ _https://en.wikipedia.org/wiki/Morphism_
   - [Docs 🍔](#docs-%F0%9F%8D%94)
     - [1. The Schema](#1-the-schema)
       - [Schema Example](#schema-example)
-    - [2. Morphism as Mixin](#2-morphism-as-mixin)
-    - [3. Morphism as Currying Function](#3-morphism-as-currying-function)
+    - [2. Morphism as Currying Function](#2-morphism-as-currying-function)
+      - [API](#api)
+      - [Currying Function Example](#currying-function-example)
+    - [3. Morphism as Mixin](#3-morphism-as-mixin)
   - [More Schema examples 💡](#more-schema-examples-%F0%9F%92%A1)
     - [Flattening or Projection](#flattening-or-projection)
     - [Function over a source property's value](#function-over-a-source-propertys-value)
     - [Function over a source property](#function-over-a-source-property)
     - [Properties Aggregation](#properties-aggregation)
-    - [API 📚](#api-%F0%9F%93%9A)
+  - [Registry API 📚](#registry-api-%F0%9F%93%9A)
       - [Register](#register)
       - [Map](#map)
       - [Get or Set an existing mapper configuration](#get-or-set-an-existing-mapper-configuration)
       - [Delete a registered mapper](#delete-a-registered-mapper)
+      - [List registered mappers](#list-registered-mappers)
   - [Contribution](#contribution)
   - [License](#license)
 
@@ -113,7 +116,7 @@ A schema is an object-preserving map from one data structure to another.
 
 The keys of the schema match the desired destination structure. Each value corresponds to an Action applied by Morphism when iterating over the input data.
 
-You can use 4 kind of values in your schema:
+You can use **4 kind of values** in your schema:
 
 - `ActionString`: A string that allows to perform a projection from a property
 - `ActionSelector`: An Object that allows to perform a function over a source property's value
@@ -168,9 +171,63 @@ morphism(schema, input);
 
 ⏩ [See More Schema examples](#more-schema-examples-%F0%9F%92%A1)
 
-### 2. Morphism as Mixin
+### 2. Morphism as Currying Function
 
-### 3. Morphism as Currying Function
+The simplest way to use morphism is to import the currying function:
+
+```ts
+import { morphism } from 'morphism';
+```
+
+`morphism` either outputs a mapping function or the transformed data depending on the usage:
+
+#### API
+
+```ts
+morphism(schema: Schema, items?: any, type?: any): any
+```
+
+#### Currying Function Example
+
+```ts
+// Outputs a function when only a schema is provided
+const fn = morphism(schema);
+const result = fn(data);
+
+// Outputs the transformed data when a schema and the source data are provided
+const result = morphism(schema, data);
+
+// Outputs the transformed data as an ES6 Class Object when a schema, the source data and an ES6 Class are provided
+const result = morphism(schema, data, Foo);
+// => Items in result are instance of Foo
+```
+
+### 3. Morphism as Mixin
+
+Morphism comes along with an internal registry you can use to save your schema attached to a specific **ES6 Class**.
+
+In order to use the registry, you might want to use the default export:
+
+```ts
+import Morphism from 'morphism';
+```
+
+All features available with the currying function are also available when using the mixin plus the internal registry:
+
+```typescript
+// Currying Function
+Morphism(schema: Schema, items?: any, type?: any): any
+
+// Registry API
+Morphism.register(type: any, schema?: Schema);
+Morphism.map(type: any, data?: any);
+Morphism.setMapper(type: any, schema: Schema);
+Morphism.getMapper(type);
+Morphism.deleteMapper(type);
+Morphism.mappers
+```
+
+🔗 [Registry API Documentation](#registry-api-%F0%9F%93%9A)
 
 ## More Schema examples 💡
 
@@ -262,34 +319,41 @@ morphism(schema, source);
 
 ▶️ [Test with Repl.it](https://repl.it/@yrnd1/Morphism-Properties-Aggregation)
 
-### API 📚
+## Registry API 📚
 
 #### Register
 
 Register a mapper for a specific type. The schema is optional.
 
 ```js
-Morphism.register(type, (schema: {}));
+Morphism.register(type: any, schema?: Schema);
 ```
 
 #### Map
 
 Map a collection of objects to the specified type
 
-```js
-Morphism.map(type, (data: []));
+```ts
+Morphism.map(type: any, data?: any);
 ```
 
 #### Get or Set an existing mapper configuration
 
-```js
-Morphism.setMapper(type, (schema: {}));
+```ts
+Morphism.setMapper(type: any, schema: Schema);
+Morphism.getMapper(type);
 ```
 
 #### Delete a registered mapper
 
 ```js
-Morphism.deleteMapper(type, (schema: {}));
+Morphism.deleteMapper(type);
+```
+
+#### List registered mappers
+
+```js
+Morphism.mappers;
 ```
 
 ## Contribution
