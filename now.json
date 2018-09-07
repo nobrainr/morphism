@@ -1,4 +1,5 @@
 {
   "name": "morphism",
-  "alias": "morphism"
+  "alias": "morphism",
+  "type": "static"
 }
