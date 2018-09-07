@@ -1,44 +1,39 @@
 # Morphism
 
-<div style="text-align:center">
+<!-- <div style="text-align:center">
 <img src="https://i.imgur.com/4muW6u2.jpg" width="800px">
-</div>
+</div> -->
 
 [![NPM version][npm-image]][npm-url] [![Coverage percentage][coveralls-image]][coveralls-url]
 [![CircleCI](https://img.shields.io/circleci/project/github/nobrainr/morphism.svg)](https://circleci.com/gh/nobrainr/morphism)
 ![npm](https://img.shields.io/npm/dm/morphism.svg?style=flat-square)
-
-[![gzip size](http://img.badgesize.io/https://unpkg.com/morphism/dist/morphism.js?compression=gzip)](https://unpkg.com/morphism/dist/morphism.js) [![Dependency Status][daviddm-image]][daviddm-url] ![Blazing Fast](https://img.shields.io/badge/speed-blazing%20%F0%9F%94%A5-brightgreen.svg)
+[![gzip size](http://img.badgesize.io/https://unpkg.com/morphism/dist/morphism.js?compression=gzip)](https://unpkg.com/morphism/dist/morphism.js) [![Dependency Status][daviddm-image]][daviddm-url]
 
 > In many fields of mathematics, morphism refers to a structure-preserving map from one mathematical structure to another. A morphism **f** with source **X** and target **Y** is written **f : X → Y**. Thus a morphism is represented by an arrow from its **source** to its **target**.
 
 _https://en.wikipedia.org/wiki/Morphism_
 
-```sh
-npm install --save morphism
-```
-
 - :atom_symbol: Write your schema once, Transform your data everywhere
 - :zero: Zero dependencies
 - :zap: [1.6 kB gzipped](https://bundlephobia.com/result?p=morphism@0.9.1)
 
-[View demo](https://repl.it/@yrnd1/morphism-playground)
+[Morph Github Activity Feed](https://repl.it/@yrnd1/morphism-playground)
 
 ---
 
 - [Morphism](#morphism)
   - [Getting started 🚀](#getting-started-%F0%9F%9A%80)
-  - [What does it do? 🤔](#what-does-it-do-%F0%9F%A4%94)
-  - [Usage 🍔](#usage-%F0%9F%8D%94)
-    - [Along with an ES6 Class](#along-with-an-es6-class)
-    - [As a Mapper factory](#as-a-mapper-factory)
-    - [As a Static instance](#as-a-static-instance)
-  - [Mapping Schema Examples 💡](#mapping-schema-examples-%F0%9F%92%A1)
-    - [Dataset sample](#dataset-sample)
-    - [Flattening and Projection](#flattening-and-projection)
-    - [Computing over Flattening / Projection](#computing-over-flattening--projection)
-    - [Values Aggregation](#values-aggregation)
-    - [Mappers Registry 📚](#mappers-registry-%F0%9F%93%9A)
+    - [Installation](#installation)
+    - [Example](#example)
+  - [Motivation](#motivation)
+  - [Docs 🍔](#docs-%F0%9F%8D%94)
+    - [Morphism Mixin](#morphism-mixin)
+    - [Morphism Function](#morphism-function)
+  - [More examples 💡](#more-examples-%F0%9F%92%A1)
+    - [Flattening or Projection](#flattening-or-projection)
+    - [Function over a source property's value](#function-over-a-source-propertys-value)
+    - [Function over a source property](#function-over-a-source-property)
+    - [Properties Aggregation](#properties-aggregation)
     - [API 📚](#api-%F0%9F%93%9A)
       - [Register](#register)
       - [Map](#map)
@@ -49,233 +44,162 @@ npm install --save morphism
 
 ## Getting started 🚀
 
-Install `morphism` using npm.
+### Installation
 
 ```sh
 npm install --save morphism
 ```
 
-Then require it into any module.
+### Example
 
-```js
-const Morphism = require('morphism');
-```
+```typescript
+import { morphism } from 'morphism';
 
-Or using ES6 import style
+// Source data coming from an API.
+const source = {
+  foo: 'baz',
+  bar: ['bar', 'foo'],
+  baz: {
+    qux: 'bazqux'
+  }
+};
 
-```js
-import Morphism from 'morphism';
-```
-
-## What does it do? 🤔
-
-Morphism uses a semantic configuration to go through the collection of graph objects you have to process. Then it extracts and computes the value from the specified path(s). Finally, it sets this value to the destination property from the schema.
-
-## Usage 🍔
-
-Morphism is curried function that allows a partial application with a semantic configuration. You can use it in many ways:
-
-### Along with an ES6 Class
-
-```js
-// Target type you want to have
-class User {
-    constructor(firstName, lastName, phoneNumber){
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.phoneNumber = phoneNumber;
-        this.city = null;
-   }
+// Target Class in which to morph the source data. (Optional)
+class Destination {
+  foo = null;
+  bar = null;
+  bazqux = null;
 }
 
-// Data source you want to map
-let data = [{
-                'firstName': 'John',
-                'lastName': 'Smith',
-                'address':
-                    {
-                        'city': 'New York',
-                        'country': 'USA'
-                    },
-                'phoneNumber':
-                    [
-                        {
-                            'type': 'home',
-                            'number': '212 555-1234'
-                        },
-                        {
-                            'type': 'fax',
-                            'number': '646 555-4567'
-                        }
-                    ]
-             }];
-// Mapping Schema ( see more examples below )
+// A structure-preserving object from a source data towards a target data.
+const schema = {
+  foo: 'bar[1]', // Grab the property value by his path
+  bar: (iteratee, source, destination) => {
+    // Apply a Function on the current element
+    return iteratee.bar[0];
+  },
+  bazqux: {
+    // Apply a function on property value
+    path: 'baz.qux',
+    fn: (propertyValue, source) => {
+      return propertyValue;
+    }
+  }
+};
+
+const classObjects = morphism(schema, source, Destination);
+// Destination {foo: "foo", bar: "bar", bazqux: "bazqux"}
+
+const jsObjects = morphism(schema, source);
+// Object {foo: "foo", bar: "bar", bazqux: "bazqux"}
+```
+
+▶️ [Test with Repl.it](https://repl.it/@yrnd1/Morphism-Full-Example)
+
+## Motivation
+
+- Deal with multiple data contracts, like api
+- Business logic to transform the source to the target spread everywhere
+- Keep this business logic in one place stored as a map of transformations
+- Bring a Top-Down view of your data transformation.
+
+## Docs 🍔
+
+You can use `morphism` in two ways:
+
+### Morphism Mixin
+
+### Morphism Function
+
+## More examples 💡
+
+### Flattening or Projection
+
+```ts
+import { morphism } from 'morphism';
+// Source data coming from an API.
+const source = {
+  foo: 'baz',
+  bar: ['bar', 'foo'],
+  baz: {
+    qux: 'bazqux'
+  }
+};
+const schema = {
+  foo: 'foo', // Simple Projection
+  bazqux: 'baz.qux' // Grab a value from a deep path
+};
+
+morphism(schema, source);
+//=> { foo: 'baz', bazqux: 'bazqux' }
+```
+
+▶️ [Test with Repl.it](https://repl.it/@yrnd1/Morphism-Flattening-Projection)
+
+### Function over a source property's value
+
+```ts
+import { morphism } from 'morphism';
+// Source data coming from an API.
+const source = {
+  foo: {
+    bar: 'bar'
+  }
+};
 let schema = {
-    city: 'address.city',
-    phoneNumber: (object) => object.phoneNumber.filter(c => c.type === 'home')[0].number;
-}
-
-let mapUser = Morphism.register(User, schema);
-
-// Map using the registered type and the registry
-Morphism.map(User, data)
-
-// Or Map using the mapper reference
-mapUser(data);
-
-/// *** OUTPUT *** ///
-
-[{
-    'firstName': 'John',
-    'lastName': 'Smith',
-    'phoneNumber': '212 555-1234',
-    'city': 'New York'
- }]
-```
-
-### As a Mapper factory
-
-```js
-let mapping = { ... }
-let collectionOfObjects = [ ... ]
-let anotherCollection = [ ... ]
-
-// produces a reusable mapper from the configuration
-let myAwesomeMapper = Morphism(mapping);
-myAwesomeMapper(collectionOfObjects);
-myAwesomeMapper(anotherCollection);
-```
-
-### As a Static instance
-
-```js
-const Morphism = require('morphism');
-
-let mapping = { ... }
-let collectionOfObjects = [ ... ]
-
-// extracts the data straight away
-let results = Morphism(mapping, collectionOfObjects);
-```
-
-## Mapping Schema Examples 💡
-
-### Dataset sample
-
-```js
-// We'll use this set of data all along the examples
-let data = [
-  {
-    firstName: 'John',
-    lastName: 'Smith',
-    address: {
-      city: 'New York',
-      country: 'USA'
-    },
-    phoneNumber: [
-      {
-        type: 'home',
-        number: '212 555-1234'
-      },
-      {
-        type: 'fax',
-        number: '646 555-4567'
-      }
-    ]
+  barqux: {
+    path: 'foo.bar',
+    fn: value => `${value}qux` // Apply a function over the source property's value
   }
-];
+};
+
+morphism(schema, source);
+//=> { barqux: 'barqux' }
 ```
 
-### Flattening and Projection
+▶️ [Test with Repl.it](https://repl.it/@yrnd1/Morphism-Function-over-a-source-propertys-value)
 
-```js
-let data = [ ... ];
-let mapping = {
-                pseudo: 'firstName', // Simple Projection
-                lastName: 'lastName',
-                city: 'address.city' // Flatten a value from a deep path
-               };
+### Function over a source property
 
-let results = Morphism(mapping, data);
-
-// results[0]: {
-//                 pseudo: 'John',
-//                 lastName: 'Smith',
-//                 city: 'New York'
-//             }
-```
-
-### Computing over Flattening / Projection
-
-```js
-let data = [ ... ];
-let mapping = {
-                pseudo: 'firstName',
-                lastName: 'lastName',
-                city: {
-                    path: 'address.city',
-                    fn: (city) => city.toLowerCase() // compute a function on the specified path value
-                },
-                nbContacts: (object) => object.phoneNumber.length // compute a function on the iteratee object
-
-               };
-
-let mapper = Morphism(mapping);
-let results = mapper(data);
-
-// results[0]): {
-//                 pseudo: 'John',
-//                 lastName: 'Smith',
-//                 city: 'new york',// <== toLowerCase
-//                 nbContacts: 2 // <== computed from the object
-//              }
-```
-
-### Values Aggregation
-
-```js
-let data = [ ... ];
-
-let mapping = {
-                user: ['firstName','lastName'] // aggregate the values to an object
-                city: 'address.city'
-               };
-
-let results = Morphism(mapping, data);
-
-// results[0]: {
-//                 user: {
-//                     'firstName': 'John',
-//                     'lastName': 'Smith'
-//                 },
-//                 city: 'New York'
-//             }
-```
-
-### Mappers Registry 📚
-
-Morphism provides a powerful local registry where you can store your mappings' configuration by specifying a Class Type.
-The transformation sequences are stored as a function in a WeakMap to speed the processing.
-
-**Register a mapping configuration along with a Class**
-
-```js
-class User {
-  constructor(firstName, lastName, phoneNumber) {
-    this.firstName = firstName;
-    this.lastName = lastName;
-    this.phoneNumber = phoneNumber;
+```ts
+import { morphism } from 'morphism';
+// Source data coming from an API.
+const source = {
+  foo: {
+    bar: 'bar'
   }
-}
+};
+let schema = {
+  bar: iteratee => {
+    // Apply a function over the source propery
+    return iteratee.foo.bar;
+  }
+};
 
-let mapUser = Morphism.register(User, schema);
-
-// Map using the registered type and the registry
-Morphism.map(User, data);
-
-// Or Map using the mapper reference
-mapUser(data);
+morphism(schema, source);
+//=> { bar: 'bar' }
 ```
+
+▶️ [Test with Repl.it](https://repl.it/@yrnd1/Function-over-a-source-property)
+
+### Properties Aggregation
+
+```ts
+import { morphism } from 'morphism';
+// Source data coming from an API.
+const source = {
+  foo: 'foo',
+  bar: 'bar'
+};
+let schema = {
+  fooAndBar: ['foo', 'bar'] // Grab these properties into fooAndBar
+};
+
+morphism(schema, source);
+//=> { fooAndBar: { foo: 'foo', bar: 'bar' } }
+```
+
+▶️ [Test with Repl.it](https://repl.it/@yrnd1/Morphism-Properties-Aggregation)
 
 ### API 📚
 

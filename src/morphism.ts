@@ -27,7 +27,7 @@ export type ActionAggregator = string[];
 export type ActionSelector = { path: string | string[]; fn: (fieldValue: any, items: any[]) => any };
 
 /**
- * An object-preserving map from one data structure to another.
+ * A structure-preserving object from a source data towards a target data.
  *
  * The keys of the schema match the desired destination structure.
  * Each value corresponds to an Action applied by Morphism when iterating over the input data
