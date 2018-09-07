@@ -13,9 +13,9 @@ jobs:
       # Download and cache dependencies
       - restore_cache:
           keys:
-          - v1-dependencies-{{ checksum "package-lock.json" }}
-          # fallback to using the latest cache if no exact match is found
-          - v1-dependencies-
+            - v1-dependencies-{{ checksum "package-lock.json" }}
+            # fallback to using the latest cache if no exact match is found
+            - v1-dependencies-
       - run: npm install
       - save_cache:
           paths:
@@ -32,12 +32,12 @@ jobs:
     working_directory: ~/repo
     steps:
       - checkout
-       # Download and cache dependencies
+      # Download and cache dependencies
       - restore_cache:
           keys:
-          - v1-dependencies-{{ checksum "package-lock.json" }}
-          # fallback to using the latest cache if no exact match is found
-          - v1-dependencies-
+            - v1-dependencies-{{ checksum "package-lock.json" }}
+            # fallback to using the latest cache if no exact match is found
+            - v1-dependencies-
       - run: npm install
       - run:
           name: Build
@@ -49,6 +49,27 @@ jobs:
             - node_modules
             - package.json
 
+  deploy-docs:
+    docker:
+      - image: circleci/node:9
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-source-{{ checksum "package-lock.json" }}
+            # fallback to using the latest cache if no exact match is found
+            - v1-source-
+      - run:
+          name: Build Docs
+          command: npm run docs
+      - run:
+          name: Deploy Docs to Zeit
+          command: npm run docs
+      - run:
+          name: Aliasing Deployment
+          command: npm run alias
+
   publish-job:
     docker:
       - image: circleci/node:9
@@ -57,9 +78,9 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-          - v1-source-{{ checksum "package-lock.json" }}
-          # fallback to using the latest cache if no exact match is found
-          - v1-source-
+            - v1-source-{{ checksum "package-lock.json" }}
+            # fallback to using the latest cache if no exact match is found
+            - v1-source-
       - run:
           name: Publish Package
           command: cd dist && npm run semantic-release
@@ -69,13 +90,23 @@ workflows:
   test:
     jobs:
       - test-job
-      - build-job:
+      - build-job
+        # filters:
+        #   branches:
+        #     only:
+        #       - master
+      - deploy-docs:
+          requires:
+            - test-job
+            - build-job
+          # filters:
+          #   branches:
+          #     only:
+          #       - master
+      - publish-job:
+          requires:
+            - deploy-docs
           filters:
             branches:
               only:
                 - master
-      - publish-job:
-          requires:
-            - test-job
-            - build-job
-
