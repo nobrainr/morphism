@@ -17,8 +17,6 @@ _https://en.wikipedia.org/wiki/Morphism_
 - :zero: Zero dependencies
 - :zap: [1.6 kB gzipped](https://bundlephobia.com/result?p=morphism@0.9.1)
 
-[Morph Github Activity Feed](https://repl.it/@yrnd1/morphism-playground)
-
 ---
 
 - [Morphism](#morphism)
@@ -27,9 +25,11 @@ _https://en.wikipedia.org/wiki/Morphism_
     - [Example](#example)
   - [Motivation](#motivation)
   - [Docs 🍔](#docs-%F0%9F%8D%94)
-    - [Morphism Mixin](#morphism-mixin)
-    - [Morphism Function](#morphism-function)
-  - [More examples 💡](#more-examples-%F0%9F%92%A1)
+    - [1. The Schema](#1-the-schema)
+      - [Schema Example](#schema-example)
+    - [2. Morphism as Mixin](#2-morphism-as-mixin)
+    - [3. Morphism as Currying Function](#3-morphism-as-currying-function)
+  - [More Schema examples 💡](#more-schema-examples-%F0%9F%92%A1)
     - [Flattening or Projection](#flattening-or-projection)
     - [Function over a source property's value](#function-over-a-source-propertys-value)
     - [Function over a source property](#function-over-a-source-property)
@@ -105,13 +105,74 @@ const jsObjects = morphism(schema, source);
 
 ## Docs 🍔
 
-You can use `morphism` in two ways:
+**`Morphism` comes with 3 artifacts to achieve your transformations:**
 
-### Morphism Mixin
+### 1. The Schema
 
-### Morphism Function
+A schema is an object-preserving map from one data structure to another.
 
-## More examples 💡
+The keys of the schema match the desired destination structure. Each value corresponds to an Action applied by Morphism when iterating over the input data.
+
+You can use 4 kind of values in your schema:
+
+- `ActionString`: A string that allows to perform a projection from a property
+- `ActionSelector`: An Object that allows to perform a function over a source property's value
+- `ActionFunction`: A Function that allows to perform a function over source property
+- `ActionAggregator`: An Arr of String that allows to perform a function over source property
+
+#### Schema Example
+
+```ts
+import { morphism } from 'morphism';
+
+const input = {
+  foo: {
+    baz: 'value1'
+  }
+};
+
+const schema = {
+  bar: 'foo', // ActionString: Allows to perform a projection from a property
+  qux: ['foo', 'foo.baz'], // ActionAggregator: Allows to aggregate multiple properties
+  quux: (iteratee, source, destination) => {
+    // ActionFunction: Allows to perform a function over source property
+    return iteratee.foo;
+  },
+  corge: {
+    // ActionSelector: Allows to perform a function over a source property's value
+    path: 'foo.baz',
+    fn: (propertyValue, source) => {
+      return propertyValue;
+    }
+  }
+};
+
+morphism(schema, input);
+// {
+//   "bar": {
+//     "baz": "value1"
+//   },
+//   "qux": {
+//     "foo": {
+//       "baz": "value1"
+//     }
+//   },
+//   "quux": {
+//     "baz": "value1"
+//   },
+//   "corge": "value1"
+// }
+```
+
+▶️ [Test with Repl.it](https://repl.it/@yrnd1/Morphism-Schema-Options)
+
+⏩ [See More Schema examples](#more-schema-examples-%F0%9F%92%A1)
+
+### 2. Morphism as Mixin
+
+### 3. Morphism as Currying Function
+
+## More Schema examples 💡
 
 ### Flattening or Projection
 
