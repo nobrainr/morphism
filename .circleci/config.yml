@@ -65,10 +65,10 @@ jobs:
           command: npm run docs
       - run:
           name: Deploy Docs to Zeit
-          command: npm run docs
+          command: npm run docs:deploy
       - run:
           name: Aliasing Deployment
-          command: npm run alias
+          command: npm run docs:deploy:alias
 
   publish-job:
     docker:
