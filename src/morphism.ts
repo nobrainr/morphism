@@ -6,9 +6,23 @@ import { isString, get, isFunction, isObject, zipObject, isUndefined, assignInWi
 /**
  * A String path that indicates where to find the property in the source input
  *
- * ```
- * "path.to.property"
- * "sourceProperty"
+ * @example
+ * ```typescript
+ *
+ * const source = {
+ *   foo: 'baz',
+ *   bar: ['bar', 'foo'],
+ *   baz: {
+ *     qux: 'bazqux'
+ *   }
+ * };
+ * const schema = {
+ *   foo: 'foo', // Simple Projection
+ *   bazqux: 'baz.qux' // Grab a value from a nested property
+ * };
+ *
+ * morphism(schema, source);
+ * //=> { foo: 'baz', bazqux: 'bazqux' }
  * ```
  *
  */
@@ -19,11 +33,70 @@ export type ActionFunction = {
    * @param {} iteratee The current element to transform
    * @param source The source input to transform
    * @param target The current element transformed
+   * @example
+   * ```typescript
+   *
+   * const source = {
+   *   foo: {
+   *     bar: 'bar'
+   *   }
+   * };
+   * let schema = {
+   *   bar: iteratee => {
+   *     // Apply a function over the source propery
+   *     return iteratee.foo.bar;
+   *   }
+   * };
+   *
+   * morphism(schema, source);
+   * //=> { bar: 'bar' }
+   * ```
    *
    */
   (iteratee: any, source: any | any[], target: any): any;
 };
+/**
+ * An Array of String that allows to perform a function over source property
+ *
+ * @example
+ * ```typescript
+ *
+ * const source = {
+ *   foo: 'foo',
+ *   bar: 'bar'
+ * };
+ * let schema = {
+ *   fooAndBar: ['foo', 'bar'] // Grab these properties into fooAndBar
+ * };
+ *
+ * morphism(schema, source);
+ * //=> { fooAndBar: { foo: 'foo', bar: 'bar' } }
+ * ```
+ */
 export type ActionAggregator = string[];
+/**
+ * An Object that allows to perform a function over a source property's value
+ *
+ * @example
+ * ```typescript
+ *
+ * const source = {
+ *   foo: {
+ *     bar: 'bar'
+ *   }
+ * };
+ * let schema = {
+ *   barqux: {
+ *     path: 'foo.bar',
+ *     fn: value => `${value}qux` // Apply a function over the source property's value
+ *   }
+ * };
+ *
+ * morphism(schema, source);
+ * //=> { barqux: 'barqux' }
+ *```
+ *
+ */
 export type ActionSelector = { path: string | string[]; fn: (fieldValue: any, items: any[]) => any };
 
 /**
