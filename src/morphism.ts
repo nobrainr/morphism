@@ -200,6 +200,8 @@ interface MorphismFunction {
  * @param  {} type
  *
  */
+export function morphism(schema: Schema, items?: any, type?: any): typeof type;
+
 export function morphism(schema: Schema, items?: any, type?: any): typeof type {
   if (items === undefined && type === undefined) {
     return transformItems(schema);
