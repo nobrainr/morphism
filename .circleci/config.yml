@@ -87,19 +87,19 @@ workflows:
   test:
     jobs:
       - test-job
-      - build-job
-        # filters:
-        #   branches:
-        #     only:
-        #       - master
+      - build-job:
+          filters:
+            branches:
+              only:
+                - master
       - deploy-docs:
           requires:
             - test-job
             - build-job
-          # filters:
-          #   branches:
-          #     only:
-          #       - master
+          filters:
+            branches:
+              only:
+                - master
       - publish-job:
           requires:
             - deploy-docs

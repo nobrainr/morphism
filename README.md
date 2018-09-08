@@ -101,12 +101,13 @@ const jsObjects = morphism(schema, source);
 
 ## Motivation
 
-- Deal with multiple data contracts, like api
-- Business logic to transform the source to the target spread everywhere
-- Keep this business logic in one place stored as a map of transformations
-- Bring a Top-Down view of your data transformation.
+We live in a era where we deal with mutiple data contracts coming from several sources (Rest API, Services, Raw JSON...). When it comes to transform multiple data contracts to match with your domain objects, it's common to create your objects with `Object.assign`, `new Object(sourceProperty1, sourceProperty2)` or by simply assigning each source properties to your destination. This can leads you to have your business logic spread all over the place.
+
+`Morphism` allows you to keep this business logic centralized and brings you a top-down view of your data transformation. When a contract change occurs, it helps to track the bug since you just need to refer to your `schema`
 
 ## Docs 🍔
+
+📚 **[API documentation](https://morphism.now.sh)**
 
 **`Morphism` comes with 3 artifacts to achieve your transformations:**
 
@@ -118,10 +119,10 @@ The keys of the schema match the desired destination structure. Each value corre
 
 You can use **4 kind of values** in your schema:
 
-- `ActionString`: A string that allows to perform a projection from a property
-- `ActionSelector`: An Object that allows to perform a function over a source property's value
-- `ActionFunction`: A Function that allows to perform a function over source property
-- `ActionAggregator`: An Arr of String that allows to perform a function over source property
+- [`ActionString`](https://morphism.now.sh/modules/morphism#actionstring): A string that allows to perform a projection from a property
+- [`ActionSelector`](https://morphism.now.sh/modules/morphism#actionselector): An Object that allows to perform a function over a source property's value
+- [`ActionFunction`](https://morphism.now.sh/modules/morphism#actionfunction): A Function that allows to perform a function over source property
+- [`ActionAggregator`](https://morphism.now.sh/modules/morphism#actionaggregator): An Arr of String that allows to perform a function over source property
 
 #### Schema Example
 
@@ -169,7 +170,9 @@ morphism(schema, input);
 
 ▶️ [Test with Repl.it](https://repl.it/@yrnd1/Morphism-Schema-Options)
 
-⏩ [See More Schema examples](#more-schema-examples-%F0%9F%92%A1)
+⏩ [More Schema examples](#more-schema-examples-%F0%9F%92%A1)
+
+📚 [Schema Docs](https://morphism.now.sh/interfaces/morphism.schema)
 
 ### 2. Morphism as Currying Function
 
@@ -186,6 +189,8 @@ import { morphism } from 'morphism';
 ```ts
 morphism(schema: Schema, items?: any, type?: any): any
 ```
+
+📚 [Currying Function Docs](https://morphism.now.sh/modules/morphism#morphism-1)
 
 #### Currying Function Example
 
