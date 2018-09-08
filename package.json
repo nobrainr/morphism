@@ -15,7 +15,7 @@
     "test": "karma start",
     "semantic-release": "semantic-release",
     "docs": "typedoc",
-    "docs:deploy": "now switch $TEAM_NAME -–token=$NOW_TOKEN && now ./docs/typedoc -A ../../now.json --public --token $NOW_TOKEN",
+    "docs:deploy": "now switch $TEAM_NAME --token=$NOW_TOKEN && now ./docs/typedoc -A ../../now.json --public --token $NOW_TOKEN",
     "docs:deploy:alias": "now alias --token $NOW_TOKEN"
   },
   "author": {
