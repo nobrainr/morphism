@@ -153,31 +153,6 @@ const getSchemaForType = (type: any, baseSchema: any) => {
   return finalSchema;
 };
 
-interface MorphismFunction {
-  /**
-   * Currying function that either outputs a mapping function or the transformed data.
-   *
-   * @example
-   * ```js
-    // => Outputs a function when only a schema is provided
-    const fn = morphism(schema);
-    const result = fn(data);
-
-    // => Outputs the transformed data when a schema and the input data is provided
-    const result = morphism(schema, data);
-
-    // => Outputs the transformed data as instance of the Class provided
-    const result = morphism(schema, data, Foo);
-    // result is instance of Foo
-  * ```
-  * @param  {Schema} schema Configuration schema to compute data source properties
-  * @param  {} items Object or Collection to be mapped
-  * @param  {} type
-  *
-  */
-  (schema: Schema, items?: any, type?: any): typeof type;
-}
-
 /**
  * Currying function that either outputs a mapping function or the transformed data.
  *
@@ -379,12 +354,14 @@ export class MorphismRegistry implements IMorphismRegistry {
 }
 
 const morphismRegistry = new MorphismRegistry();
-const MorphismObject: MorphismFunction & IMorphismRegistry = morphism as any;
-MorphismObject.register = (t, s) => morphismRegistry.register(t, s);
-MorphismObject.map = (t, d) => morphismRegistry.map(t, d);
-MorphismObject.getMapper = t => morphismRegistry.getMapper(t);
-MorphismObject.setMapper = (t, s) => morphismRegistry.setMapper(t, s);
-MorphismObject.deleteMapper = t => morphismRegistry.deleteMapper(t);
-MorphismObject.mappers = morphismRegistry.mappers;
+const morphismMixin: typeof morphism & any = morphism;
+morphismMixin.register = (t: any, s: any) => morphismRegistry.register(t, s);
+morphismMixin.map = (t: any, d: any) => morphismRegistry.map(t, d);
+morphismMixin.getMapper = (t: any) => morphismRegistry.getMapper(t);
+morphismMixin.setMapper = (t: any, s: any) => morphismRegistry.setMapper(t, s);
+morphismMixin.deleteMapper = (t: any) => morphismRegistry.deleteMapper(t);
+morphismMixin.mappers = morphismRegistry.mappers;
 
-export default MorphismObject;
+const Morphism: typeof morphism & IMorphismRegistry = morphismMixin;
+
+export default Morphism;
