@@ -20,23 +20,23 @@ _https://en.wikipedia.org/wiki/Morphism_
 ---
 
 - [Morphism](#morphism)
-  - [Getting started 🚀](#getting-started-%F0%9F%9A%80)
+  - [Getting started](#getting-started)
     - [Installation](#installation)
     - [Example](#example)
   - [Motivation](#motivation)
-  - [Docs 🍔](#docs-%F0%9F%8D%94)
+  - [Docs](#docs)
     - [1. The Schema](#1-the-schema)
       - [Schema Example](#schema-example)
     - [2. Morphism as Currying Function](#2-morphism-as-currying-function)
       - [API](#api)
       - [Currying Function Example](#currying-function-example)
     - [3. Morphism as Mixin](#3-morphism-as-mixin)
-  - [More Schema examples 💡](#more-schema-examples-%F0%9F%92%A1)
+  - [More Schema examples](#more-schema-examples)
     - [Flattening or Projection](#flattening-or-projection)
     - [Function over a source property's value](#function-over-a-source-propertys-value)
     - [Function over a source property](#function-over-a-source-property)
     - [Properties Aggregation](#properties-aggregation)
-  - [Registry API 📚](#registry-api-%F0%9F%93%9A)
+  - [Registry API](#registry-api)
       - [Register](#register)
       - [Map](#map)
       - [Get or Set an existing mapper configuration](#get-or-set-an-existing-mapper-configuration)
@@ -45,7 +45,7 @@ _https://en.wikipedia.org/wiki/Morphism_
   - [Contribution](#contribution)
   - [License](#license)
 
-## Getting started 🚀
+## Getting started
 
 ### Installation
 
@@ -105,7 +105,7 @@ We live in a era where we deal with mutiple data contracts coming from several s
 
 `Morphism` allows you to keep this business logic centralized and brings you a top-down view of your data transformation. When a contract change occurs, it helps to track the bug since you just need to refer to your `schema`
 
-## Docs 🍔
+## Docs
 
 📚 **[API documentation](https://morphism.now.sh)**
 
@@ -232,9 +232,9 @@ Morphism.deleteMapper(type);
 Morphism.mappers
 ```
 
-🔗 [Registry API Documentation](#registry-api-%F0%9F%93%9A)
+🔗 [Registry API Documentation](#registry-api)
 
-## More Schema examples 💡
+## More Schema examples
 
 ### Flattening or Projection
 
@@ -324,7 +324,7 @@ morphism(schema, source);
 
 ▶️ [Test with Repl.it](https://repl.it/@yrnd1/Morphism-Properties-Aggregation)
 
-## Registry API 📚
+## Registry API
 
 📚 [Registry API Documentation](https://morphism.now.sh/classes/morphism.morphismregistry.html)
 
