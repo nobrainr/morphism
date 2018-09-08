@@ -66,9 +66,6 @@ jobs:
       - run:
           name: Deploy Docs to Zeit
           command: npm run docs:deploy
-      - run:
-          name: Aliasing Deployment
-          command: npm run docs:deploy:alias
 
   publish-job:
     docker:

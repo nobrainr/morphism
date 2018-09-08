@@ -15,8 +15,7 @@
     "test": "karma start",
     "semantic-release": "semantic-release",
     "docs": "typedoc",
-    "docs:deploy": "now ./docs/typedoc -A ../../now.json --public --team $TEAM_NAME --token $NOW_TOKEN",
-    "docs:deploy:alias": "now alias --token $NOW_TOKEN"
+    "docs:deploy": "now ./docs/typedoc -A ../../now.json --public --team $TEAM_NAME --token $NOW_TOKEN && now alias --team $TEAM_NAME --token $NOW_TOKEN"
   },
   "author": {
     "name": "Yann Renaudin",
