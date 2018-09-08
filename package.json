@@ -14,7 +14,8 @@
     "clean": "npm cache clear && rimraf -- dist",
     "test": "karma start",
     "semantic-release": "semantic-release",
-    "docs": "typedoc"
+    "docs": "typedoc",
+    "docs:deploy": "now ./docs/typedoc -A ../../now.json --public --team $TEAM_NAME --token $NOW_TOKEN && now alias --team $TEAM_NAME --token $NOW_TOKEN"
   },
   "author": {
     "name": "Yann Renaudin",
@@ -50,6 +51,7 @@
     "karma-sourcemap-loader": "^0.3.7",
     "karma-spec-reporter": "0.0.32",
     "karma-webpack": "^3.0.0",
+    "now": "^11.4.1",
     "rimraf": "^2.6.1",
     "semantic-release": "^15.8.1",
     "source-map-loader": "^0.2.1",

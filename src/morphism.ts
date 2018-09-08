@@ -219,7 +219,7 @@ export function morphism(schema: Schema, items?: any, type?: any): typeof type {
   }
 }
 
-interface IMorphismRegistry {
+export interface IMorphismRegistry {
   /**
    * Register a mapping schema for a Class.
    *
@@ -259,7 +259,13 @@ interface IMorphismRegistry {
    */
   deleteMapper: (type: any) => any;
   /**
-   * Get the list of the mapping function registered
+   * Check if a schema has already been registered for this type
+   *
+   * @param {*} type
+   */
+  exists: (type: any) => boolean;
+  /**
+   * Get the list of the mapping functions registered
    *
    * @param {Type} type Class Type of the ouput Data
    *
@@ -267,9 +273,26 @@ interface IMorphismRegistry {
   mappers: Map<any, any>;
 }
 
-class MorphismRegistry implements IMorphismRegistry {
-  private _registry: any = { cache: new Map() };
-
+export class MorphismRegistry implements IMorphismRegistry {
+  private _registry: any = null;
+  /**
+   *Creates an instance of MorphismRegistry.
+   * @param {Map<any, any>} cache Cache implementation to store the mapping functions.
+   */
+  constructor(cache?: Map<any, any> | WeakMap<any, any>) {
+    if (!cache) {
+      this._registry = { cache: new Map() };
+    } else {
+      this._registry = cache;
+    }
+  }
+  /**
+   * Register a mapping schema for a Class.
+   *
+   * @param {Type} type Class Type to be registered
+   * @param {Object} schema Configuration of how properties are computed from the source
+   *
+   */
   register(type: any, schema?: Schema) {
     if (!type && !schema) {
       throw new Error('type paramater is required when register a mapping');
@@ -280,7 +303,13 @@ class MorphismRegistry implements IMorphismRegistry {
     this._registry.cache.set(type, mapper);
     return mapper;
   }
-
+  /**
+   * Transform any input in the specified Class
+   *
+   * @param {Type} type Class Type of the ouput Data
+   * @param {Object} data Input data to transform
+   *
+   */
   map(type: any, data?: any) {
     if (!this.exists(type)) {
       const mapper = this.register(type);
@@ -290,19 +319,22 @@ class MorphismRegistry implements IMorphismRegistry {
     }
     return this.getMapper(type)(data);
   }
-
+  /**
+   * Get a specific mapping function for the provided Class
+   *
+   * @param {Type} type Class Type of the ouput Data
+   *
+   */
   getMapper(type: any) {
     return this._registry.cache.get(type);
   }
-
-  get mappers() {
-    return this._registry.cache as Map<any, any>;
-  }
-
-  exists(type: any) {
-    return this._registry.cache.has(type);
-  }
-
+  /**
+   * Set a schema for a specific Class Type
+   *
+   * @param {Type} type Class Type of the ouput Data
+   * @param {Schema} schema Class Type of the ouput Data
+   *
+   */
   setMapper(type: any, schema: Schema) {
     if (!schema) {
       throw new Error(`The schema must be an Object. Found ${schema}`);
@@ -315,8 +347,32 @@ class MorphismRegistry implements IMorphismRegistry {
     }
   }
 
+  /**
+   * Delete a registered schema associated to a Class
+   *
+   * @param type ES6 Class Type of the ouput Data
+   *
+   */
   deleteMapper(type: any) {
     return this._registry.cache.delete(type);
+  }
+
+  /**
+   * Check if a schema has already been registered for this type
+   *
+   * @param {*} type
+   */
+  exists(type: any) {
+    return this._registry.cache.has(type);
+  }
+  /**
+   * Get the list of the mapping functions registered
+   *
+   * @param {Type} type Class Type of the ouput Data
+   *
+   */
+  get mappers() {
+    return this._registry.cache as Map<any, any>;
   }
 }
 
