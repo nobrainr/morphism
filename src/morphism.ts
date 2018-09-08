@@ -6,9 +6,23 @@ import { isString, get, isFunction, isObject, zipObject, isUndefined, assignInWi
 /**
  * A String path that indicates where to find the property in the source input
  *
- * ```
- * "path.to.property"
- * "sourceProperty"
+ * @example
+ * ```typescript
+ *
+ * const source = {
+ *   foo: 'baz',
+ *   bar: ['bar', 'foo'],
+ *   baz: {
+ *     qux: 'bazqux'
+ *   }
+ * };
+ * const schema = {
+ *   foo: 'foo', // Simple Projection
+ *   bazqux: 'baz.qux' // Grab a value from a nested property
+ * };
+ *
+ * morphism(schema, source);
+ * //=> { foo: 'baz', bazqux: 'bazqux' }
  * ```
  *
  */
@@ -19,11 +33,70 @@ export type ActionFunction = {
    * @param {} iteratee The current element to transform
    * @param source The source input to transform
    * @param target The current element transformed
+   * @example
+   * ```typescript
+   *
+   * const source = {
+   *   foo: {
+   *     bar: 'bar'
+   *   }
+   * };
+   * let schema = {
+   *   bar: iteratee => {
+   *     // Apply a function over the source propery
+   *     return iteratee.foo.bar;
+   *   }
+   * };
+   *
+   * morphism(schema, source);
+   * //=> { bar: 'bar' }
+   * ```
    *
    */
   (iteratee: any, source: any | any[], target: any): any;
 };
+/**
+ * An Array of String that allows to perform a function over source property
+ *
+ * @example
+ * ```typescript
+ *
+ * const source = {
+ *   foo: 'foo',
+ *   bar: 'bar'
+ * };
+ * let schema = {
+ *   fooAndBar: ['foo', 'bar'] // Grab these properties into fooAndBar
+ * };
+ *
+ * morphism(schema, source);
+ * //=> { fooAndBar: { foo: 'foo', bar: 'bar' } }
+ * ```
+ */
 export type ActionAggregator = string[];
+/**
+ * An Object that allows to perform a function over a source property's value
+ *
+ * @example
+ * ```typescript
+ *
+ * const source = {
+ *   foo: {
+ *     bar: 'bar'
+ *   }
+ * };
+ * let schema = {
+ *   barqux: {
+ *     path: 'foo.bar',
+ *     fn: value => `${value}qux` // Apply a function over the source property's value
+ *   }
+ * };
+ *
+ * morphism(schema, source);
+ * //=> { barqux: 'barqux' }
+ *```
+ *
+ */
 export type ActionSelector = { path: string | string[]; fn: (fieldValue: any, items: any[]) => any };
 
 /**
@@ -153,31 +226,6 @@ const getSchemaForType = (type: any, baseSchema: any) => {
   return finalSchema;
 };
 
-interface MorphismFunction {
-  /**
-   * Currying function that either outputs a mapping function or the transformed data.
-   *
-   * @example
-   * ```js
-    // => Outputs a function when only a schema is provided
-    const fn = morphism(schema);
-    const result = fn(data);
-
-    // => Outputs the transformed data when a schema and the input data is provided
-    const result = morphism(schema, data);
-
-    // => Outputs the transformed data as instance of the Class provided
-    const result = morphism(schema, data, Foo);
-    // result is instance of Foo
-  * ```
-  * @param  {Schema} schema Configuration schema to compute data source properties
-  * @param  {} items Object or Collection to be mapped
-  * @param  {} type
-  *
-  */
-  (schema: Schema, items?: any, type?: any): typeof type;
-}
-
 /**
  * Currying function that either outputs a mapping function or the transformed data.
  *
@@ -200,6 +248,8 @@ interface MorphismFunction {
  * @param  {} type
  *
  */
+export function morphism(schema: Schema, items?: any, type?: any): typeof type;
+
 export function morphism(schema: Schema, items?: any, type?: any): typeof type {
   if (items === undefined && type === undefined) {
     return transformItems(schema);
@@ -377,12 +427,14 @@ export class MorphismRegistry implements IMorphismRegistry {
 }
 
 const morphismRegistry = new MorphismRegistry();
-const MorphismObject: MorphismFunction & IMorphismRegistry = morphism as any;
-MorphismObject.register = (t, s) => morphismRegistry.register(t, s);
-MorphismObject.map = (t, d) => morphismRegistry.map(t, d);
-MorphismObject.getMapper = t => morphismRegistry.getMapper(t);
-MorphismObject.setMapper = (t, s) => morphismRegistry.setMapper(t, s);
-MorphismObject.deleteMapper = t => morphismRegistry.deleteMapper(t);
-MorphismObject.mappers = morphismRegistry.mappers;
+const morphismMixin: typeof morphism & any = morphism;
+morphismMixin.register = (t: any, s: any) => morphismRegistry.register(t, s);
+morphismMixin.map = (t: any, d: any) => morphismRegistry.map(t, d);
+morphismMixin.getMapper = (t: any) => morphismRegistry.getMapper(t);
+morphismMixin.setMapper = (t: any, s: any) => morphismRegistry.setMapper(t, s);
+morphismMixin.deleteMapper = (t: any) => morphismRegistry.deleteMapper(t);
+morphismMixin.mappers = morphismRegistry.mappers;
 
-export default MorphismObject;
+const Morphism: typeof morphism & IMorphismRegistry = morphismMixin;
+
+export default Morphism;

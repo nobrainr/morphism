@@ -122,7 +122,7 @@ You can use **4 kind of values** in your schema:
 - [`ActionString`](https://morphism.now.sh/modules/morphism#actionstring): A string that allows to perform a projection from a property
 - [`ActionSelector`](https://morphism.now.sh/modules/morphism#actionselector): An Object that allows to perform a function over a source property's value
 - [`ActionFunction`](https://morphism.now.sh/modules/morphism#actionfunction): A Function that allows to perform a function over source property
-- [`ActionAggregator`](https://morphism.now.sh/modules/morphism#actionaggregator): An Arr of String that allows to perform a function over source property
+- [`ActionAggregator`](https://morphism.now.sh/modules/morphism#actionaggregator): An Array of Strings that allows to perform a function over source property
 
 #### Schema Example
 
