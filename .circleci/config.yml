@@ -13,14 +13,14 @@ jobs:
       # Download and cache dependencies
       - restore_cache:
           keys:
-            - v1-dependencies-{{ checksum "package-lock.json" }}
+            - v1-dependencies-{{ checksum "package.json" }}
             # fallback to using the latest cache if no exact match is found
             - v1-dependencies-
       - run: npm install
       - save_cache:
           paths:
             - node_modules
-          key: v1-dependencies-{{ checksum "package-lock.json" }}
+          key: v1-dependencies-{{ checksum "package.json" }}
       # run tests!
       - run:
           name: Run Tests
@@ -35,7 +35,7 @@ jobs:
       # Download and cache dependencies
       - restore_cache:
           keys:
-            - v1-dependencies-{{ checksum "package-lock.json" }}
+            - v1-dependencies-{{ checksum "package.json" }}
             # fallback to using the latest cache if no exact match is found
             - v1-dependencies-
       - run: npm install
@@ -43,7 +43,7 @@ jobs:
           name: Build
           command: npm run build:prod
       - save_cache:
-          key: v1-source-{{ checksum "package-lock.json" }}
+          key: v1-source-{{ checksum "package.json" }}
           paths:
             - dist
             - node_modules
@@ -57,7 +57,7 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - v1-source-{{ checksum "package-lock.json" }}
+            - v1-source-{{ checksum "package.json" }}
             # fallback to using the latest cache if no exact match is found
             - v1-source-
       - run:
@@ -78,7 +78,7 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - v1-source-{{ checksum "package-lock.json" }}
+            - v1-source-{{ checksum "package.json" }}
             # fallback to using the latest cache if no exact match is found
             - v1-source-
       - run:
