@@ -326,6 +326,8 @@ morphism(schema, source);
 
 ## Registry API 📚
 
+📚 [Registry API Documentation](https://morphism.now.sh/classes/morphism.morphismregistry.html)
+
 #### Register
 
 Register a mapper for a specific type. The schema is optional.
