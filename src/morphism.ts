@@ -327,16 +327,16 @@ export interface IMorphismRegistry {
    * @param {Object} data Input data to transform
    *
    */
-  map<TTarget>(type: TTarget): Mapper<TTarget>;
-  map<TTarget, TSource>(type: Constructable<TTarget>, data: TSource[]): TTarget[];
-  map<TTarget, TSource>(type: Constructable<TTarget>, data: TSource): TTarget;
+  map<Target>(type: Target): Mapper<Target>;
+  map<Target, Source>(type: Constructable<Target>, data: Source[]): Target[];
+  map<Target, Source>(type: Constructable<Target>, data: Source): Target;
   /**
    * Get a specific mapping function for the provided Class
    *
    * @param {Type} type Class Type of the ouput Data
    *
    */
-  getMapper: (type: any) => any;
+  getMapper<Target>(type: Constructable<Target>): Mapper<Target>;
   /**
    * Set a schema for a specific Class Type
    *
@@ -344,20 +344,20 @@ export interface IMorphismRegistry {
    * @param {Schema} schema Class Type of the ouput Data
    *
    */
-  setMapper: (type: any, schema: Schema) => any;
+  setMapper<Target, TSchema extends Schema>(type: Constructable<Target>, schema: TSchema): Mapper<Target>;
   /**
    * Delete a registered schema associated to a Class
    *
    * @param type ES6 Class Type of the ouput Data
    *
    */
-  deleteMapper: (type: any) => any;
+  deleteMapper<Target>(type: Constructable<Target>): any;
   /**
    * Check if a schema has already been registered for this type
    *
    * @param {*} type
    */
-  exists: (type: any) => boolean;
+  exists<Target>(type: Target): boolean;
   /**
    * Get the list of the mapping functions registered
    *
@@ -419,7 +419,7 @@ export class MorphismRegistry implements IMorphismRegistry {
    * @param {Type} type Class Type of the ouput Data
    *
    */
-  getMapper(type: any) {
+  getMapper<Target>(type: Constructable<Target>) {
     return this._registry.cache.get(type);
   }
   /**
@@ -429,7 +429,7 @@ export class MorphismRegistry implements IMorphismRegistry {
    * @param {Schema} schema Class Type of the ouput Data
    *
    */
-  setMapper(type: any, schema: Schema) {
+  setMapper<Target>(type: Constructable<Target>, schema: Schema) {
     if (!schema) {
       throw new Error(`The schema must be an Object. Found ${schema}`);
     } else if (!this.exists(type)) {
