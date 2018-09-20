@@ -306,8 +306,8 @@ export interface IMorphismRegistry {
   /**
    * Register a mapping schema for a Class.
    *
-   * @param {Type} type Class Type to be registered
-   * @param {Object} schema Configuration of how properties are computed from the source
+   * @param type Class Type to be registered
+   * @param schema Structure-preserving object from a source data towards a target data.
    *
    */
   register<Target, TSchema extends Schema>(type: Constructable<Target>, schema?: TSchema): Mapper<Target>;
@@ -371,11 +371,12 @@ export class MorphismRegistry implements IMorphismRegistry {
       this._registry = cache;
     }
   }
+
   /**
    * Register a mapping schema for a Class.
    *
-   * @param {Type} type Class Type to be registered
-   * @param {Object} schema Configuration of how properties are computed from the source
+   * @param type Class Type to be registered
+   * @param schema Structure-preserving object from a source data towards a target data.
    *
    */
   register<Target, TSchema extends Schema>(type: Constructable<Target>, schema?: TSchema) {
