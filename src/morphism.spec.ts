@@ -132,7 +132,7 @@ describe('Morphism', () => {
         }
       ];
 
-      const output: User[] = [
+      const output = [
         {
           firstName: 'John',
           lastName: 'Smith',
@@ -151,25 +151,24 @@ describe('Morphism', () => {
 
       Morphism.deleteMapper(User);
       const mapUser = Morphism.register(User, schema);
-
-      const results: User[] = mapUser(input);
+      const results = mapUser(input);
       results.forEach((res, index) => {
         expect(res).toEqual(jasmine.objectContaining(output[index]));
       });
 
       const mapUser2 = Morphism(schema, null, User);
-      const results2: User[] = mapUser2(input);
+      const results2 = mapUser2(input);
 
       results2.forEach((res, index) => {
         expect(res).toEqual(jasmine.objectContaining(output[index]));
       });
 
-      const results3: User[] = Morphism.map(User, input);
+      const results3 = Morphism.map(User, input);
       results3.forEach((res, index) => {
         expect(res).toEqual(jasmine.objectContaining(output[index]));
       });
 
-      const results4: User[] = input.map(userInput => Morphism.map(User, userInput));
+      const results4 = input.map(userInput => Morphism.map(User, userInput));
       results4.forEach((res, index) => {
         expect(res).toEqual(jasmine.objectContaining(output[index]));
       });
@@ -194,6 +193,7 @@ describe('Morphism', () => {
 
       expect(results[0]).toEqual(desiredResult);
       expect(results[0]).toEqual(mapper(dataToCrunch)[0]);
+      expect(results[0].city).toEqual(desiredResult.city);
     });
   });
 

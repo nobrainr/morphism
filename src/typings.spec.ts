@@ -25,6 +25,21 @@ describe('Morphism', () => {
       const mapper = morphism(schema, null, Foo);
 
       expect(mapper(source).foo).toEqual('value');
+      expect(mapper([source][0]).foo).toEqual('value');
+    });
+  });
+
+  describe('Registry Type Checking', () => {
+    it('Should return a Mapper when using Register', () => {
+      class Foo {
+        foo: string;
+      }
+      const schema = { foo: 'bar' };
+      const source = { bar: 'value' };
+      const mapper = Morphism.register(Foo, schema);
+
+      expect(mapper(source).foo).toEqual('value');
+      expect(mapper([source][0]).foo).toEqual('value');
     });
   });
 });
