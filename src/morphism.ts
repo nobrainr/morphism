@@ -135,6 +135,12 @@ export interface Schema {
   [destinationProperty: string]: ActionString | ActionFunction | ActionAggregator | ActionSelector;
 }
 
+function transformValuesFromObject<TDestination, TSource>(
+  object: TSource,
+  schema: Schema,
+  items: TSource[],
+  objectToCompute: TDestination
+): TDestination;
 /**
  * Low Level transformer function.
  * Take a plain object as input and transform its values using a specified schema.
@@ -143,7 +149,12 @@ export interface Schema {
  * @param  {Array} items Items to be forwarded to Actions
  * @param  {} objectToCompute Created tranformed object of a given type
  */
-function transformValuesFromObject(object: any, schema: Schema, items: any[], objectToCompute: {} | any) {
+function transformValuesFromObject<TDestination, TSource>(
+  object: TSource,
+  schema: Schema,
+  items: TSource[],
+  objectToCompute: TDestination
+) {
   return Object.entries(schema)
     .map(([targetProperty, action]) => {
       // iterate on every action of the schema
@@ -193,38 +204,55 @@ function transformValuesFromObject(object: any, schema: Schema, items: any[], ob
       return assignInWith(finalObject, keyValue, undefinedValueCheck);
     }, objectToCompute);
 }
+interface Constructable<T> {
+  new (): T;
+}
+type Target<T> = { [P in keyof T]: any };
 
-const transformItems = (schema: Schema, type?: any) => (input: any) => {
-  if (!input) {
-    return input;
-  }
-  if (Array.isArray(input)) {
-    return input.map(obj => {
+interface Mapper<Target> {
+  <TSource>(source: TSource[]): Target[];
+  <TSource>(source: TSource): Target;
+}
+
+function transformItems<T, TSchema extends Schema>(schema: TSchema): Mapper<Target<TSchema>>;
+function transformItems<T, TSchema extends Schema>(schema: TSchema, type: Constructable<T>): Mapper<Target<TSchema>>;
+
+function transformItems<T, TSchema extends Schema>(schema: TSchema, type?: Constructable<T>) {
+  function mapper(source: any): any {
+    if (!source) {
+      return source;
+    }
+    if (Array.isArray(source)) {
+      return source.map(obj => {
+        if (type) {
+          const classObject = new type();
+          return transformValuesFromObject(obj, schema, source, classObject);
+        } else {
+          const jsObject = {};
+          return transformValuesFromObject(obj, schema, source, jsObject);
+        }
+      });
+    } else {
+      const object = source;
       if (type) {
         const classObject = new type();
-        return transformValuesFromObject(obj, schema, input, classObject);
+        return transformValuesFromObject(object, schema, [object], classObject);
       } else {
         const jsObject = {};
-        return transformValuesFromObject(obj, schema, input, jsObject);
+        return transformValuesFromObject(object, schema, [object], jsObject);
       }
-    });
-  } else {
-    const object = input;
-    if (type) {
-      const classObject = new type();
-      return transformValuesFromObject(object, schema, [object], classObject);
-    } else {
-      const jsObject = {};
-      return transformValuesFromObject(object, schema, [object], jsObject);
     }
   }
-};
-const getSchemaForType = (type: any, baseSchema: any) => {
+
+  return mapper;
+}
+
+function getSchemaForType<T>(type: Constructable<T>, baseSchema: Schema): Schema {
   let typeFields = Object.keys(new type());
   let defaultSchema = zipObject(typeFields, typeFields);
   let finalSchema = Object.assign(defaultSchema, baseSchema);
   return finalSchema;
-};
+}
 
 /**
  * Currying function that either outputs a mapping function or the transformed data.
