@@ -135,6 +135,12 @@ export interface Schema {
   [destinationProperty: string]: ActionString | ActionFunction | ActionAggregator | ActionSelector;
 }
 
+function transformValuesFromObject<TDestination, Source>(
+  object: Source,
+  schema: Schema,
+  items: Source[],
+  objectToCompute: TDestination
+): TDestination;
 /**
  * Low Level transformer function.
  * Take a plain object as input and transform its values using a specified schema.
@@ -143,7 +149,7 @@ export interface Schema {
  * @param  {Array} items Items to be forwarded to Actions
  * @param  {} objectToCompute Created tranformed object of a given type
  */
-function transformValuesFromObject(object: any, schema: Schema, items: any[], objectToCompute: {} | any) {
+function transformValuesFromObject<TDestination, Source>(object: Source, schema: Schema, items: Source[], objectToCompute: TDestination) {
   return Object.entries(schema)
     .map(([targetProperty, action]) => {
       // iterate on every action of the schema
@@ -193,38 +199,54 @@ function transformValuesFromObject(object: any, schema: Schema, items: any[], ob
       return assignInWith(finalObject, keyValue, undefinedValueCheck);
     }, objectToCompute);
 }
+interface Constructable<T> {
+  new (...args: any[]): T;
+}
 
-const transformItems = (schema: Schema, type?: any) => (input: any) => {
-  if (!input) {
-    return input;
-  }
-  if (Array.isArray(input)) {
-    return input.map(obj => {
+interface Mapper<Target> {
+  <Source>(source: Source[]): Target[];
+  <Source>(source: Source): Target;
+}
+
+function transformItems<T, TSchema extends Schema>(schema: TSchema): Mapper<{ [P in keyof TSchema]: any }>;
+function transformItems<T, TSchema extends Schema>(schema: TSchema, type: Constructable<T>): Mapper<{ [P in keyof TSchema]: any }>;
+
+function transformItems<T, TSchema extends Schema>(schema: TSchema, type?: Constructable<T>) {
+  function mapper(source: any): any {
+    if (!source) {
+      return source;
+    }
+    if (Array.isArray(source)) {
+      return source.map(obj => {
+        if (type) {
+          const classObject = new type();
+          return transformValuesFromObject(obj, schema, source, classObject);
+        } else {
+          const jsObject = {};
+          return transformValuesFromObject(obj, schema, source, jsObject);
+        }
+      });
+    } else {
+      const object = source;
       if (type) {
         const classObject = new type();
-        return transformValuesFromObject(obj, schema, input, classObject);
+        return transformValuesFromObject(object, schema, [object], classObject);
       } else {
         const jsObject = {};
-        return transformValuesFromObject(obj, schema, input, jsObject);
+        return transformValuesFromObject(object, schema, [object], jsObject);
       }
-    });
-  } else {
-    const object = input;
-    if (type) {
-      const classObject = new type();
-      return transformValuesFromObject(object, schema, [object], classObject);
-    } else {
-      const jsObject = {};
-      return transformValuesFromObject(object, schema, [object], jsObject);
     }
   }
-};
-const getSchemaForType = (type: any, baseSchema: any) => {
+
+  return mapper;
+}
+
+function getSchemaForType<T>(type: Constructable<T>, baseSchema: Schema): Schema {
   let typeFields = Object.keys(new type());
   let defaultSchema = zipObject(typeFields, typeFields);
   let finalSchema = Object.assign(defaultSchema, baseSchema);
   return finalSchema;
-};
+}
 
 /**
  * Currying function that either outputs a mapping function or the transformed data.
@@ -248,9 +270,24 @@ const getSchemaForType = (type: any, baseSchema: any) => {
  * @param  {} type
  *
  */
-export function morphism(schema: Schema, items?: any, type?: any): typeof type;
+export function morphism<TSchema extends Schema>(schema: TSchema, items: any[]): { [P in keyof TSchema]: any }[]; // morphism<Target>({},[]) => {}[]
+export function morphism<TSchema extends Schema>(schema: TSchema, items: any): { [P in keyof TSchema]: any }; // morphism({},{}) => {}
 
-export function morphism(schema: Schema, items?: any, type?: any): typeof type {
+export function morphism<Target>(schema: Schema, items: any[]): Target[]; // morphism<Target>({},[]) => Target[]
+export function morphism<Target>(schema: Schema, items: any): Target; // morphism<Target>({},{}) => Target
+
+export function morphism<TSchema extends Schema>(schema: TSchema): Mapper<{ [P in keyof TSchema]: any }>; // morphism(TSchema) => mapper(S[]) => (keyof TSchema)[]
+
+export function morphism<Target>(schema: Schema): Mapper<Target>; // morphism<ITarget>({}) => Mapper<ITarget> => ITarget
+
+export function morphism(schema: Schema, items: null): undefined; // Reflects a specific use case where Morphism({}, null) return undefined
+export function morphism(schema: null, items: {}): undefined; // Reflects a specific use case where Morphism(null, {}) return undefined
+
+export function morphism<Target, Source>(schema: Schema, items: null, type: Constructable<Target>): Mapper<Target>; // morphism({}, null, T) => mapper(S) => T
+export function morphism<Target, Source>(schema: Schema, items: Source[], type: Constructable<Target>): Target[]; // morphism({}, [], T) => T[]
+export function morphism<Target, Source>(schema: Schema, items: Source, type: Constructable<Target>): Target; // morphism({}, {}, T) => T
+
+export function morphism<Target, Source>(schema: Schema, items?: Source, type?: Constructable<Target>) {
   if (items === undefined && type === undefined) {
     return transformItems(schema);
   } else if (schema && items && type) {
@@ -273,11 +310,11 @@ export interface IMorphismRegistry {
   /**
    * Register a mapping schema for a Class.
    *
-   * @param {Type} type Class Type to be registered
-   * @param {Object} schema Configuration of how properties are computed from the source
+   * @param type Class Type to be registered
+   * @param schema Structure-preserving object from a source data towards a target data.
    *
    */
-  register: (type: any, schema?: Schema) => any;
+  register<Target, TSchema extends Schema>(type: Constructable<Target>, schema?: TSchema): Mapper<Target>;
   /**
    * Transform any input in the specified Class
    *
@@ -285,14 +322,16 @@ export interface IMorphismRegistry {
    * @param {Object} data Input data to transform
    *
    */
-  map: (type: any, data?: any) => any;
+  map<Target>(type: Target): Mapper<Target>;
+  map<Target, Source>(type: Constructable<Target>, data: Source[]): Target[];
+  map<Target, Source>(type: Constructable<Target>, data: Source): Target;
   /**
    * Get a specific mapping function for the provided Class
    *
    * @param {Type} type Class Type of the ouput Data
    *
    */
-  getMapper: (type: any) => any;
+  getMapper<Target>(type: Constructable<Target>): Mapper<Target>;
   /**
    * Set a schema for a specific Class Type
    *
@@ -300,20 +339,20 @@ export interface IMorphismRegistry {
    * @param {Schema} schema Class Type of the ouput Data
    *
    */
-  setMapper: (type: any, schema: Schema) => any;
+  setMapper<Target, TSchema extends Schema>(type: Constructable<Target>, schema: TSchema): Mapper<Target>;
   /**
    * Delete a registered schema associated to a Class
    *
    * @param type ES6 Class Type of the ouput Data
    *
    */
-  deleteMapper: (type: any) => any;
+  deleteMapper<Target>(type: Constructable<Target>): any;
   /**
    * Check if a schema has already been registered for this type
    *
    * @param {*} type
    */
-  exists: (type: any) => boolean;
+  exists<Target>(type: Target): boolean;
   /**
    * Get the list of the mapping functions registered
    *
@@ -336,14 +375,15 @@ export class MorphismRegistry implements IMorphismRegistry {
       this._registry = cache;
     }
   }
+
   /**
    * Register a mapping schema for a Class.
    *
-   * @param {Type} type Class Type to be registered
-   * @param {Object} schema Configuration of how properties are computed from the source
+   * @param type Class Type to be registered
+   * @param schema Structure-preserving object from a source data towards a target data.
    *
    */
-  register(type: any, schema?: Schema) {
+  register<Target, TSchema extends Schema>(type: Constructable<Target>, schema?: TSchema) {
     if (!type && !schema) {
       throw new Error('type paramater is required when register a mapping');
     } else if (this.exists(type)) {
@@ -375,7 +415,7 @@ export class MorphismRegistry implements IMorphismRegistry {
    * @param {Type} type Class Type of the ouput Data
    *
    */
-  getMapper(type: any) {
+  getMapper<Target>(type: Constructable<Target>) {
     return this._registry.cache.get(type);
   }
   /**
@@ -385,7 +425,7 @@ export class MorphismRegistry implements IMorphismRegistry {
    * @param {Schema} schema Class Type of the ouput Data
    *
    */
-  setMapper(type: any, schema: Schema) {
+  setMapper<Target>(type: Constructable<Target>, schema: Schema) {
     if (!schema) {
       throw new Error(`The schema must be an Object. Found ${schema}`);
     } else if (!this.exists(type)) {

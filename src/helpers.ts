@@ -45,7 +45,7 @@ export function set(object: object, path: string, value: any) {
 
   return { ...object, ...finalValue };
 }
-export function get(object: object, path: string) {
+export function get(object: any, path: string) {
   path = path.replace(/\[(\w+)\]/g, '.$1'); // convert indexes to properties
   path = path.replace(/^\./, ''); // strip a leading dot
   const a = path.split('.');
