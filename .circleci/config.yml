@@ -26,29 +26,6 @@ jobs:
           name: Run Tests
           command: npm test
 
-  build-job:
-    docker:
-      - image: circleci/node:8
-    working_directory: ~/repo
-    steps:
-      - checkout
-      # Download and cache dependencies
-      - restore_cache:
-          keys:
-            - v1-dependencies-{{ checksum "package.json" }}
-            # fallback to using the latest cache if no exact match is found
-            - v1-dependencies-
-      - run: npm install
-      - run:
-          name: Build
-          command: npm run build:prod
-      - save_cache:
-          key: v1-source-{{ checksum "package.json" }}
-          paths:
-            - dist
-            - node_modules
-            - package.json
-
   deploy-docs:
     docker:
       - image: circleci/node:9
@@ -57,9 +34,9 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - v1-source-{{ checksum "package.json" }}
+            - v1-dependencies-{{ checksum "package.json" }}
             # fallback to using the latest cache if no exact match is found
-            - v1-source-
+            - v1-dependencies-
       - run:
           name: Build Docs
           command: npm run docs
@@ -75,9 +52,12 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - v1-source-{{ checksum "package.json" }}
+            - v1-dependencies-{{ checksum "package.json" }}
             # fallback to using the latest cache if no exact match is found
-            - v1-source-
+            - v1-dependencies-
+      - run:
+          name: Build
+          command: npm run build:prod
       - run:
           name: Publish Package
           command: cd dist && npm run semantic-release
@@ -87,15 +67,9 @@ workflows:
   test:
     jobs:
       - test-job
-      - build-job:
-          filters:
-            branches:
-              only:
-                - master
       - deploy-docs:
           requires:
             - test-job
-            - build-job
           filters:
             branches:
               only:
