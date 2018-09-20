@@ -23,7 +23,6 @@ describe('Morphism', () => {
       const schema = { foo: 'bar' };
       const source = { bar: 'value' };
       const mapper = morphism(schema, null, Foo);
-
       expect(mapper(source).foo).toEqual('value');
       expect(mapper([source][0]).foo).toEqual('value');
     });
