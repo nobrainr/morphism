@@ -248,7 +248,8 @@ const getSchemaForType = (type: any, baseSchema: any) => {
  * @param  {} type
  *
  */
-export function morphism(schema: Schema, items?: any, type?: any): typeof type;
+export function morphism<TSource, TSchema extends Schema>(schema: TSchema, items?: TSource[]): TSchema[]; // m({},[]) => {}[]
+export function morphism<TSource, TSchema extends Schema>(schema: TSchema, items?: TSource): TSchema; // m({},{}) => {}
 
 export function morphism(schema: Schema, items?: any, type?: any): typeof type {
   if (items === undefined && type === undefined) {
