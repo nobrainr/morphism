@@ -270,20 +270,24 @@ function getSchemaForType<T>(type: Constructable<T>, baseSchema: Schema): Schema
  * @param  {} type
  *
  */
-export function morphism<Source, TSchema extends Schema>(schema: TSchema, items: Source[]): { [P in keyof TSchema]: any }[]; // morphism({},[]) => {}[]
-export function morphism<Source, TSchema extends Schema>(schema: TSchema, items: Source): { [P in keyof TSchema]: any }; // morphism({},{}) => {}
+export function morphism<TSchema extends Schema>(schema: TSchema, items: any[]): { [P in keyof TSchema]: any }[]; // morphism<Target>({},[]) => {}[]
+export function morphism<TSchema extends Schema>(schema: TSchema, items: any): { [P in keyof TSchema]: any }; // morphism({},{}) => {}
+
+export function morphism<Target>(schema: Schema, items: any[]): Target[]; // morphism<Target>({},[]) => Target[]
+export function morphism<Target>(schema: Schema, items: any): Target; // morphism<Target>({},{}) => Target
+
+export function morphism<TSchema extends Schema>(schema: TSchema): Mapper<{ [P in keyof TSchema]: any }>; // morphism(TSchema) => mapper(S[]) => (keyof TSchema)[]
+
+export function morphism<Target>(schema: Schema): Mapper<Target>; // morphism<ITarget>({}) => Mapper<ITarget> => ITarget
 
 export function morphism(schema: Schema, items: null): undefined; // Reflects a specific use case where Morphism({}, null) return undefined
 export function morphism(schema: null, items: {}): undefined; // Reflects a specific use case where Morphism(null, {}) return undefined
 
-export function morphism<TSchema extends Schema>(schema: TSchema): Mapper<{ [P in keyof TSchema]: any }>; // morphism(TSchema) => mapper(S[]) => (keyof TSchema)[]
-
-export function morphism<Target, Source, TSchema extends Schema>(schema: TSchema, items: null, type: Constructable<Target>): Mapper<Target>; // morphism({}, null, T) => mapper(S) => T
-
+export function morphism<Target, Source>(schema: Schema, items: null, type: Constructable<Target>): Mapper<Target>; // morphism({}, null, T) => mapper(S) => T
 export function morphism<Target, Source>(schema: Schema, items: Source[], type: Constructable<Target>): Target[]; // morphism({}, [], T) => T[]
 export function morphism<Target, Source>(schema: Schema, items: Source, type: Constructable<Target>): Target; // morphism({}, {}, T) => T
 
-export function morphism<Target, Source, TSchema extends Schema>(schema: TSchema, items?: Source, type?: Constructable<Target>) {
+export function morphism<Target, Source>(schema: Schema, items?: Source, type?: Constructable<Target>) {
   if (items === undefined && type === undefined) {
     return transformItems(schema);
   } else if (schema && items && type) {
