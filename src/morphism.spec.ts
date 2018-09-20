@@ -29,31 +29,31 @@ class User {
   }
 }
 
-describe('Morphism', function() {
-  beforeEach(function() {
-    this.dataToCrunch = [
-      {
-        firstName: 'John',
-        lastName: 'Smith',
-        age: 25,
-        address: {
-          streetAddress: '21 2nd Street',
-          city: 'New York',
-          state: 'NY',
-          postalCode: '10021'
+describe('Morphism', () => {
+  const dataToCrunch = [
+    {
+      firstName: 'John',
+      lastName: 'Smith',
+      age: 25,
+      address: {
+        streetAddress: '21 2nd Street',
+        city: 'New York',
+        state: 'NY',
+        postalCode: '10021'
+      },
+      phoneNumber: [
+        {
+          type: 'home',
+          number: '212 555-1234'
         },
-        phoneNumber: [
-          {
-            type: 'home',
-            number: '212 555-1234'
-          },
-          {
-            type: 'fax',
-            number: '646 555-4567'
-          }
-        ]
-      }
-    ];
+        {
+          type: 'fax',
+          number: '646 555-4567'
+        }
+      ]
+    }
+  ];
+  beforeEach(() => {
     Morphism.deleteMapper(User);
     this.mapUser = Morphism.register(User);
   });
@@ -159,6 +159,7 @@ describe('Morphism', function() {
 
       const mapUser2 = Morphism(schema, null, User);
       const results2: User[] = mapUser2(input);
+
       results2.forEach((res, index) => {
         expect(res).toEqual(jasmine.objectContaining(output[index]));
       });
@@ -189,9 +190,10 @@ describe('Morphism', function() {
         city: 'New York'
       };
       let mapper = Morphism(schema);
-      let results = mapper(this.dataToCrunch);
+      let results = mapper(dataToCrunch);
+
       expect(results[0]).toEqual(desiredResult);
-      expect(results[0]).toEqual(mapper(this.dataToCrunch)[0]);
+      expect(results[0]).toEqual(mapper(dataToCrunch)[0]);
     });
   });
 
@@ -275,7 +277,7 @@ describe('Morphism', function() {
           lastName: 'Smith'
         }
       };
-      let results = Morphism(schema, this.dataToCrunch);
+      let results = Morphism(schema, dataToCrunch);
       expect(results[0]).toEqual(desiredResult);
     });
 
@@ -292,7 +294,7 @@ describe('Morphism', function() {
           }
         }
       };
-      let results = Morphism(schema, this.dataToCrunch);
+      let results = Morphism(schema, dataToCrunch);
       expect(results[0]).toEqual(desiredResult);
     });
 
@@ -326,7 +328,7 @@ describe('Morphism', function() {
         lastName: 'Smith',
         city: 'New York'
       };
-      let results = Morphism(schema, this.dataToCrunch);
+      let results = Morphism(schema, dataToCrunch);
       expect(results[0]).toEqual(desiredResult);
     });
 
@@ -341,7 +343,7 @@ describe('Morphism', function() {
       let desiredResult = {
         state: 'ny' // from NY to ny
       };
-      let results = Morphism(schema, this.dataToCrunch);
+      let results = Morphism(schema, dataToCrunch);
       expect(results[0]).toEqual(desiredResult);
     });
 
@@ -359,7 +361,7 @@ describe('Morphism', function() {
         city: 'New York',
         status: 'home'
       };
-      let results = Morphism(schema, this.dataToCrunch);
+      let results = Morphism(schema, dataToCrunch);
       expect(results[0]).toEqual(desiredResult);
     });
   });
@@ -397,8 +399,8 @@ describe('Morphism', function() {
       };
       Morphism.setMapper(User, schema);
       let desiredResult = new User('John', 'Smith', '212 555-1234');
-      expect(Morphism.map(User, this.dataToCrunch)).toBeTruthy();
-      expect(Morphism.map(User, this.dataToCrunch)[0]).toEqual(desiredResult);
+      expect(Morphism.map(User, dataToCrunch)).toBeTruthy();
+      expect(Morphism.map(User, dataToCrunch)[0]).toEqual(desiredResult);
     });
 
     it('should allow to map data using a mapper updated schema', function() {
@@ -407,7 +409,7 @@ describe('Morphism', function() {
       };
       let mapper = Morphism.setMapper(User, schema);
       let desiredResult = new User('John', 'Smith', '212 555-1234');
-      expect(mapper(this.dataToCrunch)[0]).toEqual(desiredResult);
+      expect(mapper(dataToCrunch)[0]).toEqual(desiredResult);
     });
 
     it('should throw an exception when trying to set an non-registered type', function() {

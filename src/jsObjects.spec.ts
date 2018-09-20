@@ -12,6 +12,7 @@ describe('Morphism', () => {
         target: 'source'
       };
       const mapper = Morphism(schema);
+
       let results = mocks.map(mapper);
       results.forEach(res => {
         expect(res).toEqual({ target: 'value' });
