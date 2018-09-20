@@ -248,10 +248,24 @@ const getSchemaForType = (type: any, baseSchema: any) => {
  * @param  {} type
  *
  */
-export function morphism<TSource, TSchema extends Schema>(schema: TSchema, items?: TSource[]): TSchema[]; // m({},[]) => {}[]
-export function morphism<TSource, TSchema extends Schema>(schema: TSchema, items?: TSource): TSchema; // m({},{}) => {}
+export function morphism<TSource, TSchema extends Schema>(schema: TSchema, items: TSource[]): Target<TSchema>[]; // morphism({},[]) => {}[]
+export function morphism<TSource, TSchema extends Schema>(schema: TSchema, items: TSource): Target<TSchema>; // morphism({},{}) => {}
 
-export function morphism(schema: Schema, items?: any, type?: any): typeof type {
+export function morphism(schema: Schema, items: null): undefined; // Reflects a specific use case where Morphism({}, null) return undefined
+export function morphism(schema: null, items: {}): undefined; // Reflects a specific use case where Morphism(null, {}) return undefined
+
+export function morphism<TSchema extends Schema>(schema: TSchema): Mapper<Target<TSchema>>; // morphism(TSchema) => mapper(S[]) => (keyof TSchema)[]
+
+export function morphism<TTarget, TSource, TSchema extends Schema>(
+  schema: TSchema,
+  items: null,
+  type: Constructable<TTarget>
+): Mapper<TTarget>; // morphism({}, null, T) => mapper(S) => T
+
+export function morphism<TTarget, TSource>(schema: Schema, items: TSource[], type: Constructable<TTarget>): TTarget[]; // morphism({}, [], T) => T[]
+export function morphism<TTarget, TSource>(schema: Schema, items: TSource, type: Constructable<TTarget>): TTarget; // morphism({}, {}, T) => T
+
+export function morphism<Target, TSource, TSchema extends Schema>(schema: TSchema, items?: TSource, type?: Constructable<Target>) {
   if (items === undefined && type === undefined) {
     return transformItems(schema);
   } else if (schema && items && type) {
@@ -269,7 +283,6 @@ export function morphism(schema: Schema, items?: any, type?: any): typeof type {
     };
   }
 }
-
 export interface IMorphismRegistry {
   /**
    * Register a mapping schema for a Class.
