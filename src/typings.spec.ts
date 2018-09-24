@@ -1,4 +1,4 @@
-import Morphism, { morphism } from './morphism';
+import Morphism, { morphism, Schema } from './morphism';
 
 describe('Morphism', () => {
   describe('Currying Function overload', () => {
@@ -63,6 +63,20 @@ describe('Morphism', () => {
 
       expect(mapper(source).foo).toEqual('value');
       expect(mapper([source][0]).foo).toEqual('value');
+    });
+  });
+
+  describe('Schema Type Checking', () => {
+    it('Should allow to type the Schema', () => {
+      interface IFoo {
+        foo: string;
+        bar: number;
+      }
+      const schema: Schema<IFoo> = { foo: 'qux' };
+      const source = { qux: 'foo' };
+      const target = morphism(schema, source);
+
+      expect(target.foo).toEqual(source.qux);
     });
   });
 });
