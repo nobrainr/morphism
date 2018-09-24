@@ -130,14 +130,15 @@ export type ActionSelector = { path: string | string[]; fn: (fieldValue: any, it
  * morphism(schema, input);
  * ```
  */
-export interface Schema {
+type SchemaActions = ActionString | ActionFunction | ActionAggregator | ActionSelector;
+export type Schema<Target> = {
   /** `destinationProperty` is the name of the property of the target object you want to produce */
-  [destinationProperty: string]: ActionString | ActionFunction | ActionAggregator | ActionSelector;
-}
+  [destinationProperty in keyof Target]?: ActionString | ActionFunction | ActionAggregator | ActionSelector
+};
 
 function transformValuesFromObject<TDestination, Source>(
   object: Source,
-  schema: Schema,
+  schema: Schema<TDestination>,
   items: Source[],
   objectToCompute: TDestination
 ): TDestination;
