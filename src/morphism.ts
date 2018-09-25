@@ -131,6 +131,10 @@ export type ActionSelector = { path: string | string[]; fn: (fieldValue: any, it
  * ```
  */
 type SchemaActions = ActionString | ActionFunction | ActionAggregator | ActionSelector;
+export type StrictSchema<Target> = {
+  /** `destinationProperty` is the name of the property of the target object you want to produce */
+  [destinationProperty in keyof Target]: ActionString | ActionFunction | ActionAggregator | ActionSelector
+};
 export type Schema<Target> = {
   /** `destinationProperty` is the name of the property of the target object you want to produce */
   [destinationProperty in keyof Target]?: ActionString | ActionFunction | ActionAggregator | ActionSelector
