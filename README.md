@@ -27,6 +27,7 @@ _https://en.wikipedia.org/wiki/Morphism_
   - [Docs](#docs)
     - [1. The Schema](#1-the-schema)
       - [Schema Example](#schema-example)
+      - [1.1 Using a strict Schema](#11-using-a-strict-schema)
     - [2. Morphism as Currying Function](#2-morphism-as-currying-function)
       - [API](#api)
       - [Currying Function Example](#currying-function-example)
@@ -173,6 +174,24 @@ morphism(schema, input);
 ⏩ [More Schema examples](#more-schema-examples-%F0%9F%92%A1)
 
 📚 [Schema Docs](https://morphism.now.sh/interfaces/morphism.schema)
+
+#### 1.1 Using a strict Schema
+
+You might want to enforce the keys provided in your schema using `Typescript`. This is possible using a `StrictSchema`. Doing so will require to map every field of the `Target` type provided.
+
+```ts
+interface IFoo {
+  foo: string;
+  bar: number;
+}
+const schema: StrictSchema<IFoo> = { foo: 'qux', bar: () => 'test' };
+const source = { qux: 'foo' };
+const target = morphism(schema, source);
+// {
+//   "foo": "qux",
+//   "bar": "test"
+// }
+```
 
 ### 2. Morphism as Currying Function
 

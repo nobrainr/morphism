@@ -79,7 +79,7 @@ describe('Morphism', () => {
     });
 
     it('should throw an exception when trying to access a path from an undefined object', function() {
-      Morphism.setMapper(User, {
+      Morphism.setMapper<User, any>(User, {
         fieldWillThrow: {
           path: 'fieldWillThrow.becauseNotReachable',
           fn: (object: any) => {
@@ -97,7 +97,7 @@ describe('Morphism', () => {
 
     it('should rethrow an exception when applying a function on path throws an error', function() {
       const err = new TypeError('an internal error');
-      Morphism.setMapper(User, {
+      Morphism.setMapper<User, any>(User, {
         fieldWillThrow: {
           path: 'fieldWillThrow',
           fn: () => {
@@ -481,7 +481,7 @@ describe('Morphism', () => {
     });
 
     it('should return undefined if undefined is given to map without doing any processing', function() {
-      Morphism.register(User, { a: 'firstName' });
+      Morphism.register<User, any>(User, { a: 'firstName' });
       expect(Morphism.map(User, undefined)).toEqual(undefined);
     });
 
