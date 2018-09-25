@@ -1,4 +1,4 @@
-import Morphism, { morphism, Schema } from './morphism';
+import Morphism, { morphism, Schema, StrictSchema } from './morphism';
 
 describe('Morphism', () => {
   describe('Currying Function overload', () => {
@@ -77,6 +77,19 @@ describe('Morphism', () => {
       const target = morphism(schema, source);
 
       expect(target.foo).toEqual(source.qux);
+    });
+
+    it('Should allow to use a strict Schema', () => {
+      interface IFoo {
+        foo: string;
+        bar: number;
+      }
+      const schema: StrictSchema<IFoo> = { foo: 'qux', bar: () => 'test' };
+      const source = { qux: 'foo' };
+      const target = morphism(schema, source);
+
+      expect(target.foo).toEqual(source.qux);
+      expect(target.bar).toEqual('test');
     });
   });
 });
