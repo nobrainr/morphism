@@ -51,6 +51,10 @@ describe('Morphism', () => {
         withMorphDecorator(source: any) {
           return source;
         }
+        @toJSObject(schema)
+        fetchFail(source: any) {
+          return Promise.reject(source);
+        }
       }
 
       const service = new Service();
@@ -79,6 +83,11 @@ describe('Morphism', () => {
       });
       it('should allow to morph with Morph decorator to Class Object', function() {
         expect(service.withMorphDecorator(source)).toEqual(expected);
+      });
+      it('should not swallow error when promise fails', function() {
+        service.fetchFail(source).catch(data => {
+          expect(data).toEqual(source);
+        });
       });
     });
   });
