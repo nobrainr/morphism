@@ -4,10 +4,12 @@
 <img src="https://i.imgur.com/4muW6u2.jpg" width="800px">
 </div> -->
 
-[![NPM version][npm-image]][npm-url] [![Coverage percentage][coveralls-image]][coveralls-url]
-[![CircleCI](https://img.shields.io/circleci/project/github/nobrainr/morphism.svg)](https://circleci.com/gh/nobrainr/morphism)
-![npm](https://img.shields.io/npm/dm/morphism.svg?style=flat-square)
-[![gzip size](http://img.badgesize.io/https://unpkg.com/morphism/dist/morphism.js?compression=gzip)](https://unpkg.com/morphism/dist/morphism.js) [![Dependency Status][daviddm-image]][daviddm-url]
+[![npm](https://img.shields.io/npm/v/morphism.svg?style=for-the-badge)][npm-url]
+[![npm bundle size (minified)](https://img.shields.io/bundlephobia/min/morphism.svg?style=for-the-badge)](https://github.com/nobrainr/morphism)
+[![npm](https://img.shields.io/npm/dy/morphism.svg?style=for-the-badge)][trends-url]
+[![Coveralls github](https://img.shields.io/coveralls/github/emyann/morphism.svg?style=for-the-badge)][coveralls-url]
+[![CircleCI (all branches)](https://img.shields.io/circleci/project/github/nobrainr/morphism/master.svg?style=for-the-badge)][circleci-url]
+[![Deps](https://img.shields.io/david/nobrainr/morphism.svg?style=for-the-badge)][deps-url]
 
 > In many fields of mathematics, morphism refers to a structure-preserving map from one mathematical structure to another. A morphism **f** with source **X** and target **Y** is written **f : X → Y**. Thus a morphism is represented by an arrow from its **source** to its **target**.
 
@@ -15,7 +17,7 @@ _https://en.wikipedia.org/wiki/Morphism_
 
 - :atom_symbol: Write your schema once, Transform your data everywhere
 - :zero: Zero dependencies
-- :zap: [1.6 kB gzipped](https://bundlephobia.com/result?p=morphism@0.9.1)
+- 💪🏽 Typescript Support
 
 ---
 
@@ -44,6 +46,7 @@ _https://en.wikipedia.org/wiki/Morphism_
       - [Delete a registered mapper](#delete-a-registered-mapper)
       - [List registered mappers](#list-registered-mappers)
   - [Contribution](#contribution)
+  - [Similar Projects](#similar-projects)
   - [License](#license)
 
 ## Getting started
@@ -387,6 +390,12 @@ Morphism.mappers;
 - Twitter: [@renaudin_yann][twitter-account]
 - Pull requests and stars are always welcome 🙏🏽 For bugs and feature requests, [please create an issue](https://github.com/emyann/morphism/issues)
 
+## Similar Projects
+
+- [`JavaScript AutoMapper`](https://github.com/loedeman/AutoMapper)
+- [`C# AutoMapper`](https://github.com/AutoMapper/AutoMapper)
+- [`node-data-transform`](https://github.com/bozzltron/node-json-transform)
+
 ## License
 
 MIT © [Yann Renaudin][twitter-account]
@@ -394,7 +403,8 @@ MIT © [Yann Renaudin][twitter-account]
 [twitter-account]: https://twitter.com/renaudin_yann
 [npm-image]: https://badge.fury.io/js/morphism.svg?style=flat-square
 [npm-url]: https://npmjs.org/package/morphism
-[daviddm-image]: https://david-dm.org/emyann/morphism.svg?theme=shields.io
-[daviddm-url]: https://david-dm.org/emyann/morphism
+[deps-url]: https://www.npmjs.com/package/morphism?activeTab=dependencies
 [coveralls-image]: https://coveralls.io/repos/emyann/morphism/badge.svg?style=flat-square
 [coveralls-url]: https://coveralls.io/r/emyann/morphism
+[circleci-url]: https://circleci.com/gh/nobrainr/morphism
+[trends-url]: https://www.npmtrends.com/morphism
