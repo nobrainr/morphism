@@ -31,7 +31,11 @@ _https://en.wikipedia.org/wiki/Morphism_
     - [2. Morphism as Currying Function](#2-morphism-as-currying-function)
       - [API](#api)
       - [Currying Function Example](#currying-function-example)
-    - [3. Morphism as Mixin](#3-morphism-as-mixin)
+    - [3. Morphism as Function Decorators](#3-morphism-as-function-decorators)
+      - [- `toJsObject` Decorator](#tojsobject-decorator)
+      - [- `toClassObject` Decorator](#toclassobject-decorator)
+      - [- `morph` Decorator](#morph-decorator)
+    - [4. Morphism as Mixin](#4-morphism-as-mixin)
   - [More Schema examples](#more-schema-examples)
     - [Flattening or Projection](#flattening-or-projection)
     - [Function over a source property's value](#function-over-a-source-propertys-value)
@@ -226,7 +230,143 @@ const result = morphism(schema, data, Foo);
 // => Items in result are instance of Foo
 ```
 
-### 3. Morphism as Mixin
+### 3. Morphism as Function Decorators
+
+You can also use Function Decorators on your method or functions to transform the return value using `Morphism`:
+
+#### - `toJsObject` Decorator
+
+```ts
+import { toJSObject } from 'morphism';
+
+class Service {
+  @toJSObject({
+    foo: currentItem => currentItem.foo,
+    baz: 'bar.baz'
+  })
+  async fetch() {
+    const response = await fetch('https://api.com');
+    return response.json();
+    // =>
+    // {
+    //   foo: 'fooValue'
+    //   bar: {
+    //     baz: 'bazValue'
+    //   }
+    // };
+  }
+}
+
+// await service.fetch() will return
+// =>
+// {
+//   foo: 'fooValue',
+//   baz: 'bazValue'
+// }
+
+--------------------------------
+
+// Using Typescript will enforce the key from the target to be required
+class Target {
+  a: string = null;
+  b: string = null;
+}
+class Service {
+  // By Using <Target>, Mapping for Properties `a` and `b` will be required
+  @toJSObject<Target>({
+    a: currentItem => currentItem.foo,
+    b: 'bar.baz'
+  })
+  fetch();
+}
+```
+
+#### - `toClassObject` Decorator
+
+```ts
+import { toClassObject } from 'morphism';
+
+class Target {
+  foo = null;
+  bar = null;
+}
+const schema = {
+  foo: currentItem => currentItem.foo,
+  baz: 'bar.baz'
+};
+class Service {
+  @toClassObject(schema, Target)
+  async fetch() {
+    const response = await fetch('https://api.com');
+    return response.json();
+    // =>
+    // {
+    //   foo: 'fooValue'
+    //   bar: {
+    //     baz: 'bazValue'
+    //   }
+    // };
+  }
+}
+
+// await service.fetch() will be instanceof Target
+// =>
+// Target {
+//   foo: 'fooValue',
+//   baz: 'bazValue'
+// }
+```
+
+#### - `morph` Decorator
+
+Utility decorator wrapping `toClassObject` and `toJSObject` decorators
+
+```ts
+import { toClassObject } from 'morphism';
+
+class Target {
+  foo = null;
+  bar = null;
+}
+const schema = {
+  foo: currentItem => currentItem.foo,
+  baz: 'bar.baz'
+};
+class Service {
+  @morph(schema)
+  async fetch() {
+    const response = await fetch('https://api.com');
+    return response.json();
+    // =>
+    // {
+    //   foo: 'fooValue'
+    //   bar: {
+    //     baz: 'bazValue'
+    //   }
+    // };
+  }
+  @morph(schema, Target)
+  async fetch2() {
+    const response = await fetch('https://api.com');
+    return response.json();
+  }
+}
+// await service.fetch() will be
+// =>
+// {
+//   foo: 'fooValue',
+//   baz: 'bazValue'
+// }
+
+// await service.fetch() will be instanceof Target
+// =>
+// Target {
+//   foo: 'fooValue',
+//   baz: 'bazValue'
+// }
+```
+
+### 4. Morphism as Mixin
 
 Morphism comes along with an internal registry you can use to save your schema attached to a specific **ES6 Class**.
 

@@ -275,7 +275,7 @@ function getSchemaForType<T>(type: Constructable<T>, baseSchema: Schema<T>): Sch
   const result = morphism(schema, data, Foo);
   // result is type of Foo
  * ```
- * @param  {Schema} schema Configuration schema to compute data source properties
+ * @param  {Schema} schema Structure-preserving object from a source data towards a target data
  * @param  {} items Object or Collection to be mapped
  * @param  {} type
  *
@@ -474,6 +474,60 @@ export class MorphismRegistry implements IMorphismRegistry {
   get mappers() {
     return this._registry.cache as Map<any, any>;
   }
+}
+
+function decorator<Target>(mapper: Mapper<Target>) {
+  return (target: any, name: string, descriptor: PropertyDescriptor) => {
+    const fn = descriptor.value;
+    if (typeof fn === 'function') {
+      descriptor.value = function(...args: any[]) {
+        const output = fn.apply(this, args);
+        if (isPromise(output)) {
+          return Promise.resolve(output).then(res => mapper(res));
+        }
+        return mapper(output);
+      };
+    }
+
+    return descriptor;
+  };
+}
+function isPromise(object: any) {
+  if (Promise && Promise.resolve) {
+    return Promise.resolve(object) == object;
+  } else {
+    throw 'Promise not supported in your environment';
+  }
+}
+
+/**
+ * Function Decorator transforming the return value of the targeted Function using the provided Schema and/or Type
+ *
+ * @param {Schema<Target>} schema Structure-preserving object from a source data towards a target data
+ * @param {Constructable<Target>} [type] Target Class Type
+ */
+export function morph<Target>(schema: Schema<Target>, type?: Constructable<Target>) {
+  const mapper = transformItems(schema, type);
+  return decorator(mapper);
+}
+/**
+ * Function Decorator transforming the return value of the targeted Function to JS Object(s) using the provided Schema
+ *
+ * @param {StrictSchema<Target>} schema Structure-preserving object from a source data towards a target data
+ */
+export function toJSObject<Target>(schema: StrictSchema<Target>) {
+  const mapper = transformItems(schema);
+  return decorator(mapper);
+}
+/**
+ * Function Decorator transforming the return value of the targeted Function using the provided Schema and Class Type
+ *
+ * @param {Schema<Target>} schema Structure-preserving object from a source data towards a target data
+ * @param {Constructable<Target>} [type] Target Class Type
+ */
+export function toClassObject<Target>(schema: Schema<Target>, type: Constructable<Target>) {
+  const mapper = transformItems(schema, type);
+  return decorator(mapper);
 }
 
 const morphismRegistry = new MorphismRegistry();
