@@ -44,11 +44,11 @@ _https://en.wikipedia.org/wiki/Morphism_
     - [Function over a source property](#function-over-a-source-property)
     - [Properties Aggregation](#properties-aggregation)
   - [Registry API](#registry-api)
-      - [Register](#register)
-      - [Map](#map)
-      - [Get or Set an existing mapper configuration](#get-or-set-an-existing-mapper-configuration)
-      - [Delete a registered mapper](#delete-a-registered-mapper)
-      - [List registered mappers](#list-registered-mappers)
+    - [Register](#register)
+    - [Map](#map)
+    - [Get or Set an existing mapper configuration](#get-or-set-an-existing-mapper-configuration)
+    - [Delete a registered mapper](#delete-a-registered-mapper)
+    - [List registered mappers](#list-registered-mappers)
   - [Contribution](#contribution)
   - [Similar Projects](#similar-projects)
   - [License](#license)
@@ -237,7 +237,7 @@ const result = morphism(schema, data, Foo);
 
 You can also use Function Decorators on your method or functions to transform the return value using `Morphism`:
 
-#### - `toJsObject` Decorator
+#### `toJsObject` Decorator
 
 ```ts
 import { toJSObject } from 'morphism';
@@ -284,7 +284,7 @@ class Service {
 }
 ```
 
-#### - `toClassObject` Decorator
+#### `toClassObject` Decorator
 
 ```ts
 import { toClassObject } from 'morphism';
@@ -532,7 +532,8 @@ Morphism.mappers;
 
 ## Similar Projects
 
-- [`JavaScript AutoMapper`](https://github.com/loedeman/AutoMapper)
+- [`object-mapper`](https://www.npmjs.com/package/object-mapper)
+- [`autoMapper-ts`](https://www.npmjs.com/package/automapper-ts)
 - [`C# AutoMapper`](https://github.com/AutoMapper/AutoMapper)
 - [`node-data-transform`](https://github.com/bozzltron/node-json-transform)
 
