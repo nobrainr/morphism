@@ -1,8 +1,39 @@
 /**
  * @module morphism
  */
-import { isString, get, isFunction, isObject, zipObject, isUndefined, assignInWith, aggregator } from './helpers';
+import { isString, get, isFunction, zipObject, isUndefined, assignInWith, aggregator, isObject } from './helpers';
 
+export function isActionSelector(value: any): value is ActionSelector {
+  return isObject(value);
+}
+/**
+ * A Function invoked per iteration
+ * @param {} iteratee The current element to transform
+ * @param source The source input to transform
+ * @param target The current element transformed
+ * @example
+ * ```typescript
+ *
+ * const source = {
+ *   foo: {
+ *     bar: 'bar'
+ *   }
+ * };
+ * let schema = {
+ *   bar: iteratee => {
+ *     // Apply a function over the source propery
+ *     return iteratee.foo.bar;
+ *   }
+ * };
+ *
+ * morphism(schema, source);
+ * //=> { bar: 'bar' }
+ * ```
+ *
+ */
+export interface ActionFunction<D, S> {
+  (iteratee: S, source: S[], target: D): any;
+}
 /**
  * A String path that indicates where to find the property in the source input
  *
@@ -26,35 +57,7 @@ import { isString, get, isFunction, isObject, zipObject, isUndefined, assignInWi
  * ```
  *
  */
-export type ActionString = string;
-export type ActionFunction = {
-  /**
-   * A Function invoked per iteration
-   * @param {} iteratee The current element to transform
-   * @param source The source input to transform
-   * @param target The current element transformed
-   * @example
-   * ```typescript
-   *
-   * const source = {
-   *   foo: {
-   *     bar: 'bar'
-   *   }
-   * };
-   * let schema = {
-   *   bar: iteratee => {
-   *     // Apply a function over the source propery
-   *     return iteratee.foo.bar;
-   *   }
-   * };
-   *
-   * morphism(schema, source);
-   * //=> { bar: 'bar' }
-   * ```
-   *
-   */
-  (iteratee: any, source: any | any[], target: any): any;
-};
+export type ActionString<T> = keyof T;
 /**
  * An Array of String that allows to perform a function over source property
  *
@@ -130,22 +133,24 @@ export type ActionSelector = { path: string | string[]; fn: (fieldValue: any, it
  * morphism(schema, input);
  * ```
  */
-type SchemaActions = ActionString | ActionFunction | ActionAggregator | ActionSelector;
-export type StrictSchema<Target> = {
+
+export type StrictSchema<Target = {}, Source = any> = {
   /** `destinationProperty` is the name of the property of the target object you want to produce */
-  [destinationProperty in keyof Target]: ActionString | ActionFunction | ActionAggregator | ActionSelector
+  [destinationProperty in keyof Target]:
+    | ActionString<Source>
+    | ActionFunction<Target, Source>
+    | ActionAggregator
+    | ActionSelector
 };
-export type Schema<Target> = {
+export type Schema<Target = {}, Source = any> = {
   /** `destinationProperty` is the name of the property of the target object you want to produce */
-  [destinationProperty in keyof Target]?: ActionString | ActionFunction | ActionAggregator | ActionSelector
+  [destinationProperty in keyof Target]?:
+    | ActionString<Source>
+    | ActionFunction<Target, Source>
+    | ActionAggregator
+    | ActionSelector
 };
 
-function transformValuesFromObject<TDestination, Source>(
-  object: Source,
-  schema: Schema<TDestination>,
-  items: Source[],
-  objectToCompute: TDestination
-): TDestination;
 /**
  * Low Level transformer function.
  * Take a plain object as input and transform its values using a specified schema.
@@ -154,14 +159,14 @@ function transformValuesFromObject<TDestination, Source>(
  * @param  {Array} items Items to be forwarded to Actions
  * @param  {} objectToCompute Created tranformed object of a given type
  */
-function transformValuesFromObject<TDestination, Source>(
+function transformValuesFromObject<Source, TDestination>(
   object: Source,
-  schema: Schema<TDestination>,
+  schema: Schema<TDestination, Source>,
   items: Source[],
   objectToCompute: TDestination
 ) {
   return Object.entries(schema)
-    .map(([targetProperty, action]: [string, SchemaActions]) => {
+    .map(([targetProperty, action]) => {
       // iterate on every action of the schema
       if (isString(action)) {
         // Action<String>: string path => [ target: 'source' ]
@@ -172,7 +177,7 @@ function transformValuesFromObject<TDestination, Source>(
       } else if (Array.isArray(action)) {
         // Action<Array>: Aggregator - string paths => : [ destination: ['source1', 'source2', 'source3'] ]
         return { [targetProperty]: aggregator(action, object) };
-      } else if (isObject(action)) {
+      } else if (isActionSelector(action)) {
         // Action<Object>: a path and a function: [ destination : { path: 'source', fn:(fieldValue, items) }]
         let result;
         try {
@@ -213,15 +218,18 @@ interface Constructable<T> {
   new (...args: any[]): T;
 }
 
-interface Mapper<Target> {
+export interface Mapper<Target> {
   <Source>(source: Source[]): Target[];
   <Source>(source: Source): Target;
 }
 
 function transformItems<T, TSchema extends Schema<T>>(schema: TSchema): Mapper<{ [P in keyof TSchema]: any }>;
-function transformItems<T, TSchema extends Schema<T>>(schema: TSchema, type: Constructable<T>): Mapper<{ [P in keyof TSchema]: any }>;
+function transformItems<T, TSchema extends Schema<T>>(
+  schema: TSchema,
+  type: Constructable<T>
+): Mapper<{ [P in keyof TSchema]: any }>;
 
-function transformItems<T, TSchema extends Schema<T>>(schema: TSchema, type?: Constructable<T>) {
+function transformItems<T, TSchema extends Schema<T | {}>>(schema: TSchema, type?: Constructable<T>) {
   function mapper(source: any): any {
     if (!source) {
       return source;
@@ -240,7 +248,7 @@ function transformItems<T, TSchema extends Schema<T>>(schema: TSchema, type?: Co
       const object = source;
       if (type) {
         const classObject = new type();
-        return transformValuesFromObject(object, schema, [object], classObject);
+        return transformValuesFromObject<any, T>(object, schema, [object], classObject);
       } else {
         const jsObject = {};
         return transformValuesFromObject(object, schema, [object], jsObject);
@@ -280,21 +288,25 @@ function getSchemaForType<T>(type: Constructable<T>, baseSchema: Schema<T>): Sch
  * @param  {} type
  *
  */
-export function morphism<TSchema extends Schema<any>>(schema: TSchema, items: any[]): { [P in keyof TSchema]: any }[]; // morphism<Target>({},[]) => {}[]
-export function morphism<TSchema extends Schema<any>>(schema: TSchema, items: any): { [P in keyof TSchema]: any }; // morphism({},{}) => {}
-
-export function morphism<Target>(schema: Schema<Target>, items: any[]): Target[]; // morphism<Target>({},[]) => Target[]
-export function morphism<Target>(schema: Schema<Target>, items: any): Target; // morphism<Target>({},{}) => Target
+export function morphism<TSchema extends Schema<{}, Source>, Source>(
+  schema: TSchema,
+  items: Source
+): Source extends any[] ? { [P in keyof TSchema]: any }[] : { [P in keyof TSchema]: any };
+// morphism({},{}) => {}
+// morphism({},[]) => Target[]
 
 export function morphism<TSchema extends Schema<any>>(schema: TSchema): Mapper<{ [P in keyof TSchema]: any }>; // morphism(TSchema) => mapper(S[]) => (keyof TSchema)[]
-
 export function morphism<Target>(schema: Schema<Target>): Mapper<Target>; // morphism<ITarget>({}) => Mapper<ITarget> => ITarget
-
-export function morphism(schema: Schema<any>, items: null): undefined; // Reflects a specific use case where Morphism({}, null) return undefined
-export function morphism(schema: null, items: {}): undefined; // Reflects a specific use case where Morphism(null, {}) return undefined
-
-export function morphism<Target, Source>(schema: Schema<Target>, items: null, type: Constructable<Target>): Mapper<Target>; // morphism({}, null, T) => mapper(S) => T
-export function morphism<Target, Source>(schema: Schema<Target>, items: Source[], type: Constructable<Target>): Target[]; // morphism({}, [], T) => T[]
+export function morphism<Target, Source>(
+  schema: Schema<Target>,
+  items: null,
+  type: Constructable<Target>
+): Mapper<Target>; // morphism({}, null, T) => mapper(S) => T
+export function morphism<Target, Source>(
+  schema: Schema<Target>,
+  items: Source[],
+  type: Constructable<Target>
+): Target[]; // morphism({}, [], T) => T[]
 export function morphism<Target, Source>(schema: Schema<Target>, items: Source, type: Constructable<Target>): Target; // morphism({}, {}, T) => T
 
 export function morphism<Target, Source>(schema: Schema<Target>, items?: Source, type?: Constructable<Target>) {
@@ -439,7 +451,9 @@ export class MorphismRegistry implements IMorphismRegistry {
     if (!schema) {
       throw new Error(`The schema must be an Object. Found ${schema}`);
     } else if (!this.exists(type)) {
-      throw new Error(`The type ${type.name} is not registered. Register it using \`Mophism.register(${type.name}, schema)\``);
+      throw new Error(
+        `The type ${type.name} is not registered. Register it using \`Mophism.register(${type.name}, schema)\``
+      );
     } else {
       let fn = morphism(schema, null, type);
       this._registry.cache.set(type, fn);
@@ -494,6 +508,7 @@ function decorator<Target>(mapper: Mapper<Target>) {
 }
 function isPromise(object: any) {
   if (Promise && Promise.resolve) {
+    // tslint:disable-next-line:triple-equals
     return Promise.resolve(object) == object;
   } else {
     throw 'Promise not supported in your environment';
