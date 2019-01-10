@@ -39,16 +39,46 @@ describe('Morphism', () => {
     });
 
     it('Should do a straight mapping with an Interface provided', () => {
-      interface IFoo {
+      interface Destination {
         foo: string;
+        bar: string;
+        qux: string;
       }
-      const schema = { foo: 'bar' };
+      interface Source {
+        bar: string;
+      }
+      const schema: StrictSchema<Destination, Source> = {
+        foo: 'bar',
+        bar: 'bar',
+        qux: elem => {
+          elem.bar;
+        }
+      };
       const source = { bar: 'value' };
-      const target = morphism<IFoo>(schema, source);
-      const targets = morphism<IFoo>(schema, [source]);
+      // const target2 = morphism(
+      //   {
+      //     foo: 'bar',
+      //     bar: elem => {
+      //       elem;
+      //     }
+      //   },
+      //   [source]
+      // );
+      // const targe3 = morphism(
+      //   {
+      //     foo: 'bar',
+      //     bar: elem => {
+      //       elem;
+      //     }
+      //   },
+      //   source
+      // );
+
+      const target = morphism(schema, source);
+      const targets = morphism(schema, [source]);
 
       expect(target.foo).toEqual('value');
-      expect(targets[0].foo).toEqual('value');
+      expect(targets.shift().foo).toEqual('value');
     });
   });
 

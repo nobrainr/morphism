@@ -134,7 +134,7 @@ export type ActionSelector = { path: string | string[]; fn: (fieldValue: any, it
  * ```
  */
 
-export type StrictSchema<Target, Source = any> = {
+export type StrictSchema<Target = {}, Source = any> = {
   /** `destinationProperty` is the name of the property of the target object you want to produce */
   [destinationProperty in keyof Target]:
     | ActionString<Source>
@@ -142,7 +142,7 @@ export type StrictSchema<Target, Source = any> = {
     | ActionAggregator
     | ActionSelector
 };
-export type Schema<Target, Source = any> = {
+export type Schema<Target = {}, Source = any> = {
   /** `destinationProperty` is the name of the property of the target object you want to produce */
   [destinationProperty in keyof Target]?:
     | ActionString<Source>
@@ -288,19 +288,15 @@ function getSchemaForType<T>(type: Constructable<T>, baseSchema: Schema<T>): Sch
  * @param  {} type
  *
  */
-export function morphism<TSchema extends Schema<any>>(schema: TSchema, items: any[]): { [P in keyof TSchema]: any }[]; // morphism<Target>({},[]) => {}[]
-export function morphism<TSchema extends Schema<any>>(schema: TSchema, items: any): { [P in keyof TSchema]: any }; // morphism({},{}) => {}
-
-export function morphism<Target>(schema: Schema<Target>, items: any[]): Target[]; // morphism<Target>({},[]) => Target[]
-export function morphism<Target>(schema: Schema<Target>, items: any): Target; // morphism<Target>({},{}) => Target
+export function morphism<TSchema extends Schema<{}, Source>, Source>(
+  schema: TSchema,
+  items: Source
+): Source extends any[] ? { [P in keyof TSchema]: any }[] : { [P in keyof TSchema]: any };
+// morphism({},{}) => {}
+// morphism({},[]) => Target[]
 
 export function morphism<TSchema extends Schema<any>>(schema: TSchema): Mapper<{ [P in keyof TSchema]: any }>; // morphism(TSchema) => mapper(S[]) => (keyof TSchema)[]
-
 export function morphism<Target>(schema: Schema<Target>): Mapper<Target>; // morphism<ITarget>({}) => Mapper<ITarget> => ITarget
-
-export function morphism(schema: Schema<any>, items: null): undefined; // Reflects a specific use case where Morphism({}, null) return undefined
-export function morphism(schema: null, items: {}): undefined; // Reflects a specific use case where Morphism(null, {}) return undefined
-
 export function morphism<Target, Source>(
   schema: Schema<Target>,
   items: null,
