@@ -1,35 +1,39 @@
 /**
  * @module morphism
  */
-import { isString, get, isFunction, isObject, zipObject, isUndefined, assignInWith, aggregator } from './helpers';
-export type ActionFunction = {
-  /**
-   * A Function invoked per iteration
-   * @param {} iteratee The current element to transform
-   * @param source The source input to transform
-   * @param target The current element transformed
-   * @example
-   * ```typescript
-   *
-   * const source = {
-   *   foo: {
-   *     bar: 'bar'
-   *   }
-   * };
-   * let schema = {
-   *   bar: iteratee => {
-   *     // Apply a function over the source propery
-   *     return iteratee.foo.bar;
-   *   }
-   * };
-   *
-   * morphism(schema, source);
-   * //=> { bar: 'bar' }
-   * ```
-   *
-   */
-  (iteratee: any, source: any | any[], target: any): any;
-};
+import { isString, get, isFunction, zipObject, isUndefined, assignInWith, aggregator, isObject } from './helpers';
+
+export function isActionSelector(value: any): value is ActionSelector {
+  return isObject(value);
+}
+/**
+ * A Function invoked per iteration
+ * @param {} iteratee The current element to transform
+ * @param source The source input to transform
+ * @param target The current element transformed
+ * @example
+ * ```typescript
+ *
+ * const source = {
+ *   foo: {
+ *     bar: 'bar'
+ *   }
+ * };
+ * let schema = {
+ *   bar: iteratee => {
+ *     // Apply a function over the source propery
+ *     return iteratee.foo.bar;
+ *   }
+ * };
+ *
+ * morphism(schema, source);
+ * //=> { bar: 'bar' }
+ * ```
+ *
+ */
+export interface ActionFunction<D, S> {
+  (iteratee: S, source: S[], target: D): any;
+}
 /**
  * A String path that indicates where to find the property in the source input
  *
@@ -53,7 +57,7 @@ export type ActionFunction = {
  * ```
  *
  */
-export type ActionString = string;
+export type ActionString<T> = keyof T;
 /**
  * An Array of String that allows to perform a function over source property
  *
@@ -129,14 +133,22 @@ export type ActionSelector = { path: string | string[]; fn: (fieldValue: any, it
  * morphism(schema, input);
  * ```
  */
-type SchemaActions = ActionString | ActionFunction | ActionAggregator | ActionSelector;
-export type StrictSchema<Target> = {
+
+export type StrictSchema<Target, Source = any> = {
   /** `destinationProperty` is the name of the property of the target object you want to produce */
-  [destinationProperty in keyof Target]: ActionString | ActionFunction | ActionAggregator | ActionSelector
+  [destinationProperty in keyof Target]:
+    | ActionString<Source>
+    | ActionFunction<Target, Source>
+    | ActionAggregator
+    | ActionSelector
 };
-export type Schema<Target> = {
+export type Schema<Target, Source = any> = {
   /** `destinationProperty` is the name of the property of the target object you want to produce */
-  [destinationProperty in keyof Target]?: ActionString | ActionFunction | ActionAggregator | ActionSelector
+  [destinationProperty in keyof Target]?:
+    | ActionString<Source>
+    | ActionFunction<Target, Source>
+    | ActionAggregator
+    | ActionSelector
 };
 
 /**
@@ -149,12 +161,12 @@ export type Schema<Target> = {
  */
 function transformValuesFromObject<Source, TDestination>(
   object: Source,
-  schema: Schema<TDestination>,
+  schema: Schema<TDestination, Source>,
   items: Source[],
   objectToCompute: TDestination
 ) {
   return Object.entries(schema)
-    .map(([targetProperty, action]: [string, SchemaActions]) => {
+    .map(([targetProperty, action]) => {
       // iterate on every action of the schema
       if (isString(action)) {
         // Action<String>: string path => [ target: 'source' ]
@@ -165,7 +177,7 @@ function transformValuesFromObject<Source, TDestination>(
       } else if (Array.isArray(action)) {
         // Action<Array>: Aggregator - string paths => : [ destination: ['source1', 'source2', 'source3'] ]
         return { [targetProperty]: aggregator(action, object) };
-      } else if (isObject(action)) {
+      } else if (isActionSelector(action)) {
         // Action<Object>: a path and a function: [ destination : { path: 'source', fn:(fieldValue, items) }]
         let result;
         try {
