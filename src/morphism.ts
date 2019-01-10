@@ -494,6 +494,7 @@ function decorator<Target>(mapper: Mapper<Target>) {
 }
 function isPromise(object: any) {
   if (Promise && Promise.resolve) {
+    // tslint:disable-next-line:triple-equals
     return Promise.resolve(object) == object;
   } else {
     throw 'Promise not supported in your environment';
