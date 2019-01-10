@@ -1,5 +1,4 @@
 import Morphism from './morphism';
-import { Schema } from './morphism';
 
 class User {
   firstName: string;
@@ -242,7 +241,8 @@ describe('Morphism', () => {
       it('should be resilient when doing nesting mapping and using destructuration on array', function() {
         let nestedSchema = {
           target: 'source',
-          nestedTargets: ({ nestedSources }: any) => Morphism({ nestedTarget: ({ nestedSource }: any) => nestedSource }, nestedSources)
+          nestedTargets: ({ nestedSources }: any) =>
+            Morphism({ nestedTarget: ({ nestedSource }: any) => nestedSource }, nestedSources)
         };
         let schema = {
           complexTarget: ({ complexSource }: any) => Morphism(nestedSchema, complexSource)
@@ -460,12 +460,12 @@ describe('Morphism', () => {
       };
 
       let triggered = false;
-      let trigger = (user: User, group: any) => {
+      let trigger = (_user: User, _group: any) => {
         triggered = true;
       };
 
       let schema = {
-        groups: (object: any, items: any, constructed: User) => {
+        groups: (object: any, _items: any, constructed: User) => {
           if (object.groups) {
             for (let group of object.groups) {
               constructed.addToGroup(group, trigger);
