@@ -213,13 +213,16 @@ interface Constructable<T> {
   new (...args: any[]): T;
 }
 
-interface Mapper<Target> {
+export interface Mapper<Target> {
   <Source>(source: Source[]): Target[];
   <Source>(source: Source): Target;
 }
 
 function transformItems<T, TSchema extends Schema<T>>(schema: TSchema): Mapper<{ [P in keyof TSchema]: any }>;
-function transformItems<T, TSchema extends Schema<T>>(schema: TSchema, type: Constructable<T>): Mapper<{ [P in keyof TSchema]: any }>;
+function transformItems<T, TSchema extends Schema<T>>(
+  schema: TSchema,
+  type: Constructable<T>
+): Mapper<{ [P in keyof TSchema]: any }>;
 
 function transformItems<T, TSchema extends Schema<T>>(schema: TSchema, type?: Constructable<T>) {
   function mapper(source: any): any {
@@ -293,8 +296,16 @@ export function morphism<Target>(schema: Schema<Target>): Mapper<Target>; // mor
 export function morphism(schema: Schema<any>, items: null): undefined; // Reflects a specific use case where Morphism({}, null) return undefined
 export function morphism(schema: null, items: {}): undefined; // Reflects a specific use case where Morphism(null, {}) return undefined
 
-export function morphism<Target, Source>(schema: Schema<Target>, items: null, type: Constructable<Target>): Mapper<Target>; // morphism({}, null, T) => mapper(S) => T
-export function morphism<Target, Source>(schema: Schema<Target>, items: Source[], type: Constructable<Target>): Target[]; // morphism({}, [], T) => T[]
+export function morphism<Target, Source>(
+  schema: Schema<Target>,
+  items: null,
+  type: Constructable<Target>
+): Mapper<Target>; // morphism({}, null, T) => mapper(S) => T
+export function morphism<Target, Source>(
+  schema: Schema<Target>,
+  items: Source[],
+  type: Constructable<Target>
+): Target[]; // morphism({}, [], T) => T[]
 export function morphism<Target, Source>(schema: Schema<Target>, items: Source, type: Constructable<Target>): Target; // morphism({}, {}, T) => T
 
 export function morphism<Target, Source>(schema: Schema<Target>, items?: Source, type?: Constructable<Target>) {
@@ -439,7 +450,9 @@ export class MorphismRegistry implements IMorphismRegistry {
     if (!schema) {
       throw new Error(`The schema must be an Object. Found ${schema}`);
     } else if (!this.exists(type)) {
-      throw new Error(`The type ${type.name} is not registered. Register it using \`Mophism.register(${type.name}, schema)\``);
+      throw new Error(
+        `The type ${type.name} is not registered. Register it using \`Mophism.register(${type.name}, schema)\``
+      );
     } else {
       let fn = morphism(schema, null, type);
       this._registry.cache.set(type, fn);
