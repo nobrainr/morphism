@@ -2,31 +2,6 @@
  * @module morphism
  */
 import { isString, get, isFunction, isObject, zipObject, isUndefined, assignInWith, aggregator } from './helpers';
-
-/**
- * A String path that indicates where to find the property in the source input
- *
- * @example
- * ```typescript
- *
- * const source = {
- *   foo: 'baz',
- *   bar: ['bar', 'foo'],
- *   baz: {
- *     qux: 'bazqux'
- *   }
- * };
- * const schema = {
- *   foo: 'foo', // Simple Projection
- *   bazqux: 'baz.qux' // Grab a value from a nested property
- * };
- *
- * morphism(schema, source);
- * //=> { foo: 'baz', bazqux: 'bazqux' }
- * ```
- *
- */
-export type ActionString = string;
 export type ActionFunction = {
   /**
    * A Function invoked per iteration
@@ -55,6 +30,30 @@ export type ActionFunction = {
    */
   (iteratee: any, source: any | any[], target: any): any;
 };
+/**
+ * A String path that indicates where to find the property in the source input
+ *
+ * @example
+ * ```typescript
+ *
+ * const source = {
+ *   foo: 'baz',
+ *   bar: ['bar', 'foo'],
+ *   baz: {
+ *     qux: 'bazqux'
+ *   }
+ * };
+ * const schema = {
+ *   foo: 'foo', // Simple Projection
+ *   bazqux: 'baz.qux' // Grab a value from a nested property
+ * };
+ *
+ * morphism(schema, source);
+ * //=> { foo: 'baz', bazqux: 'bazqux' }
+ * ```
+ *
+ */
+export type ActionString = string;
 /**
  * An Array of String that allows to perform a function over source property
  *
@@ -140,12 +139,6 @@ export type Schema<Target> = {
   [destinationProperty in keyof Target]?: ActionString | ActionFunction | ActionAggregator | ActionSelector
 };
 
-function transformValuesFromObject<TDestination, Source>(
-  object: Source,
-  schema: Schema<TDestination>,
-  items: Source[],
-  objectToCompute: TDestination
-): TDestination;
 /**
  * Low Level transformer function.
  * Take a plain object as input and transform its values using a specified schema.
@@ -154,7 +147,7 @@ function transformValuesFromObject<TDestination, Source>(
  * @param  {Array} items Items to be forwarded to Actions
  * @param  {} objectToCompute Created tranformed object of a given type
  */
-function transformValuesFromObject<TDestination, Source>(
+function transformValuesFromObject<Source, TDestination>(
   object: Source,
   schema: Schema<TDestination>,
   items: Source[],
@@ -224,7 +217,7 @@ function transformItems<T, TSchema extends Schema<T>>(
   type: Constructable<T>
 ): Mapper<{ [P in keyof TSchema]: any }>;
 
-function transformItems<T, TSchema extends Schema<T>>(schema: TSchema, type?: Constructable<T>) {
+function transformItems<T, TSchema extends Schema<T | {}>>(schema: TSchema, type?: Constructable<T>) {
   function mapper(source: any): any {
     if (!source) {
       return source;
@@ -243,7 +236,7 @@ function transformItems<T, TSchema extends Schema<T>>(schema: TSchema, type?: Co
       const object = source;
       if (type) {
         const classObject = new type();
-        return transformValuesFromObject(object, schema, [object], classObject);
+        return transformValuesFromObject<any, T>(object, schema, [object], classObject);
       } else {
         const jsObject = {};
         return transformValuesFromObject(object, schema, [object], jsObject);
