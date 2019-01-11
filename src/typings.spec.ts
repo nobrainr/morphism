@@ -30,9 +30,9 @@ describe('Morphism', () => {
       interface IFoo {
         foo: string;
       }
-      const schema = { foo: 'bar' };
+      const schema: Schema<IFoo> = { foo: 'bar' };
       const source = { bar: 'value' };
-      const mapper = morphism<IFoo>(schema);
+      const mapper = morphism(schema);
 
       expect(mapper(source).foo).toEqual('value');
       expect(mapper([source][0]).foo).toEqual('value');
@@ -50,9 +50,7 @@ describe('Morphism', () => {
       const schema: StrictSchema<Destination, Source> = {
         foo: 'bar',
         bar: 'bar',
-        qux: elem => {
-          elem.bar;
-        }
+        qux: elem => elem.bar
       };
       const source = { bar: 'value' };
       // const target2 = morphism(
@@ -114,12 +112,12 @@ describe('Morphism', () => {
         foo: string;
         bar: number;
       }
-      const schema: StrictSchema<IFoo> = { foo: 'qux', bar: () => 'test' };
+      const schema: StrictSchema<IFoo> = { foo: 'qux', bar: () => 1 };
       const source = { qux: 'foo' };
       const target = morphism(schema, source);
 
       expect(target.foo).toEqual(source.qux);
-      expect(target.bar).toEqual('test');
+      expect(target.bar).toEqual(1);
     });
   });
 });
