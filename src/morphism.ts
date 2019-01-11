@@ -3,9 +3,6 @@
  */
 import { isString, get, isFunction, zipObject, isUndefined, assignInWith, aggregator, isObject } from './helpers';
 
-export function isActionSelector(value: any): value is ActionSelector {
-  return isObject(value);
-}
 /**
  * A Function invoked per iteration
  * @param {} iteratee The current element to transform
@@ -31,8 +28,8 @@ export function isActionSelector(value: any): value is ActionSelector {
  * ```
  *
  */
-export interface ActionFunction<D, S> {
-  (iteratee: S, source: S[], target: D): any;
+export interface ActionFunction<D, S, R> {
+  (iteratee: S, source: S[], target: D): R;
 }
 /**
  * A String path that indicates where to find the property in the source input
@@ -100,7 +97,7 @@ export type ActionAggregator = string[];
  *```
  *
  */
-export type ActionSelector = { path: string | string[]; fn: (fieldValue: any, items: any[]) => any };
+export type ActionSelector<Source, R> = { path: string | string[]; fn: (fieldValue: any, items: Source[]) => R };
 
 /**
  * A structure-preserving object from a source data towards a target data.
@@ -134,23 +131,25 @@ export type ActionSelector = { path: string | string[]; fn: (fieldValue: any, it
  * ```
  */
 
-export type StrictSchema<Target = {}, Source = any> = {
+export type StrictSchema<Target = any, Source = any> = {
   /** `destinationProperty` is the name of the property of the target object you want to produce */
   [destinationProperty in keyof Target]:
     | ActionString<Source>
-    | ActionFunction<Target, Source>
+    | ActionFunction<Target, Source, Target[destinationProperty]>
     | ActionAggregator
-    | ActionSelector
+    | ActionSelector<Source, Target[destinationProperty]>
 };
-export type Schema<Target = {}, Source = any> = {
+export type Schema<Target = any, Source = any> = {
   /** `destinationProperty` is the name of the property of the target object you want to produce */
   [destinationProperty in keyof Target]?:
     | ActionString<Source>
-    | ActionFunction<Target, Source>
+    | ActionFunction<Target, Source, Target[destinationProperty]>
     | ActionAggregator
-    | ActionSelector
+    | ActionSelector<Source, Target[destinationProperty]>
 };
-
+export function isActionSelector<S, R>(value: any): value is ActionSelector<S, R> {
+  return isObject(value);
+}
 /**
  * Low Level transformer function.
  * Take a plain object as input and transform its values using a specified schema.
@@ -218,11 +217,6 @@ interface Constructable<T> {
   new (...args: any[]): T;
 }
 
-export interface Mapper<Target> {
-  <Source>(source: Source[]): Target[];
-  <Source>(source: Source): Target;
-}
-
 function transformItems<T, TSchema extends Schema<T>>(schema: TSchema): Mapper<{ [P in keyof TSchema]: any }>;
 function transformItems<T, TSchema extends Schema<T>>(
   schema: TSchema,
@@ -266,6 +260,15 @@ function getSchemaForType<T>(type: Constructable<T>, baseSchema: Schema<T>): Sch
   return finalSchema;
 }
 
+type SourceFromSchema<T> = T extends StrictSchema<unknown, infer U> | Schema<unknown, infer U> ? U : never;
+type DestinationFromSchema<T> = T extends StrictSchema<infer U> | Schema<infer U> ? U : never;
+
+type ResultItem<TSchema extends Schema> = { [P in keyof TSchema]: DestinationFromSchema<TSchema>[P] };
+export interface Mapper<TSchema extends Schema | StrictSchema, TResult = ResultItem<TSchema>> {
+  (data: Partial<SourceFromSchema<TSchema>>[]): TResult[];
+  (data: Partial<SourceFromSchema<TSchema>>): TResult;
+}
+
 /**
  * Currying function that either outputs a mapping function or the transformed data.
  *
@@ -288,28 +291,32 @@ function getSchemaForType<T>(type: Constructable<T>, baseSchema: Schema<T>): Sch
  * @param  {} type
  *
  */
-export function morphism<TSchema extends Schema<{}, Source>, Source>(
+export function morphism<TSchema extends Schema, Source extends object>(
   schema: TSchema,
-  items: Source
-): Source extends any[] ? { [P in keyof TSchema]: any }[] : { [P in keyof TSchema]: any };
-// morphism({},{}) => {}
-// morphism({},[]) => Target[]
+  data: Source
+): Source extends (infer _C)[] ? ResultItem<TSchema>[] : ResultItem<TSchema>;
 
-export function morphism<TSchema extends Schema<any>>(schema: TSchema): Mapper<{ [P in keyof TSchema]: any }>; // morphism(TSchema) => mapper(S[]) => (keyof TSchema)[]
-export function morphism<Target>(schema: Schema<Target>): Mapper<Target>; // morphism<ITarget>({}) => Mapper<ITarget> => ITarget
-export function morphism<Target, Source>(
-  schema: Schema<Target>,
+// morphism({}) => mapper(S) => T
+export function morphism<TSchema extends Schema>(schema: TSchema): Mapper<TSchema>;
+
+// morphism({}, null, T) => mapper(S) => T
+export function morphism<TSchema extends Schema, TDestination>(
+  schema: TSchema,
   items: null,
-  type: Constructable<Target>
-): Mapper<Target>; // morphism({}, null, T) => mapper(S) => T
-export function morphism<Target, Source>(
-  schema: Schema<Target>,
-  items: Source[],
-  type: Constructable<Target>
-): Target[]; // morphism({}, [], T) => T[]
-export function morphism<Target, Source>(schema: Schema<Target>, items: Source, type: Constructable<Target>): Target; // morphism({}, {}, T) => T
+  type: Constructable<TDestination>
+): Mapper<TSchema, TDestination>;
 
-export function morphism<Target, Source>(schema: Schema<Target>, items?: Source, type?: Constructable<Target>) {
+// morphism({}, {}, T) => T
+export function morphism<TSchema extends Schema, Target>(
+  schema: TSchema,
+  items: SourceFromSchema<TSchema>,
+  type: Constructable<Target>
+): Target;
+export function morphism<Target, Source, TSchema extends Schema<Target, Source>>(
+  schema: TSchema,
+  items?: SourceFromSchema<TSchema>,
+  type?: Constructable<Target>
+) {
   if (items === undefined && type === undefined) {
     return transformItems(schema);
   } else if (schema && items && type) {
@@ -336,7 +343,7 @@ export interface IMorphismRegistry {
    * @param schema Structure-preserving object from a source data towards a target data.
    *
    */
-  register<Target, TSchema extends Schema<Target>>(type: Constructable<Target>, schema?: TSchema): Mapper<Target>;
+  register<Target, TSchema>(type: Constructable<Target>, schema?: TSchema): Mapper<TSchema, Target>;
   /**
    * Transform any input in the specified Class
    *
@@ -344,7 +351,7 @@ export interface IMorphismRegistry {
    * @param {Object} data Input data to transform
    *
    */
-  map<Target>(type: Target): Mapper<Target>;
+  map<Target>(type: Target): Mapper<Schema, Target>;
   map<Target, Source>(type: Constructable<Target>, data: Source[]): Target[];
   map<Target, Source>(type: Constructable<Target>, data: Source): Target;
   /**
@@ -353,7 +360,7 @@ export interface IMorphismRegistry {
    * @param {Type} type Class Type of the ouput Data
    *
    */
-  getMapper<Target>(type: Constructable<Target>): Mapper<Target>;
+  getMapper<Target>(type: Constructable<Target>): Mapper<Schema, Target>;
   /**
    * Set a schema for a specific Class Type
    *
@@ -361,7 +368,7 @@ export interface IMorphismRegistry {
    * @param {Schema} schema Class Type of the ouput Data
    *
    */
-  setMapper<Target, TSchema extends Schema<Target>>(type: Constructable<Target>, schema: TSchema): Mapper<Target>;
+  setMapper<Target, TSchema extends Schema<Target>>(type: Constructable<Target>, schema: TSchema): Mapper<any, Target>;
   /**
    * Delete a registered schema associated to a Class
    *
@@ -405,7 +412,7 @@ export class MorphismRegistry implements IMorphismRegistry {
    * @param schema Structure-preserving object from a source data towards a target data.
    *
    */
-  register<Target, TSchema extends Schema<Target>>(type: Constructable<Target>, schema?: TSchema) {
+  register<Target, TSchema>(type: Constructable<Target>, schema?: TSchema) {
     if (!type && !schema) {
       throw new Error('type paramater is required when register a mapping');
     } else if (this.exists(type)) {

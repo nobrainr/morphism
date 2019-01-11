@@ -1,4 +1,4 @@
-import Morphism from './morphism';
+import Morphism, { StrictSchema } from './morphism';
 
 class User {
   firstName: string;
@@ -29,7 +29,28 @@ class User {
 }
 
 describe('Morphism', () => {
-  const dataToCrunch = [
+  interface MockData {
+    firstName: string;
+    lastName: string;
+    age: number;
+    address: {
+      streetAddress: string;
+      city: string;
+      state: string;
+      postalCode: string;
+    };
+    phoneNumber: [
+      {
+        type: string;
+        number: string;
+      },
+      {
+        type: string;
+        number: string;
+      }
+    ];
+  }
+  const dataToCrunch: MockData[] = [
     {
       firstName: 'John',
       lastName: 'Smith',
@@ -200,7 +221,7 @@ describe('Morphism', () => {
     describe('Function Predicate', function() {
       it('should support es6 destructuring as function predicate', function() {
         let schema = {
-          target: ({ source }: any) => source
+          target: ({ source }: { source: string }) => source
         };
         let mock = {
           source: 'value'
@@ -210,6 +231,7 @@ describe('Morphism', () => {
         };
         let result = Morphism(schema, mock);
         expect(result).toEqual(expected);
+        expect(result.target).toEqual(expected.target);
       });
 
       it('should support nesting mapping', function() {
@@ -348,11 +370,18 @@ describe('Morphism', () => {
     });
 
     it('should pass the object value to the function when no path is specified', function() {
-      let schema = {
+      interface D {
+        firstName: string;
+        lastName: string;
+        city: string;
+        status: string;
+      }
+
+      let schema: StrictSchema<D, MockData> = {
         firstName: 'firstName',
         lastName: 'lastName',
-        city: 'address.city',
-        status: (o: any) => o.phoneNumber[0].type
+        city: { path: 'address.city', fn: prop => prop },
+        status: o => o.phoneNumber[0].type
       };
 
       let desiredResult = {
