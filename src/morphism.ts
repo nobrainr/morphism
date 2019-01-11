@@ -291,32 +291,35 @@ export interface Mapper<TSchema extends Schema | StrictSchema, TResult = ResultI
  * @param  {} type
  *
  */
-export function morphism<TSchema extends Schema, Source extends object>(
+export function morphism<TSchema extends Schema, Source extends SourceFromSchema<TSchema>>(
   schema: TSchema,
   data: Source
-): Source extends (infer _C)[] ? ResultItem<TSchema>[] : ResultItem<TSchema>;
+): Source extends any[] ? ResultItem<TSchema>[] : ResultItem<TSchema>;
 
-// morphism({}) => mapper(S) => T
-export function morphism<TSchema extends Schema>(schema: TSchema): Mapper<TSchema>;
+export function morphism<TSchema extends Schema, Source extends SourceFromSchema<TSchema>>(
+  schema: TSchema,
+  data: Source[]
+): ResultItem<TSchema>[];
 
-// morphism({}, null, T) => mapper(S) => T
+export function morphism<TSchema extends Schema>(schema: TSchema): Mapper<TSchema>; // morphism({}) => mapper(S) => T
+
 export function morphism<TSchema extends Schema, TDestination>(
   schema: TSchema,
   items: null,
   type: Constructable<TDestination>
-): Mapper<TSchema, TDestination>;
+): Mapper<TSchema, TDestination>; // morphism({}, null, T) => mapper(S) => T
 
-// morphism({}, {}, T) => T
 export function morphism<TSchema extends Schema, Target>(
   schema: TSchema,
   items: SourceFromSchema<TSchema>,
   type: Constructable<Target>
-): Target;
+): Target; // morphism({}, {}, T) => T
+
 export function morphism<Target, Source, TSchema extends Schema<Target, Source>>(
   schema: TSchema,
   items?: SourceFromSchema<TSchema>,
   type?: Constructable<Target>
-) {
+): any {
   if (items === undefined && type === undefined) {
     return transformItems(schema);
   } else if (schema && items && type) {

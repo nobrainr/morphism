@@ -53,6 +53,21 @@ describe('Morphism', () => {
       morphism(schema, { s1: 'teest' }).d1.toString();
       morphism(schema, [{ s1: 'teest' }]).shift().d1;
       morphism(schema, [{ s1: 'teest' }]);
+      morphism(schema, [{ s1: 'test' }]);
+      // morphism(schema,[{}])
     });
+
+    // xit('should fail with typescript', () => {
+    //   interface S {
+    //     s1: string;
+    //   }
+    //   interface D {
+    //     d1: string;
+    //   }
+    //   const schema: StrictSchema<D, S> = {
+    //     d1: 's1'
+    //   };
+    //   morphism(schema, [{ toto: 'test' }]);
+    // });
   });
 });
