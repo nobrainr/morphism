@@ -13,14 +13,19 @@ describe('Morphism', () => {
         fooB: string;
         fooC: string;
       }
-      const schema = {
+      const schema: StrictSchema<Destination, Source> = {
         fooA: 'inputA',
         fooB: ({ inputB }) => inputB,
         fooC: 'inputC'
-      } as StrictSchema<Destination, Source>;
+      };
 
       const mapper = morphism(schema);
-      const res = mapper({}) as Destination;
+
+      expect(mapper({ inputA: 'test', inputB: 'test2', inputC: 'test3' })).toEqual({
+        fooA: 'test',
+        fooB: 'test2',
+        fooC: 'test3'
+      });
     });
 
     it('should accept 2 generic parameters on Schema', () => {
@@ -31,8 +36,23 @@ describe('Morphism', () => {
         foo: 'inputA'
       };
       morphism(schema, { inputA: 'test' });
-
       morphism(schema, [{ inputA: '' }]);
+    });
+
+    it('should accept 2 generic parameters on Schema', () => {
+      interface S {
+        s1: string;
+      }
+      interface D {
+        d1: string;
+      }
+      const schema: StrictSchema<D, S> = {
+        d1: 's1'
+      };
+      morphism(schema)([{ s1: 'test' }]).shift().d1;
+      morphism(schema, { s1: 'teest' }).d1.toString();
+      morphism(schema, [{ s1: 'teest' }]).shift().d1;
+      morphism(schema, [{ s1: 'teest' }]);
     });
   });
 });
