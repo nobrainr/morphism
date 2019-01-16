@@ -54,20 +54,40 @@ describe('Morphism', () => {
       morphism(schema, [{ s1: 'teest' }]).shift().d1;
       morphism(schema, [{ s1: 'teest' }]);
       morphism(schema, [{ s1: 'test' }]);
-      // morphism(schema,[{}])
+      morphism(schema, [{}]);
     });
 
-    // xit('should fail with typescript', () => {
-    //   interface S {
-    //     s1: string;
-    //   }
-    //   interface D {
-    //     d1: string;
-    //   }
-    //   const schema: StrictSchema<D, S> = {
-    //     d1: 's1'
-    //   };
-    //   morphism(schema, [{ toto: 'test' }]);
-    // });
+    xit('should fail with typescript', () => {
+      interface S {
+        s1: string;
+      }
+      interface D {
+        d1: string;
+      }
+      const schema: StrictSchema<D, S> = {
+        d1: 's1'
+      };
+
+      interface Source {
+        boring_api_field: number;
+      }
+      const source: Source[] = [{ boring_api_field: 2 }];
+
+      interface Destination {
+        namingIsHard: string;
+      }
+
+      const a = morphism<Destination, Source>({ namingIsHard: 'boring_api_field' }, [{ boring_api_field: 2 }]);
+      a.pop().namingIsHard;
+
+      const b = morphism<Destination, Source>({ namingIsHard: 'boring_api_field' }, { boring_api_field: 2 });
+      b.namingIsHard;
+
+      const c = morphism<Destination>({ namingIsHard: 'boring_api_field' }, [{ boring_api_field: 2 }]);
+      c.pop().namingIsHard;
+
+      const d = morphism<Destination>({ namingIsHard: 'boring_api_field' }, { boring_api_field: 2 });
+      d.namingIsHard;
+    });
   });
 });
