@@ -54,7 +54,7 @@ describe('Morphism', () => {
       morphism(schema, [{ s1: 'teest' }]).shift().d1;
       morphism(schema, [{ s1: 'teest' }]);
       morphism(schema, [{ s1: 'test' }]);
-      // morphism(schema,[{}])
+      morphism(schema, [{}]);
     });
 
     xit('should fail with typescript', () => {
@@ -84,7 +84,6 @@ describe('Morphism', () => {
       b.namingIsHard;
 
       const c = morphism<Destination>({ namingIsHard: 'boring_api_field' }, [{ boring_api_field: 2 }]);
-
       c.pop().namingIsHard;
 
       const d = morphism<Destination>({ namingIsHard: 'boring_api_field' }, { boring_api_field: 2 });
