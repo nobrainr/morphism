@@ -93,5 +93,20 @@ describe('Morphism', () => {
       morphism<Destination, Source>({ namingIsHard: 'boring_api_field' })({ boring_api_field: 2 });
       morphism<Destination>({ namingIsHard: 'boring_api_field' })([{ boring_api_field: 2 }]).pop().namingIsHard;
     });
+
+    it('', () => {
+      interface S {
+        _a: string;
+      }
+      interface D {
+        a: string;
+      }
+
+      morphism<D, S>({ a: ({ _a }) => _a.toString() });
+      morphism<D, S>({ a: ({ _a }) => _a.toString() });
+
+      // morphism({ a: ({ b }) => b }, { _a: 'value' });
+      // morphism({ a: ({ b }) => b });
+    });
   });
 });
