@@ -24,7 +24,8 @@ _https://en.wikipedia.org/wiki/Morphism_
 - [Morphism](#morphism)
   - [Getting started](#getting-started)
     - [Installation](#installation)
-    - [Example](#example)
+    - [Example (JS)](#example-js)
+    - [Example (TypeScript)](#example-typescript)
   - [Motivation](#motivation)
   - [Docs](#docs)
     - [1. The Schema](#1-the-schema)
@@ -34,8 +35,8 @@ _https://en.wikipedia.org/wiki/Morphism_
       - [API](#api)
       - [Currying Function Example](#currying-function-example)
     - [3. Morphism as Function Decorators](#3-morphism-as-function-decorators)
-      - [- `toJsObject` Decorator](#tojsobject-decorator)
-      - [- `toClassObject` Decorator](#toclassobject-decorator)
+      - [`toJsObject` Decorator](#tojsobject-decorator)
+      - [`toClassObject` Decorator](#toclassobject-decorator)
       - [- `morph` Decorator](#morph-decorator)
     - [4. Morphism as Mixin](#4-morphism-as-mixin)
   - [More Schema examples](#more-schema-examples)
@@ -44,11 +45,11 @@ _https://en.wikipedia.org/wiki/Morphism_
     - [Function over a source property](#function-over-a-source-property)
     - [Properties Aggregation](#properties-aggregation)
   - [Registry API](#registry-api)
-    - [Register](#register)
-    - [Map](#map)
-    - [Get or Set an existing mapper configuration](#get-or-set-an-existing-mapper-configuration)
-    - [Delete a registered mapper](#delete-a-registered-mapper)
-    - [List registered mappers](#list-registered-mappers)
+      - [Register](#register)
+      - [Map](#map)
+      - [Get or Set an existing mapper configuration](#get-or-set-an-existing-mapper-configuration)
+      - [Delete a registered mapper](#delete-a-registered-mapper)
+      - [List registered mappers](#list-registered-mappers)
   - [Contribution](#contribution)
   - [Similar Projects](#similar-projects)
   - [License](#license)
@@ -61,7 +62,7 @@ _https://en.wikipedia.org/wiki/Morphism_
 npm install --save morphism
 ```
 
-### Example
+### Example (JS)
 
 ```typescript
 import { morphism } from 'morphism';
@@ -103,6 +104,36 @@ const classObjects = morphism(schema, source, Destination);
 
 const jsObjects = morphism(schema, source);
 // Object {foo: "foo", bar: "bar", bazqux: "bazqux"}
+```
+
+### Example (TypeScript)
+
+```typescript
+import { morphism, StrictSchema } from 'morphism';
+
+// What we have
+interface Source {
+  ugly_field: string;
+}
+
+// What we want
+interface Destination {
+  field: string;
+}
+
+const source: Source = {
+  ugly_field: 'field value'
+};
+
+// Destination and Source types are optional
+morphism<Destination, Source>({ field: 'ugly_field' }, source);
+// => {field: "field value"}
+
+// Or
+const sources = [source];
+const schema: StrictSchema<Destination, Source> = { field: 'ugly_field' };
+morphism<Destination, Source>(schema, sources);
+// => [{field: "field value"}]
 ```
 
 ▶️ [Test with Repl.it](https://repl.it/@yrnd1/Morphism-Full-Example)
