@@ -88,6 +88,10 @@ describe('Morphism', () => {
 
       const d = morphism<Destination>({ namingIsHard: 'boring_api_field' }, { boring_api_field: 2 });
       d.namingIsHard;
+
+      morphism({ namingIsHard: 'boring_api_field' });
+      morphism<Destination, Source>({ namingIsHard: 'boring_api_field' })({ boring_api_field: 2 });
+      morphism<Destination>({ namingIsHard: 'boring_api_field' })([{ boring_api_field: 2 }]).pop().namingIsHard;
     });
   });
 });
