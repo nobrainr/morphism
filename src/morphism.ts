@@ -291,15 +291,16 @@ export interface Mapper<TSchema extends Schema | StrictSchema, TResult = ResultI
  * @param  {} type
  *
  */
-export function morphism<TSchema extends Schema, Source extends SourceFromSchema<TSchema>>(
-  schema: TSchema,
-  data: Source
-): Source extends any[] ? ResultItem<TSchema>[] : ResultItem<TSchema>;
-
-export function morphism<TSchema extends Schema, Source extends SourceFromSchema<TSchema>>(
-  schema: TSchema,
-  data: Source[]
-): ResultItem<TSchema>[];
+export function morphism<
+  Destination,
+  Source,
+  TSchema extends Schema<Destination, Source> = Schema<Destination, Source>
+>(schema: TSchema, data: Source): Source extends any[] ? ResultItem<TSchema>[] : ResultItem<TSchema>;
+export function morphism<
+  Destination,
+  Source,
+  TSchema extends Schema<Destination, Source> = Schema<Destination, Source>
+>(schema: TSchema, data: Source[]): ResultItem<TSchema>[];
 
 export function morphism<TSchema extends Schema>(schema: TSchema): Mapper<TSchema>; // morphism({}) => mapper(S) => T
 
