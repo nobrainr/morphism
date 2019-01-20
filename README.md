@@ -24,7 +24,7 @@ _https://en.wikipedia.org/wiki/Morphism_
 - [Morphism](#morphism)
   - [Getting started](#getting-started)
     - [Installation](#installation)
-    - [Example (JS)](#example-js)
+    - [Example (JavaScript)](#example-javascript)
     - [Example (TypeScript)](#example-typescript)
   - [Motivation](#motivation)
   - [Docs](#docs)
@@ -62,7 +62,7 @@ _https://en.wikipedia.org/wiki/Morphism_
 npm install --save morphism
 ```
 
-### Example (JS)
+### Example (JavaScript)
 
 ```typescript
 import { morphism } from 'morphism';
