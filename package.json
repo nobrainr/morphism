@@ -28,12 +28,19 @@
   "main": "./dist/morphism.js",
   "types": "./dist/morphism.d.ts",
   "keywords": [
-    "Javascript",
-    "Json",
-    "Object",
-    "Mapper",
-    "Data Mapping",
-    "Functional Programming"
+    "data",
+    "functional",
+    "parser",
+    "typescript",
+    "object",
+    "array",
+    "flow",
+    "mapper",
+    "automapper",
+    "morphism",
+    "fp",
+    "js",
+    "javascript"
   ],
   "devDependencies": {
     "@types/jasmine": "^3.3.5",
