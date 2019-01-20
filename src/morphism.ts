@@ -217,14 +217,8 @@ interface Constructable<T> {
   new (...args: any[]): T;
 }
 
-function transformItems<T, TSchema extends Schema<T>>(schema: TSchema): Mapper<{ [P in keyof TSchema]: any }>;
-function transformItems<T, TSchema extends Schema<T>>(
-  schema: TSchema,
-  type: Constructable<T>
-): Mapper<{ [P in keyof TSchema]: any }>;
-
 function transformItems<T, TSchema extends Schema<T | {}>>(schema: TSchema, type?: Constructable<T>) {
-  function mapper(source: any): any {
+  function mapper(source: any) {
     if (!source) {
       return source;
     }
@@ -324,7 +318,7 @@ export function morphism<Target, Source, TSchema extends Schema<Target, Source>>
   schema: TSchema,
   items?: SourceFromSchema<TSchema>,
   type?: Constructable<Target>
-): any {
+) {
   if (items === undefined && type === undefined) {
     return transformItems(schema);
   } else if (schema && items && type) {
