@@ -104,7 +104,6 @@ describe('Morphism', () => {
 
       morphism<D, S>({ a: ({ _a }) => _a.toString() });
       morphism<D, S>({ a: ({ _a }) => _a.toString() });
-
       // morphism({ a: ({ b }) => b }, { _a: 'value' });
       // morphism({ a: ({ b }) => b });
     });

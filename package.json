@@ -1,7 +1,7 @@
 {
   "name": "morphism",
   "version": "1.0.0",
-  "description": "Library to transform any Object / JSON to JavaScript Object Literals, and ES6 Class Objects. Help you scale your data processing",
+  "description": "Do not repeat anymore your objects transformations.",
   "homepage": "https://github.com/nobrainr/morphism",
   "scripts": {
     "start": "npm run server:dev",
