@@ -1,6 +1,5 @@
 const webpack = require('webpack');
 const path = require('path');
-const DashboardPlugin = require('webpack-dashboard/plugin');
 const nodeEnv = process.env.NODE_ENV || 'development';
 const isProd = nodeEnv === 'production';
 
@@ -14,10 +13,6 @@ const plugins = [
     }
   })
 ];
-
-if (!isProd) {
-  plugins.push(new DashboardPlugin());
-}
 
 var config = {
   devtool: isProd ? 'hidden-source-map' : 'source-map',
