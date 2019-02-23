@@ -148,7 +148,7 @@ export type Schema<Target = any, Source = any> = {
     | ActionSelector<Source, Target[destinationProperty]>
 };
 export function isActionSelector<S, R>(value: any): value is ActionSelector<S, R> {
-  return isObject(value);
+  return isObject(value) && value.hasOwnProperty('fn') && value.hasOwnProperty('path');
 }
 /**
  * Low Level transformer function.
