@@ -1,5 +1,5 @@
-export const aggregator = (paths: any, object: any) => {
-  return paths.reduce((delta: any, path: any) => {
+export const aggregator = (paths: string[], object: any) => {
+  return paths.reduce((delta, path) => {
     return set(delta, path, get(object, path));
   }, {});
 };
