@@ -28,7 +28,7 @@ import { isString, get, isFunction, zipObject, isUndefined, assignInWith, aggreg
  * ```
  *
  */
-export interface ActionFunction<D, S, R> {
+export interface ActionFunction<D = any, S = any, R = any> {
   (iteratee: S, source: S[], target: D): R;
 }
 /**
@@ -54,7 +54,7 @@ export interface ActionFunction<D, S, R> {
  * ```
  *
  */
-export type ActionString<T> = keyof T;
+export type ActionString<T = string> = keyof T;
 /**
  * An Array of String that allows to perform a function over source property
  *
@@ -97,7 +97,10 @@ export type ActionAggregator = string[];
  *```
  *
  */
-export type ActionSelector<Source, R> = { path: string | string[]; fn: (fieldValue: any, items: Source[]) => R };
+export type ActionSelector<Source = any, R = any> = {
+  path: string | string[];
+  fn: (fieldValue: any, items: Source[]) => R;
+};
 
 /**
  * A structure-preserving object from a source data towards a target data.
@@ -150,6 +153,133 @@ export type Schema<Target = any, Source = any> = {
 export function isActionSelector<S, R>(value: any): value is ActionSelector<S, R> {
   return isObject(value) && value.hasOwnProperty('fn') && value.hasOwnProperty('path');
 }
+function isActionAggregator(value: any): value is ActionAggregator {
+  return Array.isArray(value);
+}
+function isActionString(value: any): value is string {
+  return isString(value);
+}
+function isActionFunction(value: any): value is ActionFunction {
+  return isFunction(value);
+}
+
+enum Action {
+  ActionFunction = 'ActionFunction',
+  ActionAggregator = 'ActionAggregator',
+  ActionString = 'ActionString',
+  ActionSelector = 'ActionSelector'
+}
+
+enum NodeDataKind {
+  Root = 'Root'
+}
+
+type Actions = ActionFunction | ActionAggregator | ActionString | ActionSelector;
+type SchemaNodeDataKind = Action | NodeDataKind;
+interface SchemaNodeData {
+  propertyName: string;
+  action: Actions;
+  kind: SchemaNodeDataKind;
+  targetPropertyPath: string;
+}
+interface SchemaNode {
+  data: SchemaNodeData;
+  parent: SchemaNode;
+  children: SchemaNode[];
+}
+
+type Overwrite<T1, T2> = { [P in Exclude<keyof T1, keyof T2>]: T1[P] } & T2;
+
+type AddNode = Overwrite<
+  SchemaNodeData,
+  {
+    kind?: Action;
+    targetPropertyPath?: string;
+  }
+>;
+
+class MophismSchemaTree {
+  private root: SchemaNode;
+  constructor() {
+    this.root = {
+      data: { targetPropertyPath: '', propertyName: 'MorphismTreeRoot', action: null, kind: NodeDataKind.Root },
+      parent: null,
+      children: []
+    };
+  }
+  *traverseBFS() {
+    const queue = [];
+    queue.push(this.root);
+    let node = queue.shift();
+    while (node) {
+      for (let i = 0, length = node.children.length; i < length; i++) {
+        queue.push(node.children[i]);
+      }
+      yield node;
+      node = queue.shift();
+    }
+  }
+  *traverseDFS() {
+    const stack = [this.root];
+    let node = stack.pop();
+    while (node) {
+      for (let i = 0, length = node.children.length; i < length; i++) {
+        stack.push(node.children[i]);
+      }
+      yield node;
+      node = stack.pop();
+    }
+  }
+  add(data: AddNode, toPropertyPath?: string) {
+    const kind = this.getActionKind(data.action);
+    const nodeToAdd: SchemaNode = { data: { ...data, kind, targetPropertyPath: '' }, parent: null, children: [] };
+    if (!toPropertyPath) {
+      nodeToAdd.parent = this.root;
+      nodeToAdd.data.targetPropertyPath = nodeToAdd.data.propertyName;
+      this.root.children.push(nodeToAdd);
+    } else {
+      for (const node of this.traverseBFS()) {
+        if (node.data && node.data.targetPropertyPath === toPropertyPath) {
+          nodeToAdd.parent = node.parent;
+          nodeToAdd.data.targetPropertyPath = `${node.parent.data.targetPropertyPath}.${nodeToAdd.data.propertyName}`;
+          node.parent.children.push(nodeToAdd);
+        }
+      }
+    }
+  }
+
+  getActionKind(action: Actions) {
+    if (isActionString(action)) return Action.ActionString;
+    if (isFunction(action)) return Action.ActionFunction;
+    if (isActionSelector(action)) return Action.ActionSelector;
+    if (isActionAggregator(action)) return Action.ActionAggregator;
+  }
+}
+
+function parseSchema(schema: Schema | StrictSchema | string | number) {
+  const treeSchema = new MophismSchemaTree();
+  seedTreeSchema(treeSchema, schema);
+  return treeSchema;
+}
+function seedTreeSchema(
+  tree: MophismSchemaTree,
+  partialSchema: Partial<Schema | StrictSchema> | string | number,
+  actionKey?: string
+) {
+  if (
+    isString(partialSchema) ||
+    isFunction(partialSchema) ||
+    isActionSelector(partialSchema) ||
+    isActionAggregator(partialSchema)
+  ) {
+    // console.log('action to process', actionKey, partialSchema);
+    tree.add({ propertyName: actionKey, action: partialSchema as Actions });
+    return;
+  }
+  Object.keys(partialSchema).forEach(key => {
+    seedTreeSchema(tree, partialSchema[key], key);
+  });
+}
 /**
  * Low Level transformer function.
  * Take a plain object as input and transform its values using a specified schema.
@@ -164,54 +294,59 @@ function transformValuesFromObject<Source, TDestination>(
   items: Source[],
   objectToCompute: TDestination
 ) {
-  return Object.entries(schema)
-    .map(([targetProperty, action]) => {
-      // iterate on every action of the schema
-      if (isString(action)) {
-        // Action<String>: string path => [ target: 'source' ]
-        return { [targetProperty]: get(object, action) };
-      } else if (isFunction(action)) {
-        // Action<Function>: Free Computin - a callback called with the current object and collection [ destination: (object) => {...} ]
-        return { [targetProperty]: action.call(undefined, object, items, objectToCompute) };
-      } else if (Array.isArray(action)) {
-        // Action<Array>: Aggregator - string paths => : [ destination: ['source1', 'source2', 'source3'] ]
-        return { [targetProperty]: aggregator(action, object) };
-      } else if (isActionSelector(action)) {
-        // Action<Object>: a path and a function: [ destination : { path: 'source', fn:(fieldValue, items) }]
-        let result;
-        try {
-          let value;
-          if (Array.isArray(action.path)) {
-            value = aggregator(action.path, object);
-          } else if (isString(action.path)) {
-            value = get(object, action.path);
-          }
-          result = action.fn.call(undefined, value, object, items, objectToCompute);
-        } catch (e) {
-          e.message = `Unable to set target property [${targetProperty}].
-                                \n An error occured when applying [${action.fn.name}] on property [${action.path}]
-                                \n Internal error: ${e.message}`;
-          throw e;
-        }
+  const tree = parseSchema(schema);
+  const transformChunks = [];
+  for (const node of tree.traverseBFS()) {
+    const { propertyName: targetProperty, action, kind } = node.data;
+    console.log('node', targetProperty, action);
 
-        return { [targetProperty]: result };
-      }
-    })
-    .reduce((finalObject, keyValue) => {
-      const undefinedValueCheck = (destination: any, source: any) => {
-        // Take the Object class value property if the incoming property is undefined
-        if (isUndefined(source)) {
-          if (!isUndefined(destination)) {
-            return destination;
-          } else {
-            return; // No Black Magic Fuckery here, if the source and the destination are undefined, we don't do anything
-          }
-        } else {
-          return source;
+    // iterate on every action of the schema
+    if (isActionString(action)) {
+      // Action<String>: string path => [ target: 'source' ]
+      transformChunks.push({ [targetProperty]: get(object, action) });
+    } else if (isActionFunction(action)) {
+      // Action<Function>: Free Computin - a callback called with the current object and collection [ destination: (object) => {...} ]
+      transformChunks.push({ [targetProperty]: action.call(undefined, object, items, objectToCompute) });
+    } else if (isActionAggregator(action)) {
+      // Action<Array>: Aggregator - string paths => : [ destination: ['source1', 'source2', 'source3'] ]
+      transformChunks.push({ [targetProperty]: aggregator(action, object) });
+    } else if (isActionSelector(action)) {
+      // Action<Object>: a path and a function: [ destination : { path: 'source', fn:(fieldValue, items) }]
+      let result;
+      try {
+        let value;
+        if (Array.isArray(action.path)) {
+          value = aggregator(action.path, object);
+        } else if (isString(action.path)) {
+          value = get(object, action.path);
         }
-      };
-      return assignInWith(finalObject, keyValue, undefinedValueCheck);
-    }, objectToCompute);
+        result = action.fn.call(undefined, value, object, items, objectToCompute);
+      } catch (e) {
+        e.message = `Unable to set target property [${targetProperty}].
+                                  \n An error occured when applying [${action.fn.name}] on property [${action.path}]
+                                  \n Internal error: ${e.message}`;
+        throw e;
+      }
+
+      transformChunks.push({ [targetProperty]: result });
+    }
+  }
+
+  return transformChunks.reduce((finalObject, keyValue) => {
+    const undefinedValueCheck = (destination: any, source: any) => {
+      // Take the Object class value property if the incoming property is undefined
+      if (isUndefined(source)) {
+        if (!isUndefined(destination)) {
+          return destination;
+        } else {
+          return; // No Black Magic Fuckery here, if the source and the destination are undefined, we don't do anything
+        }
+      } else {
+        return source;
+      }
+    };
+    return assignInWith(finalObject, keyValue, undefinedValueCheck);
+  }, objectToCompute);
 }
 interface Constructable<T> {
   new (...args: any[]): T;
