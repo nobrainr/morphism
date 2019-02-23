@@ -176,15 +176,18 @@ enum NodeDataKind {
 
 type Actions = ActionFunction | ActionAggregator | ActionString | ActionSelector;
 type SchemaNodeDataKind = Action | NodeDataKind;
+
+type PreparedAction = (params: { object: any; items: any; objectToCompute: any }) => any;
 interface SchemaNodeData {
   propertyName: string;
-  action: Actions;
+  action: Actions | null;
+  preparedAction?: PreparedAction;
   kind: SchemaNodeDataKind;
   targetPropertyPath: string;
 }
 interface SchemaNode {
   data: SchemaNodeData;
-  parent: SchemaNode;
+  parent: SchemaNode | null;
   children: SchemaNode[];
 }
 
@@ -195,6 +198,7 @@ type AddNode = Overwrite<
   {
     kind?: Action;
     targetPropertyPath?: string;
+    preparedAction?: (...args: any) => any;
   }
 >;
 
@@ -215,37 +219,24 @@ class MophismSchemaTree {
       for (let i = 0, length = node.children.length; i < length; i++) {
         queue.push(node.children[i]);
       }
-      yield node;
+      if (node.data.kind !== NodeDataKind.Root) {
+        yield node;
+      }
       node = queue.shift();
     }
   }
-  *traverseDFS() {
-    const stack = [this.root];
-    let node = stack.pop();
-    while (node) {
-      for (let i = 0, length = node.children.length; i < length; i++) {
-        stack.push(node.children[i]);
-      }
-      yield node;
-      node = stack.pop();
-    }
-  }
-  add(data: AddNode, toPropertyPath?: string) {
+
+  add(data: AddNode) {
+    if (!data.action) throw new Error(`Action of ${data.propertyName} can't be ${data.action}.`);
+
     const kind = this.getActionKind(data.action);
+    if (!kind) throw new Error(`The action specified for ${data.propertyName} is not supported.`);
     const nodeToAdd: SchemaNode = { data: { ...data, kind, targetPropertyPath: '' }, parent: null, children: [] };
-    if (!toPropertyPath) {
-      nodeToAdd.parent = this.root;
-      nodeToAdd.data.targetPropertyPath = nodeToAdd.data.propertyName;
-      this.root.children.push(nodeToAdd);
-    } else {
-      for (const node of this.traverseBFS()) {
-        if (node.data && node.data.targetPropertyPath === toPropertyPath) {
-          nodeToAdd.parent = node.parent;
-          nodeToAdd.data.targetPropertyPath = `${node.parent.data.targetPropertyPath}.${nodeToAdd.data.propertyName}`;
-          node.parent.children.push(nodeToAdd);
-        }
-      }
-    }
+    nodeToAdd.data.preparedAction = this.getPreparedAction(nodeToAdd.data);
+
+    nodeToAdd.parent = this.root;
+    nodeToAdd.data.targetPropertyPath = nodeToAdd.data.propertyName;
+    this.root.children.push(nodeToAdd);
   }
 
   getActionKind(action: Actions) {
@@ -254,25 +245,63 @@ class MophismSchemaTree {
     if (isActionSelector(action)) return Action.ActionSelector;
     if (isActionAggregator(action)) return Action.ActionAggregator;
   }
+
+  getPreparedAction(nodeData: SchemaNodeData): PreparedAction {
+    const { propertyName: targetProperty, action } = nodeData;
+    // iterate on every action of the schema
+    if (isActionString(action)) {
+      // Action<String>: string path => [ target: 'source' ]
+      return ({ object }) => ({ [targetProperty]: get(object, action) });
+    } else if (isActionFunction(action)) {
+      // Action<Function>: Free Computin - a callback called with the current object and collection [ destination: (object) => {...} ]
+      return ({ object, items, objectToCompute }) => ({
+        [targetProperty]: action.call(undefined, object, items, objectToCompute)
+      });
+    } else if (isActionAggregator(action)) {
+      // Action<Array>: Aggregator - string paths => : [ destination: ['source1', 'source2', 'source3'] ]
+      return ({ object }) => ({ [targetProperty]: aggregator(action, object) });
+    } else if (isActionSelector(action)) {
+      // Action<Object>: a path and a function: [ destination : { path: 'source', fn:(fieldValue, items) }]
+      return ({ object, items, objectToCompute }) => {
+        let result;
+        try {
+          let value;
+          if (Array.isArray(action.path)) {
+            value = aggregator(action.path, object);
+          } else if (isString(action.path)) {
+            value = get(object, action.path);
+          }
+          result = action.fn.call(undefined, value, object, items, objectToCompute);
+        } catch (e) {
+          e.message = `Unable to set target property [${targetProperty}].
+                                        \n An error occured when applying [${action.fn.name}] on property [${
+            action.path
+          }]
+                                        \n Internal error: ${e.message}`;
+          throw e;
+        }
+        return { [targetProperty]: result };
+      };
+    } else {
+      throw new Error(`The action specified for ${targetProperty} is not supported.`);
+    }
+  }
+}
+function isValidAction(action: any) {
+  return isString(action) || isFunction(action) || isActionSelector(action) || isActionAggregator(action);
 }
 
 function parseSchema(schema: Schema | StrictSchema | string | number) {
-  const treeSchema = new MophismSchemaTree();
-  seedTreeSchema(treeSchema, schema);
-  return treeSchema;
+  const tree = new MophismSchemaTree();
+  seedTreeSchema(tree, schema);
+  return tree;
 }
 function seedTreeSchema(
   tree: MophismSchemaTree,
   partialSchema: Partial<Schema | StrictSchema> | string | number,
   actionKey?: string
-) {
-  if (
-    isString(partialSchema) ||
-    isFunction(partialSchema) ||
-    isActionSelector(partialSchema) ||
-    isActionAggregator(partialSchema)
-  ) {
-    // console.log('action to process', actionKey, partialSchema);
+): MophismSchemaTree {
+  if (isValidAction(partialSchema) && actionKey) {
     tree.add({ propertyName: actionKey, action: partialSchema as Actions });
     return;
   }
@@ -290,46 +319,14 @@ function seedTreeSchema(
  */
 function transformValuesFromObject<Source, TDestination>(
   object: Source,
-  schema: Schema<TDestination, Source>,
+  tree: MophismSchemaTree,
   items: Source[],
   objectToCompute: TDestination
 ) {
-  const tree = parseSchema(schema);
   const transformChunks = [];
   for (const node of tree.traverseBFS()) {
-    const { propertyName: targetProperty, action, kind } = node.data;
-    console.log('node', targetProperty, action);
-
-    // iterate on every action of the schema
-    if (isActionString(action)) {
-      // Action<String>: string path => [ target: 'source' ]
-      transformChunks.push({ [targetProperty]: get(object, action) });
-    } else if (isActionFunction(action)) {
-      // Action<Function>: Free Computin - a callback called with the current object and collection [ destination: (object) => {...} ]
-      transformChunks.push({ [targetProperty]: action.call(undefined, object, items, objectToCompute) });
-    } else if (isActionAggregator(action)) {
-      // Action<Array>: Aggregator - string paths => : [ destination: ['source1', 'source2', 'source3'] ]
-      transformChunks.push({ [targetProperty]: aggregator(action, object) });
-    } else if (isActionSelector(action)) {
-      // Action<Object>: a path and a function: [ destination : { path: 'source', fn:(fieldValue, items) }]
-      let result;
-      try {
-        let value;
-        if (Array.isArray(action.path)) {
-          value = aggregator(action.path, object);
-        } else if (isString(action.path)) {
-          value = get(object, action.path);
-        }
-        result = action.fn.call(undefined, value, object, items, objectToCompute);
-      } catch (e) {
-        e.message = `Unable to set target property [${targetProperty}].
-                                  \n An error occured when applying [${action.fn.name}] on property [${action.path}]
-                                  \n Internal error: ${e.message}`;
-        throw e;
-      }
-
-      transformChunks.push({ [targetProperty]: result });
-    }
+    const { preparedAction } = node.data;
+    transformChunks.push(preparedAction({ object, objectToCompute, items }));
   }
 
   return transformChunks.reduce((finalObject, keyValue) => {
@@ -353,6 +350,8 @@ interface Constructable<T> {
 }
 
 function transformItems<T, TSchema extends Schema<T | {}>>(schema: TSchema, type?: Constructable<T>) {
+  const tree = parseSchema(schema);
+
   function mapper(source: any) {
     if (!source) {
       return source;
@@ -361,20 +360,20 @@ function transformItems<T, TSchema extends Schema<T | {}>>(schema: TSchema, type
       return source.map(obj => {
         if (type) {
           const classObject = new type();
-          return transformValuesFromObject(obj, schema, source, classObject);
+          return transformValuesFromObject(obj, tree, source, classObject);
         } else {
           const jsObject = {};
-          return transformValuesFromObject(obj, schema, source, jsObject);
+          return transformValuesFromObject(obj, tree, source, jsObject);
         }
       });
     } else {
       const object = source;
       if (type) {
         const classObject = new type();
-        return transformValuesFromObject<any, T>(object, schema, [object], classObject);
+        return transformValuesFromObject<any, T>(object, tree, [object], classObject);
       } else {
         const jsObject = {};
-        return transformValuesFromObject(object, schema, [object], jsObject);
+        return transformValuesFromObject(object, tree, [object], jsObject);
       }
     }
   }
