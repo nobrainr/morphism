@@ -35,7 +35,7 @@ export function set(object: object, path: string, value: any) {
   path = path.replace(/\[(\w+)\]/g, '.$1'); // convert indexes to properties
   path = path.replace(/^\./, ''); // strip a leading dot
   const paths = path.split('.');
-  const lastProperty = paths.pop();
+  const lastProperty = paths.pop() as string;
   const finalValue = paths.reduceRight(
     (finalObject, prop) => {
       return { [prop]: finalObject };
@@ -52,7 +52,7 @@ export function get(object: any, path: string) {
   for (let i = 0, n = a.length; i < n; ++i) {
     const k = a[i];
     if (isObject(object) && k in object) {
-      object = object[k];
+      object = (object as any)[k];
     } else {
       return;
     }

@@ -99,7 +99,7 @@ export type ActionAggregator = string[];
  */
 export type ActionSelector<Source = any, R = any> = {
   path: string | string[];
-  fn: (fieldValue: any, items: Source[]) => R;
+  fn: (fieldValue: any, object: Source, items: Source, objectToCompute: R) => R;
 };
 
 /**
@@ -300,13 +300,13 @@ function seedTreeSchema(
   tree: MophismSchemaTree,
   partialSchema: Partial<Schema | StrictSchema> | string | number,
   actionKey?: string
-): MophismSchemaTree {
+): void {
   if (isValidAction(partialSchema) && actionKey) {
     tree.add({ propertyName: actionKey, action: partialSchema as Actions });
     return;
   }
   Object.keys(partialSchema).forEach(key => {
-    seedTreeSchema(tree, partialSchema[key], key);
+    seedTreeSchema(tree, (partialSchema as any)[key], key);
   });
 }
 /**
@@ -326,7 +326,7 @@ function transformValuesFromObject<Source, TDestination>(
   const transformChunks = [];
   for (const node of tree.traverseBFS()) {
     const { preparedAction } = node.data;
-    transformChunks.push(preparedAction({ object, objectToCompute, items }));
+    if (preparedAction) transformChunks.push(preparedAction({ object, objectToCompute, items }));
   }
 
   return transformChunks.reduce((finalObject, keyValue) => {
@@ -450,7 +450,7 @@ export function morphism<TSchema extends Schema, Target>(
 
 export function morphism<Target, Source, TSchema extends Schema<Target, Source>>(
   schema: TSchema,
-  items?: SourceFromSchema<TSchema>,
+  items?: SourceFromSchema<TSchema> | null | undefined,
   type?: Constructable<Target>
 ) {
   if (items === undefined && type === undefined) {
@@ -548,7 +548,7 @@ export class MorphismRegistry implements IMorphismRegistry {
    * @param schema Structure-preserving object from a source data towards a target data.
    *
    */
-  register<Target, TSchema>(type: Constructable<Target>, schema?: TSchema) {
+  register<Target, TSchema>(type: Constructable<Target>, schema: TSchema | {} = {}) {
     if (!type && !schema) {
       throw new Error('type paramater is required when register a mapping');
     } else if (this.exists(type)) {
