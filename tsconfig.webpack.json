@@ -1,0 +1,9 @@
+// https://webpack.js.org/configuration/configuration-languages/#typescript
+
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es5",
+    "esModuleInterop": true
+  }
+}

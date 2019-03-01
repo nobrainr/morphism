@@ -75,7 +75,7 @@ describe('Morphism', () => {
   ];
   beforeEach(() => {
     Morphism.deleteMapper(User);
-    this.mapUser = Morphism.register(User);
+    Morphism.register(User);
   });
 
   describe('Plain Objects', function() {
@@ -397,7 +397,7 @@ describe('Morphism', () => {
 
   describe('Mappers Registry', function() {
     it('should throw an exception when using Registration function without parameters', function() {
-      expect(Morphism.register).toThrow();
+      expect(() => Morphism.register(null, null)).toThrow();
     });
 
     it('should throw an exception when trying to register a mapper type more than once', function() {
