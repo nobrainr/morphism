@@ -97,7 +97,10 @@ export type ActionAggregator = string[];
  *```
  *
  */
-export type ActionSelector<Source, R> = { path: string | string[]; fn: (fieldValue: any, items: Source[]) => R };
+export type ActionSelector<Source, R> = {
+  path: string | string[];
+  fn: (fieldValue: any, object: Source, items: Source, objectToCompute: R) => R;
+};
 
 /**
  * A structure-preserving object from a source data towards a target data.
@@ -316,7 +319,7 @@ export function morphism<TSchema extends Schema, Target>(
 
 export function morphism<Target, Source, TSchema extends Schema<Target, Source>>(
   schema: TSchema,
-  items?: SourceFromSchema<TSchema>,
+  items?: SourceFromSchema<TSchema> | null | undefined,
   type?: Constructable<Target>
 ) {
   if (items === undefined && type === undefined) {
@@ -414,7 +417,7 @@ export class MorphismRegistry implements IMorphismRegistry {
    * @param schema Structure-preserving object from a source data towards a target data.
    *
    */
-  register<Target, TSchema>(type: Constructable<Target>, schema?: TSchema) {
+  register<Target, TSchema>(type: Constructable<Target>, schema: TSchema | {} = {}) {
     if (!type && !schema) {
       throw new Error('type paramater is required when register a mapping');
     } else if (this.exists(type)) {
