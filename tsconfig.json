@@ -17,5 +17,5 @@
     "downlevelIteration": true
   },
   "include": ["src"],
-  "exclude": ["dist", "**/*/*.spec.ts"]
+  "exclude": ["dist"]
 }

@@ -1,12 +1,12 @@
 import Morphism, { StrictSchema } from './morphism';
 
 class User {
-  firstName: string;
-  lastName: string;
-  phoneNumber: string;
+  firstName?: string;
+  lastName?: string;
+  phoneNumber?: string;
   type?: string;
 
-  groups?: Array<any>;
+  groups: Array<any> = new Array<any>();
 
   constructor(firstName?: string, lastName?: string, phoneNumber?: string) {
     this.firstName = firstName;
@@ -14,7 +14,6 @@ class User {
     this.phoneNumber = phoneNumber;
 
     this.type = 'User'; // Use to test default value scenario
-    this.groups = new Array<any>();
   }
 
   /**
@@ -22,7 +21,7 @@ class User {
    * @param {} group
    * @param {} externalTrigger
    */
-  addToGroup?(group: any, externalTrigger: any) {
+  addToGroup(group: any, externalTrigger: any) {
     this.groups.push(group);
     externalTrigger(this, group);
   }
@@ -94,7 +93,7 @@ describe('Morphism', () => {
 
     it('should throw an exception when setting a mapper with a falsy schema', function() {
       expect(() => {
-        Morphism.setMapper(User, null);
+        Morphism.setMapper(User, null as any);
       }).toThrow();
     });
 
@@ -397,7 +396,7 @@ describe('Morphism', () => {
 
   describe('Mappers Registry', function() {
     it('should throw an exception when using Registration function without parameters', function() {
-      expect(() => Morphism.register(null, null)).toThrow();
+      expect(() => Morphism.register(null as any, null)).toThrow();
     });
 
     it('should throw an exception when trying to register a mapper type more than once', function() {
@@ -468,7 +467,7 @@ describe('Morphism', () => {
 
     it('should allow straight mapping from a Type without a schema', () => {
       let userName = 'user-name';
-      let user = Morphism(null, { firstName: userName }, User);
+      let user = Morphism(null as any, { firstName: userName }, User);
       expect(user).toEqual(new User(userName));
     });
 

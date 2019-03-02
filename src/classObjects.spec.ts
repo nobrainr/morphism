@@ -5,10 +5,10 @@ describe('Morphism', () => {
     describe('Decorators - Function Decorator', () => {
       const schema = { foo: 'bar' };
       interface ITarget {
-        foo: string;
+        foo: string | null;
       }
       class Target implements ITarget {
-        foo: string = null;
+        foo = null;
       }
 
       class Service {
