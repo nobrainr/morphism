@@ -25,6 +25,9 @@ jobs:
       - run:
           name: Run Tests
           command: npm test -- --coverage
+      - run:
+          name: Build Tests Types
+          command: npm run test:types
 
   deploy-docs:
     docker:
