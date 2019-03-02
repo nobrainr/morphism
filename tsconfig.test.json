@@ -3,5 +3,6 @@
   "compilerOptions": {
     "outDir": "temp"
   },
-  "include": ["**/*/*.spec.ts"]
+  "include": ["src/**/*.spec.ts"],
+  "exclude": ["dist"]
 }
