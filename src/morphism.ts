@@ -438,7 +438,7 @@ export function morphism<
 
 export function morphism<TSchema extends Schema, TDestination>(
   schema: TSchema,
-  items: null,
+  items: SourceFromSchema<TSchema> | null,
   type: Constructable<TDestination>
 ): Mapper<TSchema, TDestination>; // morphism({}, null, T) => mapper(S) => T
 
@@ -450,7 +450,7 @@ export function morphism<TSchema extends Schema, Target>(
 
 export function morphism<Target, Source, TSchema extends Schema<Target, Source>>(
   schema: TSchema,
-  items?: SourceFromSchema<TSchema> | null | undefined,
+  items?: SourceFromSchema<TSchema> | null,
   type?: Constructable<Target>
 ) {
   if (items === undefined && type === undefined) {
@@ -479,7 +479,9 @@ export interface IMorphismRegistry {
    * @param schema Structure-preserving object from a source data towards a target data.
    *
    */
+  register<Target>(type: Constructable<Target>): Mapper<Schema<Target>, Target>;
   register<Target, TSchema>(type: Constructable<Target>, schema?: TSchema): Mapper<TSchema, Target>;
+
   /**
    * Transform any input in the specified Class
    *
@@ -548,13 +550,18 @@ export class MorphismRegistry implements IMorphismRegistry {
    * @param schema Structure-preserving object from a source data towards a target data.
    *
    */
-  register<Target, TSchema>(type: Constructable<Target>, schema: TSchema | {} = {}) {
+  register<Target, TSchema>(type: Constructable<Target>, schema?: TSchema) {
     if (!type && !schema) {
-      throw new Error('type paramater is required when register a mapping');
+      throw new Error('type paramater is required when you register a mapping');
     } else if (this.exists(type)) {
       throw new Error(`A mapper for ${type.name} has already been registered`);
     }
-    const mapper = morphism(schema, null, type);
+    let mapper;
+    if (schema) {
+      mapper = morphism(schema, null, type);
+    } else {
+      mapper = morphism({}, null, type);
+    }
     this._registry.cache.set(type, mapper);
     return mapper;
   }
