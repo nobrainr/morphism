@@ -74,9 +74,13 @@ describe('Morphism', () => {
 
       const target = morphism(schema, source);
       const targets = morphism(schema, [source]);
+      const singleTarget = targets.shift();
 
       expect(target.foo).toEqual('value');
-      expect(targets.shift().foo).toEqual('value');
+      expect(singleTarget).toBeDefined();
+      if (singleTarget) {
+        expect(singleTarget.foo).toEqual('value');
+      }
     });
   });
 

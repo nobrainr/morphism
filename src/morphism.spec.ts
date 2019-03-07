@@ -514,11 +514,12 @@ describe('Morphism', () => {
     });
 
     it('should override the default value if source value is defined', function() {
-      let sourceData: any = {
+      let sourceData = {
         phoneNumber: null
       };
 
       let mapper = Morphism.register(User, {});
+
       let result = mapper([sourceData])[0];
       expect(new User().phoneNumber).toEqual(undefined);
       expect(result.phoneNumber).toEqual(null);

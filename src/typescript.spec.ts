@@ -49,9 +49,20 @@ describe('Morphism', () => {
       const schema: StrictSchema<D, S> = {
         d1: 's1'
       };
-      morphism(schema)([{ s1: 'test' }]).shift().d1;
+      const a = morphism(schema)([{ s1: 'test' }]);
+      const itemA = a.shift();
+      expect(itemA).toBeDefined();
+      if (itemA) {
+        itemA.d1;
+      }
+
       morphism(schema, { s1: 'teest' }).d1.toString();
-      morphism(schema, [{ s1: 'teest' }]).shift().d1;
+      const b = morphism(schema, [{ s1: 'teest' }]);
+      const itemB = b.shift();
+      expect(itemB).toBeDefined();
+      if (itemB) {
+        itemB.d1;
+      }
       morphism(schema, [{ s1: 'teest' }]);
       morphism(schema, [{ s1: 'test' }]);
       morphism(schema, [{}]);
@@ -78,20 +89,33 @@ describe('Morphism', () => {
       }
 
       const a = morphism<Destination, Source>({ namingIsHard: 'boring_api_field' }, [{ boring_api_field: 2 }]);
-      a.pop().namingIsHard;
+      const itemA = a.pop();
+      expect(itemA).toBeDefined();
+      if (itemA) {
+        itemA.namingIsHard;
+      }
 
       const b = morphism<Destination, Source>({ namingIsHard: 'boring_api_field' }, { boring_api_field: 2 });
       b.namingIsHard;
 
       const c = morphism<Destination>({ namingIsHard: 'boring_api_field' }, [{ boring_api_field: 2 }]);
-      c.pop().namingIsHard;
+      const itemC = c.pop();
+      expect(itemC).toBeDefined();
+      if (itemC) {
+        itemC.namingIsHard;
+      }
 
       const d = morphism<Destination>({ namingIsHard: 'boring_api_field' }, { boring_api_field: 2 });
       d.namingIsHard;
 
       morphism({ namingIsHard: 'boring_api_field' });
       morphism<Destination, Source>({ namingIsHard: 'boring_api_field' })({ boring_api_field: 2 });
-      morphism<Destination>({ namingIsHard: 'boring_api_field' })([{ boring_api_field: 2 }]).pop().namingIsHard;
+      const e = morphism<Destination>({ namingIsHard: 'boring_api_field' })([{ boring_api_field: 2 }]);
+      const itemE = e.pop();
+      expect(itemE).toBeDefined();
+      if (itemE) {
+        itemE.namingIsHard;
+      }
     });
 
     it('', () => {
