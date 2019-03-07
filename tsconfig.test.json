@@ -1,8 +1,0 @@
-{
-  "extends": "./tsconfig.json",
-  "compilerOptions": {
-    "outDir": "temp"
-  },
-  "include": ["src/**/*.spec.ts"],
-  "exclude": ["dist"]
-}
