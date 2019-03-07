@@ -393,8 +393,8 @@ type DestinationFromSchema<T> = T extends StrictSchema<infer U> | Schema<infer U
 
 type ResultItem<TSchema extends Schema> = { [P in keyof TSchema]: DestinationFromSchema<TSchema>[P] };
 export interface Mapper<TSchema extends Schema | StrictSchema, TResult = ResultItem<TSchema>> {
-  (data: Partial<SourceFromSchema<TSchema>>[]): TResult[];
-  (data: Partial<SourceFromSchema<TSchema>>): TResult;
+  (data: SourceFromSchema<TSchema>[]): TResult[];
+  (data: SourceFromSchema<TSchema>): TResult;
 }
 
 /**
