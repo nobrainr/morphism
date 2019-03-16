@@ -405,4 +405,5 @@ morphismMixin.mappers = morphismRegistry.mappers;
 
 const Morphism: typeof morphism & IMorphismRegistry = morphismMixin;
 
+export { Schema, StrictSchema };
 export default Morphism;

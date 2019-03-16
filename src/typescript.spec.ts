@@ -1,4 +1,4 @@
-import { StrictSchema, Schema, morphism } from './morphism';
+import { morphism, StrictSchema, Schema } from './morphism';
 
 describe('Morphism', () => {
   describe('Typescript', () => {
@@ -55,7 +55,6 @@ describe('Morphism', () => {
       if (itemA) {
         itemA.d1;
       }
-
       morphism(schema, { s1: 'teest' }).d1.toString();
       const b = morphism(schema, [{ s1: 'teest' }]);
       const itemB = b.shift();

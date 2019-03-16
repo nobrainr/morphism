@@ -1,4 +1,4 @@
-import Morphism, { StrictSchema } from './morphism';
+import Morphism, { morphism, StrictSchema } from './morphism';
 
 class User {
   firstName?: string;
@@ -338,7 +338,17 @@ describe('Morphism', () => {
 
   describe('Flattening and Projection', function() {
     it('should flatten data from specified path', function() {
-      let schema = {
+      interface Source {
+        firstName: string;
+        lastName: string;
+        address: { city: string };
+      }
+      interface Target {
+        firstName: string;
+        lastName: string;
+        city: string;
+      }
+      let schema: StrictSchema<Target, Source> = {
         firstName: 'firstName',
         lastName: 'lastName',
         city: 'address.city'
@@ -630,6 +640,24 @@ describe('Morphism', () => {
         results.forEach(res => {
           expect(res).toEqual(new Target('value'));
         });
+      });
+
+      it('should accept deep nested actions', () => {
+        interface Source {
+          keyA: string;
+        }
+        const sample: Source = {
+          keyA: 'value'
+        };
+
+        interface Target {
+          keyA: { keyA1: string };
+        }
+
+        const schema: StrictSchema<Target, Source> = { keyA: { keyA1: source => source.keyA } };
+
+        const target = morphism(schema, sample);
+        expect(target).toEqual({ keyA: { keyA1: 'value' } });
       });
     });
   });
