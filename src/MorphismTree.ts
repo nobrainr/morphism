@@ -1,5 +1,4 @@
 import { Actions, Schema, StrictSchema } from './types';
-import { isFunction, isString } from 'util';
 import {
   aggregator,
   get,
@@ -7,7 +6,9 @@ import {
   isActionString,
   isActionSelector,
   isActionAggregator,
-  isActionFunction
+  isActionFunction,
+  isFunction,
+  isString
 } from './helpers';
 
 export enum NodeKind {
@@ -107,7 +108,6 @@ export class MophismSchemaTree<Target, Source> {
       children: []
     };
     nodeToAdd.data.preparedAction = this.getPreparedAction(nodeToAdd.data);
-    // console.log('add', nodeToAdd.data.propertyName, nodeToAdd.data.kind, nodeToAdd.data.action, targetPropertyPath);
 
     if (!targetPropertyPath) {
       nodeToAdd.parent = this.root;
@@ -116,8 +116,6 @@ export class MophismSchemaTree<Target, Source> {
     } else {
       for (const node of this.traverseBFS()) {
         if (node.data.targetPropertyPath === targetPropertyPath) {
-          // console.log('found', node);
-
           nodeToAdd.parent = node;
           nodeToAdd.data.targetPropertyPath = `${node.data.targetPropertyPath}.${nodeToAdd.data.propertyName}`;
 

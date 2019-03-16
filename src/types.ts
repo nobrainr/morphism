@@ -48,13 +48,6 @@ export type Schema<Target = any, Source = any> = {
     | Schema<Target[destinationProperty], Source>
 };
 
-// export enum Action {
-//   ActionFunction = 'ActionFunction',
-//   ActionAggregator = 'ActionAggregator',
-//   ActionString = 'ActionString',
-//   ActionSelector = 'ActionSelector'
-// }
-
 export type Actions<Target, Source> =
   | ActionFunction<Target, Source>
   | ActionAggregator
@@ -160,3 +153,7 @@ export type ActionSelector<Source = any, R = any> = {
   path: string | string[];
   fn: (fieldValue: any, object: Source, items: Source, objectToCompute: R) => R;
 };
+
+export interface Constructable<T> {
+  new (...args: any[]): T;
+}

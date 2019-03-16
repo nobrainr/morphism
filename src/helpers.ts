@@ -23,17 +23,6 @@ export const aggregator = (paths: string[], object: any) => {
   }, {});
 };
 
-export function assignInWith(target: any, source: any, customizer?: (targetValue: any, sourceValue: any) => any) {
-  Object.entries(source).forEach(([field, value]) => {
-    if (customizer) {
-      target[field] = customizer(target[field], value);
-    } else {
-      target[field] = value;
-    }
-  });
-  return target;
-}
-
 export function isUndefined(value: any) {
   return value === undefined;
 }
@@ -49,6 +38,15 @@ export function isString(value: any): value is string {
 
 export function isFunction(value: any): value is (...args: any[]) => any {
   return typeof value === 'function';
+}
+
+export function isPromise(object: any) {
+  if (Promise && Promise.resolve) {
+    // tslint:disable-next-line:triple-equals
+    return Promise.resolve(object) == object;
+  } else {
+    throw 'Promise not supported in your environment';
+  }
 }
 
 export function set(object: any, path: string, value: any) {
