@@ -1,3 +1,22 @@
+import { ActionSelector, ActionAggregator, ActionFunction } from './types';
+
+export function isActionSelector<S, R>(value: any): value is ActionSelector<S, R> {
+  return isObject(value) && value.hasOwnProperty('fn') && value.hasOwnProperty('path');
+}
+export function isActionString(value: any): value is string {
+  return isString(value);
+}
+export function isActionAggregator(value: any): value is ActionAggregator {
+  return Array.isArray(value);
+}
+export function isActionFunction(value: any): value is ActionFunction {
+  return isFunction(value);
+}
+
+export function isValidAction(action: any) {
+  return isString(action) || isFunction(action) || isActionSelector(action) || isActionAggregator(action);
+}
+
 export const aggregator = (paths: string[], object: any) => {
   return paths.reduce((delta, path) => {
     return set(delta, path, get(object, path));
@@ -31,7 +50,8 @@ export function isString(value: any): value is string {
 export function isFunction(value: any): value is (...args: any[]) => any {
   return typeof value === 'function';
 }
-export function set(object: object, path: string, value: any) {
+
+export function set(object: any, path: string, value: any) {
   path = path.replace(/\[(\w+)\]/g, '.$1'); // convert indexes to properties
   path = path.replace(/^\./, ''); // strip a leading dot
   const paths = path.split('.');
@@ -43,7 +63,7 @@ export function set(object: object, path: string, value: any) {
     { [lastProperty]: value }
   );
 
-  return { ...object, ...finalValue };
+  return Object.assign(object, finalValue);
 }
 export function get(object: any, path: string) {
   path = path.replace(/\[(\w+)\]/g, '.$1'); // convert indexes to properties
