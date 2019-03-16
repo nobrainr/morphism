@@ -1,7 +1,7 @@
 /**
  * @module morphism
  */
-import { zipObject, isUndefined, assignInWith, set, get } from './helpers';
+import { zipObject, isUndefined, set, get } from './helpers';
 import { Schema, StrictSchema } from './types';
 import { MophismSchemaTree, parseSchema } from './MorphismTree';
 
@@ -21,7 +21,7 @@ function transformValuesFromObject<Source, Target>(
 ) {
   const transformChunks = [];
   for (const node of tree.traverseBFS()) {
-    const { preparedAction, kind, targetPropertyPath } = node.data;
+    const { preparedAction, targetPropertyPath } = node.data;
     if (preparedAction)
       transformChunks.push({ targetPropertyPath, preparedAction: preparedAction({ object, objectToCompute, items }) });
   }
@@ -170,7 +170,7 @@ export function morphism<Target, Source, TSchema extends Schema<Target, Source>>
   }
 }
 
-export interface IMorphismRegistry {
+interface IMorphismRegistry {
   /**
    * Register a mapping schema for a Class.
    *
@@ -340,7 +340,7 @@ export class MorphismRegistry implements IMorphismRegistry {
 }
 
 function decorator<Target>(mapper: Mapper<Target>) {
-  return (target: any, name: string, descriptor: PropertyDescriptor) => {
+  return (_target: any, _name: string, descriptor: PropertyDescriptor) => {
     const fn = descriptor.value;
     if (typeof fn === 'function') {
       descriptor.value = function(...args: any[]) {
