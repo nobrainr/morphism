@@ -53,24 +53,6 @@ describe('Morphism', () => {
         qux: elem => elem.bar
       };
       const source = { bar: 'value' };
-      // const target2 = morphism(
-      //   {
-      //     foo: 'bar',
-      //     bar: elem => {
-      //       elem;
-      //     }
-      //   },
-      //   [source]
-      // );
-      // const targe3 = morphism(
-      //   {
-      //     foo: 'bar',
-      //     bar: elem => {
-      //       elem;
-      //     }
-      //   },
-      //   source
-      // );
 
       const target = morphism(schema, source);
       const targets = morphism(schema, [source]);
