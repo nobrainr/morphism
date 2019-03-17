@@ -1,7 +1,7 @@
 /**
  * @module morphism
  */
-import { zipObject, isUndefined, set, get } from './helpers';
+import { zipObject, isUndefined, get, set } from './helpers';
 import { Schema, StrictSchema, Constructable } from './types';
 import { MophismSchemaTree, parseSchema } from './MorphismTree';
 import { MorphismRegistry, IMorphismRegistry } from './MorphismRegistry';
@@ -43,7 +43,8 @@ function transformValuesFromObject<Source, Target>(
     };
 
     const finalValue = undefinedValueCheck(get(finalObject, chunk.targetPropertyPath), chunk.preparedAction);
-    return set(finalObject, chunk.targetPropertyPath, finalValue);
+    set(finalObject, chunk.targetPropertyPath, finalValue);
+    return finalObject;
   }, objectToCompute);
 }
 
