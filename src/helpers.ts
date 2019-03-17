@@ -19,7 +19,8 @@ export function isValidAction(action: any) {
 
 export const aggregator = (paths: string[], object: any) => {
   return paths.reduce((delta, path) => {
-    return set(delta, path, get(object, path));
+    set(delta, path, get(object, path)); // TODO: ensure set will return the mutated object
+    return delta;
   }, {});
 };
 
@@ -48,21 +49,6 @@ export function isPromise(object: any) {
     throw 'Promise not supported in your environment';
   }
 }
-
-export function set(object: any, path: string, value: any) {
-  path = path.replace(/\[(\w+)\]/g, '.$1'); // convert indexes to properties
-  path = path.replace(/^\./, ''); // strip a leading dot
-  const paths = path.split('.');
-  const lastProperty = paths.pop() as string;
-  const finalValue = paths.reduceRight(
-    (finalObject, prop) => {
-      return { [prop]: finalObject };
-    },
-    { [lastProperty]: value }
-  );
-
-  return Object.assign(object, finalValue);
-}
 export function get(object: any, path: string) {
   path = path.replace(/\[(\w+)\]/g, '.$1'); // convert indexes to properties
   path = path.replace(/^\./, ''); // strip a leading dot
@@ -82,4 +68,59 @@ export function zipObject(props: string[], values: any[]) {
   return props.reduce((prev, prop, i) => {
     return { ...prev, [prop]: values[i] };
   }, {});
+}
+
+// https://github.com/mariocasciaro/object-path/blob/master/index.js
+function hasOwnProperty(obj: any, prop: any) {
+  if (obj == null) {
+    return false;
+  }
+  // to handle objects with null prototypes (too edge case?)
+  return Object.prototype.hasOwnProperty.call(obj, prop);
+}
+function hasShallowProperty(obj: any, prop: any) {
+  return (typeof prop === 'number' && Array.isArray(obj)) || hasOwnProperty(obj, prop);
+}
+function getShallowProperty(obj: any, prop: any) {
+  if (hasShallowProperty(obj, prop)) {
+    return obj[prop];
+  }
+}
+export function set(obj: any, path: any, value: any, doNotReplace?: boolean): any {
+  if (typeof path === 'number') {
+    path = [path];
+  }
+  if (!path || path.length === 0) {
+    return obj;
+  }
+  if (typeof path === 'string') {
+    return set(obj, path.split('.').map(getKey), value, doNotReplace);
+  }
+  const currentPath = path[0];
+  const currentValue = getShallowProperty(obj, currentPath);
+  if (path.length === 1) {
+    if (currentValue === void 0 || !doNotReplace) {
+      obj[currentPath] = value;
+    }
+    return currentValue;
+  }
+
+  if (currentValue === void 0) {
+    // check if we assume an array
+    if (typeof path[1] === 'number') {
+      obj[currentPath] = [];
+    } else {
+      obj[currentPath] = {};
+    }
+  }
+
+  return set(obj[currentPath], path.slice(1), value, doNotReplace);
+}
+
+function getKey(key: any) {
+  const intKey = parseInt(key);
+  if (intKey.toString() === key) {
+    return intKey;
+  }
+  return key;
 }
