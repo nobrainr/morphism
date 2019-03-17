@@ -231,6 +231,7 @@ describe('Morphism', () => {
         let result = Morphism(schema, mock);
         expect(result).toEqual(expected);
         expect(result.target).toEqual(expected.target);
+        expect(result.target.replace).toBeDefined();
       });
 
       it('should support nesting mapping', function() {
@@ -512,9 +513,12 @@ describe('Morphism', () => {
         }
       };
       let user = Morphism(schema, dataSource, User);
+
       let expectedUser = new User();
       expectedUser.groups = dataSource.groups;
       expect(user).toEqual(expectedUser);
+      expect(user.firstName).toEqual(expectedUser.firstName);
+
       expect(triggered).toEqual(true);
     });
 
@@ -639,6 +643,7 @@ describe('Morphism', () => {
         const results = mocks.map(mapper);
         results.forEach(res => {
           expect(res).toEqual(new Target('value'));
+          expect(res.field).toBeDefined();
         });
       });
 
