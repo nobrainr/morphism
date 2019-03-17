@@ -19,7 +19,7 @@ export interface IMorphismRegistry {
    * @param {Object} data Input data to transform
    *
    */
-  map<Target>(type: Target): Mapper<Schema, Target>;
+  map<Target>(type: Constructable<Target>): Mapper<Schema, Target>;
   map<Target, Source>(type: Constructable<Target>, data: Source[]): Target[];
   map<Target, Source>(type: Constructable<Target>, data: Source): Target;
   /**
