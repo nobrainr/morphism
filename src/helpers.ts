@@ -7,7 +7,7 @@ export function isActionString(value: any): value is string {
   return isString(value);
 }
 export function isActionAggregator(value: any): value is ActionAggregator {
-  return Array.isArray(value);
+  return Array.isArray(value) && value.every(isActionString);
 }
 export function isActionFunction(value: any): value is ActionFunction {
   return isFunction(value);
