@@ -90,7 +90,8 @@ function getSchemaForType<T>(type: Constructable<T>, baseSchema: Schema<T>): Sch
 type SourceFromSchema<T> = T extends StrictSchema<unknown, infer U> | Schema<unknown, infer U> ? U : never;
 type DestinationFromSchema<T> = T extends StrictSchema<infer U> | Schema<infer U> ? U : never;
 
-type ResultItem<TSchema extends Schema> = { [P in keyof TSchema]: DestinationFromSchema<TSchema>[P] };
+type ResultItem<TSchema extends Schema> = DestinationFromSchema<TSchema>;
+
 export interface Mapper<TSchema extends Schema | StrictSchema, TResult = ResultItem<TSchema>> {
   (data: SourceFromSchema<TSchema>[]): TResult[];
   (data: SourceFromSchema<TSchema>): TResult;
@@ -137,7 +138,7 @@ export function morphism<
 
 export function morphism<TSchema extends Schema, TDestination>(
   schema: TSchema,
-  items: SourceFromSchema<TSchema> | null,
+  items: null,
   type: Constructable<TDestination>
 ): Mapper<TSchema, TDestination>; // morphism({}, null, T) => mapper(S) => T
 
