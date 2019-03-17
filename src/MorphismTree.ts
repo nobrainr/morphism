@@ -8,7 +8,8 @@ import {
   isActionAggregator,
   isActionFunction,
   isFunction,
-  isString
+  isString,
+  isObject
 } from './helpers';
 
 export enum NodeKind {
@@ -55,19 +56,28 @@ function seedTreeSchema<Target, Source>(
   tree: MophismSchemaTree<Target, Source>,
   partialSchema: Partial<Schema | StrictSchema> | string | number,
   actionKey?: string,
-  parentkey?: string
+  parentKeyPath?: string
 ): void {
   if (isValidAction(partialSchema) && actionKey) {
-    tree.add({ propertyName: actionKey, action: partialSchema as Actions<Target, Source> }, parentkey);
-    return;
-  } else if (actionKey && !Array.isArray(partialSchema)) {
-    // check if actionKey exists to verify if not root node
-    tree.add({ propertyName: actionKey, action: null }, parentkey);
-  }
+    tree.add({ propertyName: actionKey, action: partialSchema as Actions<Target, Source> }, parentKeyPath);
+    parentKeyPath = parentKeyPath ? `${parentKeyPath}.${actionKey}` : actionKey;
+  } else {
+    if (actionKey) {
+      // check if actionKey exists to verify if not root node
+      tree.add({ propertyName: actionKey, action: null }, parentKeyPath);
+      parentKeyPath = parentKeyPath ? `${parentKeyPath}.${actionKey}` : actionKey;
+    }
 
-  Object.keys(partialSchema).forEach(key => {
-    seedTreeSchema(tree, (partialSchema as any)[key], key, actionKey);
-  });
+    if (Array.isArray(partialSchema)) {
+      partialSchema.forEach((subSchema, index) => {
+        seedTreeSchema(tree, subSchema, index.toString(), parentKeyPath);
+      });
+    } else if (isObject(partialSchema)) {
+      Object.keys(partialSchema).forEach(key => {
+        seedTreeSchema(tree, (partialSchema as any)[key], key, parentKeyPath);
+      });
+    }
+  }
 }
 
 export class MophismSchemaTree<Target, Source> {
@@ -118,7 +128,6 @@ export class MophismSchemaTree<Target, Source> {
         if (node.data.targetPropertyPath === targetPropertyPath) {
           nodeToAdd.parent = node;
           nodeToAdd.data.targetPropertyPath = `${node.data.targetPropertyPath}.${nodeToAdd.data.propertyName}`;
-
           node.children.push(nodeToAdd);
         }
       }
