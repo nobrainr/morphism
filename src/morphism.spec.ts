@@ -664,6 +664,37 @@ describe('Morphism', () => {
         const target = morphism(schema, sample);
         expect(target).toEqual({ keyA: { keyA1: 'value' } });
       });
+
+      it('should accept deep nested actions into array', () => {
+        interface Source {
+          keySource: string;
+        }
+        const sample: Source = {
+          keySource: 'value'
+        };
+
+        interface Target {
+          keyA: {
+            keyA1: [
+              {
+                keyA11: string;
+                keyA12: number;
+              }
+            ];
+            keyA2: string;
+          };
+        }
+        const schema: StrictSchema<Target, Source> = {
+          keyA: {
+            keyA1: [{ keyA11: 'keySource', keyA12: 'keySource' }],
+            keyA2: 'keySource'
+          }
+        };
+
+        const target = morphism(schema, sample);
+
+        expect(target).toEqual({ keyA: { keyA1: [{ keyA11: 'value', keyA12: 'value' }], keyA2: 'value' } });
+      });
     });
   });
 });
