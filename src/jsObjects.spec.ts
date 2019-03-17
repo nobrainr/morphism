@@ -1,7 +1,7 @@
 import Morphism, { toJSObject, morph } from './morphism';
 
-describe('Morphism', () => {
-  describe('Javascript Objects', () => {
+describe('Javascript Objects', () => {
+  describe('Base', () => {
     it('should morph an empty Object to an empty Object || m({}, {}) => {}', function() {
       expect(Morphism({}, {})).toEqual({});
     });
@@ -30,64 +30,64 @@ describe('Morphism', () => {
         expect(res).toEqual({ target: 'value' });
       });
     });
+  });
 
-    describe('Decorators - Function Decorator', () => {
-      const schema = { foo: 'bar' };
+  describe('Decorators - Function Decorator', () => {
+    const schema = { foo: 'bar' };
 
-      class Service {
-        @toJSObject(schema)
-        fetch(source: any) {
-          return Promise.resolve(source);
-        }
-        @toJSObject(schema)
-        fetch2(source: any) {
-          return source;
-        }
-        @toJSObject(schema)
-        async fetch3(source: any) {
-          return await (async () => source)();
-        }
-        @morph(schema)
-        withMorphDecorator(source: any) {
-          return source;
-        }
-        @toJSObject(schema)
-        fetchFail(source: any) {
-          return Promise.reject(source);
-        }
+    class Service {
+      @toJSObject(schema)
+      fetch(source: any) {
+        return Promise.resolve(source);
       }
-
-      const service = new Service();
-      interface ISource {
-        bar: string;
+      @toJSObject(schema)
+      fetch2(source: any) {
+        return source;
       }
-      interface ITarget {
-        foo: string;
+      @toJSObject(schema)
+      async fetch3(source: any) {
+        return await (async () => source)();
       }
-      const source: ISource = {
-        bar: 'value'
-      };
-      const expected: ITarget = {
-        foo: 'value'
-      };
+      @morph(schema)
+      withMorphDecorator(source: any) {
+        return source;
+      }
+      @toJSObject(schema)
+      fetchFail(source: any) {
+        return Promise.reject(source);
+      }
+    }
 
-      it('should support a function returning a promise', function() {
-        service.fetch(source).then((result: any) => expect(result).toEqual(expected));
-      });
-      it('should support a function returning an array or an object', () => {
-        expect(service.fetch2(source)).toEqual(expected);
-      });
-      it('should support an aync function', async function() {
-        const res = await service.fetch3(source);
-        expect(res).toEqual(expected);
-      });
-      it('should allow to morph with Morph decorator to Class Object', function() {
-        expect(service.withMorphDecorator(source)).toEqual(expected);
-      });
-      it('should not swallow error when promise fails', function() {
-        service.fetchFail(source).catch(data => {
-          expect(data).toEqual(source);
-        });
+    const service = new Service();
+    interface ISource {
+      bar: string;
+    }
+    interface ITarget {
+      foo: string;
+    }
+    const source: ISource = {
+      bar: 'value'
+    };
+    const expected: ITarget = {
+      foo: 'value'
+    };
+
+    it('should support a function returning a promise', () => {
+      return service.fetch(source).then((result: any) => expect(result).toEqual(expected));
+    });
+    it('should support a function returning an array or an object', () => {
+      expect(service.fetch2(source)).toEqual(expected);
+    });
+    it('should support an aync function', async function() {
+      const res = await service.fetch3(source);
+      expect(res).toEqual(expected);
+    });
+    it('should allow to morph with Morph decorator to JS Object', function() {
+      expect(service.withMorphDecorator(source)).toEqual(expected);
+    });
+    it('should not swallow error when promise fails', () => {
+      return service.fetchFail(source).catch(data => {
+        expect(data).toEqual(source);
       });
     });
   });
