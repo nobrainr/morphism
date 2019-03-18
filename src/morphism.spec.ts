@@ -1,5 +1,6 @@
 import Morphism, { StrictSchema, morphism, Schema } from './morphism';
 import { User, MockData } from './utils-test';
+import { ActionSelector, ActionAggregator } from './types';
 
 describe('Morphism', () => {
   const dataToCrunch: MockData[] = [
@@ -414,6 +415,106 @@ describe('Morphism', () => {
       };
       let results = Morphism(schema, dataToCrunch);
       expect(results[0]).toEqual(desiredResult);
+    });
+
+    it('should accept deep nested actions', () => {
+      interface Source {
+        keyA: string;
+      }
+      const sample: Source = {
+        keyA: 'value'
+      };
+
+      interface Target {
+        keyA: { keyA1: string };
+      }
+
+      const schema: StrictSchema<Target, Source> = { keyA: { keyA1: source => source.keyA } };
+
+      const target = morphism(schema, sample);
+      expect(target).toEqual({ keyA: { keyA1: 'value' } });
+    });
+
+    it('should accept deep nested actions into array', () => {
+      interface Source {
+        keySource: string;
+      }
+      const sample: Source = {
+        keySource: 'value'
+      };
+
+      interface Target {
+        keyA: {
+          keyA1: [
+            {
+              keyA11: string;
+              keyA12: number;
+            }
+          ];
+          keyA2: string;
+        };
+      }
+      const schema: StrictSchema<Target, Source> = {
+        keyA: {
+          keyA1: [{ keyA11: 'keySource', keyA12: 'keySource' }],
+          keyA2: 'keySource'
+        }
+      };
+
+      const target = morphism(schema, sample);
+
+      expect(target).toEqual({ keyA: { keyA1: [{ keyA11: 'value', keyA12: 'value' }], keyA2: 'value' } });
+    });
+
+    it('should accept a selector action in deep nested schema property', () => {
+      interface Source {
+        keySource: string;
+        keySource1: string;
+      }
+      const sample: Source = {
+        keySource: 'value',
+        keySource1: 'value1'
+      };
+
+      interface Target {
+        keyA: {
+          keyA1: [
+            {
+              keyA11: string;
+              keyA12: number;
+            }
+          ];
+          keyA2: string;
+        };
+      }
+      const selector: ActionSelector<Source> = {
+        path: 'keySource',
+        fn: () => 'value-test'
+      };
+      const aggregator: ActionAggregator<Source> = ['keySource', 'keySource1'];
+      const schema: StrictSchema<Target, Source> = {
+        keyA: {
+          keyA1: [{ keyA11: aggregator, keyA12: selector }],
+          keyA2: 'keySource'
+        }
+      };
+
+      const target = morphism(schema, sample);
+
+      expect(target).toEqual({
+        keyA: {
+          keyA1: [
+            {
+              keyA11: {
+                keySource: 'value',
+                keySource1: 'value1'
+              },
+              keyA12: 'value-test'
+            }
+          ],
+          keyA2: 'value'
+        }
+      });
     });
   });
 });
