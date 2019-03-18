@@ -1,7 +1,46 @@
-import { StrictSchema, Schema, morphism } from './morphism';
+import Morphism, { morphism, StrictSchema, Schema } from './morphism';
 
-describe('Morphism', () => {
-  describe('Typescript', () => {
+describe('Typescript', () => {
+  describe('Registry Type Checking', () => {
+    it('Should return a Mapper when using Register', () => {
+      class Foo {
+        foo: string;
+      }
+      const schema = { foo: 'bar' };
+      const source = { bar: 'value' };
+      const mapper = Morphism.register(Foo, schema);
+
+      expect(mapper(source).foo).toEqual('value');
+      expect(mapper([source][0]).foo).toEqual('value');
+    });
+  });
+
+  describe('Schema Type Checking', () => {
+    it('Should allow to type the Schema', () => {
+      interface IFoo {
+        foo: string;
+        bar: number;
+      }
+      const schema: Schema<IFoo> = { foo: 'qux' };
+      const source = { qux: 'foo' };
+      const target = morphism(schema, source);
+
+      expect(target.foo).toEqual(source.qux);
+    });
+
+    it('Should allow to use a strict Schema', () => {
+      interface IFoo {
+        foo: string;
+        bar: number;
+      }
+      const schema: StrictSchema<IFoo> = { foo: 'qux', bar: () => 1 };
+      const source = { qux: 'foo' };
+      const target = morphism(schema, source);
+
+      expect(target.foo).toEqual(source.qux);
+      expect(target.bar).toEqual(1);
+    });
+
     it('should accept 2 generic parameters on StrictSchema', () => {
       interface Source {
         inputA: string;
@@ -49,24 +88,31 @@ describe('Morphism', () => {
       const schema: StrictSchema<D, S> = {
         d1: 's1'
       };
-      morphism(schema)([{ s1: 'test' }]).shift().d1;
+      const a = morphism(schema)([{ s1: 'test' }]);
+      const itemA = a.shift();
+      expect(itemA).toBeDefined();
+      if (itemA) {
+        itemA.d1;
+      }
       morphism(schema, { s1: 'teest' }).d1.toString();
-      morphism(schema, [{ s1: 'teest' }]).shift().d1;
+      const b = morphism(schema, [{ s1: 'teest' }]);
+      const itemB = b.shift();
+      expect(itemB).toBeDefined();
+      if (itemB) {
+        itemB.d1;
+      }
       morphism(schema, [{ s1: 'teest' }]);
       morphism(schema, [{ s1: 'test' }]);
       morphism(schema, [{}]);
     });
 
-    xit('should fail with typescript', () => {
+    it('should not fail with typescript', () => {
       interface S {
         s1: string;
       }
       interface D {
         d1: string;
       }
-      const schema: StrictSchema<D, S> = {
-        d1: 's1'
-      };
 
       interface Source {
         boring_api_field: number;
@@ -78,23 +124,34 @@ describe('Morphism', () => {
       }
 
       const a = morphism<Destination, Source>({ namingIsHard: 'boring_api_field' }, [{ boring_api_field: 2 }]);
-      a.pop().namingIsHard;
+      const itemA = a.pop();
+      expect(itemA).toBeDefined();
+      if (itemA) {
+        itemA.namingIsHard;
+      }
 
       const b = morphism<Destination, Source>({ namingIsHard: 'boring_api_field' }, { boring_api_field: 2 });
       b.namingIsHard;
 
       const c = morphism<Destination>({ namingIsHard: 'boring_api_field' }, [{ boring_api_field: 2 }]);
-      c.pop().namingIsHard;
+      const itemC = c.pop();
+      expect(itemC).toBeDefined();
+      if (itemC) {
+        itemC.namingIsHard;
+      }
 
       const d = morphism<Destination>({ namingIsHard: 'boring_api_field' }, { boring_api_field: 2 });
       d.namingIsHard;
 
       morphism({ namingIsHard: 'boring_api_field' });
       morphism<Destination, Source>({ namingIsHard: 'boring_api_field' })({ boring_api_field: 2 });
-      morphism<Destination>({ namingIsHard: 'boring_api_field' })([{ boring_api_field: 2 }]).pop().namingIsHard;
-    });
+      const e = morphism<Destination>({ namingIsHard: 'boring_api_field' })([{ boring_api_field: 2 }]);
+      const itemE = e.pop();
+      expect(itemE).toBeDefined();
+      if (itemE) {
+        itemE.namingIsHard;
+      }
 
-    it('', () => {
       interface S {
         _a: string;
       }
@@ -104,8 +161,6 @@ describe('Morphism', () => {
 
       morphism<D, S>({ a: ({ _a }) => _a.toString() });
       morphism<D, S>({ a: ({ _a }) => _a.toString() });
-      // morphism({ a: ({ b }) => b }, { _a: 'value' });
-      // morphism({ a: ({ b }) => b });
     });
   });
 });

@@ -24,7 +24,10 @@ jobs:
       # run tests!
       - run:
           name: Run Tests
-          command: npm test -- --coverage
+          command: npm run test:coverage
+      - run:
+          name: Build Tests Types
+          command: npm run test:types
 
   deploy-docs:
     docker:
