@@ -4,7 +4,7 @@
   "description": "Do not repeat anymore your objects transformations.",
   "homepage": "https://github.com/nobrainr/morphism",
   "main": "./dist/morphism.js",
-  "types": "./dist/morphism.d.ts",
+  "types": "./dist/types/morphism.d.ts",
   "scripts": {
     "build": "run-p build:js build:types",
     "start": "run-p watch:*",
