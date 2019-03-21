@@ -1,4 +1,4 @@
-import Morphism, { toClassObject, morph, StrictSchema, morphism } from './morphism';
+import Morphism, { toClassObject, morph, morphism } from './morphism';
 import { User } from './utils-test';
 
 describe('Class Objects', () => {
@@ -10,6 +10,12 @@ describe('Class Objects', () => {
     it('should throw an exception when setting a mapper with a falsy schema', function() {
       expect(() => {
         Morphism.setMapper(User, null as any);
+      }).toThrow();
+    });
+
+    it('should throw an exception when trying to map with a falsy type', function() {
+      expect(() => {
+        morphism({}, {}, undefined as any);
       }).toThrow();
     });
 

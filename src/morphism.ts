@@ -161,15 +161,14 @@ export function morphism<Target, Source, TSchema extends Schema<Target, Source>>
       return transformItems(schema)(items);
     }
     case 3: {
-      if (type && items !== null) {
-        let finalSchema = getSchemaForType(type, schema);
-        return transformItems(finalSchema, type)(items);
-      } else if (type) {
-        // TODO: deprecate this option morphism(schema,null,Type) in favor of createSchema({},options={class: Type})
-        let finalSchema = getSchemaForType(type, schema);
-        return (futureInput: any) => {
-          return transformItems(finalSchema, type)(futureInput);
-        };
+      if (type) {
+        const finalSchema = getSchemaForType(type, schema);
+        if (items !== null) return transformItems(finalSchema, type)(items); // TODO: deprecate this option morphism(schema,null,Type) in favor of createSchema({},options={class: Type})
+        return transformItems(finalSchema, type);
+      } else {
+        throw new Error(
+          `When using morphism(schema, items, type), type should be defined but value received is ${type}`
+        );
       }
     }
   }
