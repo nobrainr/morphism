@@ -111,6 +111,21 @@ describe('Morphism', () => {
       const res = morphism(schemaA, source);
       expect(res).toEqual({ f: 'value' });
     });
+
+    it('should provide a mapper outputting class objects', () => {
+      const source = {
+        name: 'value'
+      };
+      const schema = {
+        firstName: 'name'
+      };
+
+      const mapper = morphism(schema, null, User);
+      const res = mapper(source);
+
+      expect(res instanceof User).toBe(true);
+      expect(res).toEqual(new User(source.name));
+    });
   });
 
   describe('Plain Objects', function() {

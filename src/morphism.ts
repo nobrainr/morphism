@@ -165,6 +165,7 @@ export function morphism<Target, Source, TSchema extends Schema<Target, Source>>
         let finalSchema = getSchemaForType(type, schema);
         return transformItems(finalSchema, type)(items);
       } else if (type) {
+        // TODO: deprecate this option morphism(schema,null,Type) in favor of createSchema({},options={class: Type})
         let finalSchema = getSchemaForType(type, schema);
         return (futureInput: any) => {
           return transformItems(finalSchema, type)(futureInput);
