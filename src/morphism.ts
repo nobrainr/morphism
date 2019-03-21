@@ -153,21 +153,24 @@ export function morphism<Target, Source, TSchema extends Schema<Target, Source>>
   items?: SourceFromSchema<TSchema> | null,
   type?: Constructable<Target>
 ) {
-  if (items === undefined && type === undefined) {
-    return transformItems(schema);
-  } else if (schema && items && type) {
-    let finalSchema = getSchemaForType(type, schema);
-    return transformItems(finalSchema, type)(items);
-  } else if (schema && items) {
-    return transformItems(schema)(items);
-  } else if (type && items) {
-    let finalSchema = getSchemaForType(type, schema);
-    return transformItems(finalSchema, type)(items);
-  } else if (type) {
-    let finalSchema = getSchemaForType(type, schema);
-    return (futureInput: any) => {
-      return transformItems(finalSchema, type)(futureInput);
-    };
+  switch (arguments.length) {
+    case 1: {
+      return transformItems(schema);
+    }
+    case 2: {
+      return transformItems(schema)(items);
+    }
+    case 3: {
+      if (type) {
+        const finalSchema = getSchemaForType(type, schema);
+        if (items !== null) return transformItems(finalSchema, type)(items); // TODO: deprecate this option morphism(schema,null,Type) in favor of createSchema({},options={class: Type})
+        return transformItems(finalSchema, type);
+      } else {
+        throw new Error(
+          `When using morphism(schema, items, type), type should be defined but value received is ${type}`
+        );
+      }
+    }
   }
 }
 
