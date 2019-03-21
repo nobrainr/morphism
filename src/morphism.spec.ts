@@ -110,6 +110,7 @@ describe('Morphism', () => {
 
       const res = morphism(schemaA, source);
       expect(res).toEqual({ f: 'value' });
+      expect(['f', 'b']).toEqual(Object.keys(res));
     });
 
     it('should provide a mapper outputting class objects', () => {
