@@ -153,21 +153,24 @@ export function morphism<Target, Source, TSchema extends Schema<Target, Source>>
   items?: SourceFromSchema<TSchema> | null,
   type?: Constructable<Target>
 ) {
-  if (items === undefined && type === undefined) {
-    return transformItems(schema);
-  } else if (schema && items && type) {
-    let finalSchema = getSchemaForType(type, schema);
-    return transformItems(finalSchema, type)(items);
-  } else if (schema && items) {
-    return transformItems(schema)(items);
-  } else if (type && items) {
-    let finalSchema = getSchemaForType(type, schema);
-    return transformItems(finalSchema, type)(items);
-  } else if (type) {
-    let finalSchema = getSchemaForType(type, schema);
-    return (futureInput: any) => {
-      return transformItems(finalSchema, type)(futureInput);
-    };
+  switch (arguments.length) {
+    case 1: {
+      return transformItems(schema);
+    }
+    case 2: {
+      return transformItems(schema)(items);
+    }
+    case 3: {
+      if (type && items !== null) {
+        let finalSchema = getSchemaForType(type, schema);
+        return transformItems(finalSchema, type)(items);
+      } else if (type) {
+        let finalSchema = getSchemaForType(type, schema);
+        return (futureInput: any) => {
+          return transformItems(finalSchema, type)(futureInput);
+        };
+      }
+    }
   }
 }
 

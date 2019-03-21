@@ -94,6 +94,23 @@ describe('Morphism', () => {
         expect(singleTarget.foo).toEqual('value');
       }
     });
+
+    it('should return undefined when property with function action acts with when nested', () => {
+      const source = {
+        foo: 'value',
+        bar: 'bar'
+      };
+      const schemaB = {
+        some: 'test'
+      };
+      let schemaA = {
+        f: 'foo',
+        b: (data: any) => morphism(schemaB, data.undefined)
+      };
+
+      const res = morphism(schemaA, source);
+      expect(res).toEqual({ f: 'value' });
+    });
   });
 
   describe('Plain Objects', function() {
