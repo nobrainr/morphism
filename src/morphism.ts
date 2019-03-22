@@ -87,16 +87,6 @@ function getSchemaForType<T>(type: Constructable<T>, baseSchema: Schema<T>): Sch
   return finalSchema;
 }
 
-type SourceFromSchema<T> = T extends StrictSchema<unknown, infer U> | Schema<unknown, infer U> ? U : never;
-type DestinationFromSchema<T> = T extends StrictSchema<infer U> | Schema<infer U> ? U : never;
-
-type ResultItem<TSchema extends Schema> = DestinationFromSchema<TSchema>;
-
-export interface Mapper<TSchema extends Schema | StrictSchema, TResult = ResultItem<TSchema>> {
-  (data: SourceFromSchema<TSchema>[]): TResult[];
-  (data: SourceFromSchema<TSchema>): TResult;
-}
-
 /**
  * Currying function that either outputs a mapping function or the transformed data.
  *
