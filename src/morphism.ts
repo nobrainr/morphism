@@ -2,7 +2,15 @@
  * @module morphism
  */
 import { zipObject, isUndefined, get, set, SCHEMA_OPTIONS_SYMBOL } from './helpers';
-import { Schema, StrictSchema, Constructable, ResultItem, SourceFromSchema, Mapper } from './types';
+import {
+  Schema,
+  StrictSchema,
+  Constructable,
+  ResultItem,
+  SourceFromSchema,
+  Mapper,
+  DestinationFromSchema
+} from './types';
 import { MophismSchemaTree, parseSchema, createSchema, SchemaOptions } from './MorphismTree';
 import { MorphismRegistry, IMorphismRegistry } from './MorphismRegistry';
 import { decorator } from './MorphismDecorator';
@@ -128,19 +136,22 @@ function getSchemaForType<T>(type: Constructable<T>, baseSchema: Schema<T>): Sch
  * @param  {} type
  *
  */
-function morphism<Destination, Source = any, TSchema extends Schema<Destination, Source> = Schema<Destination, Source>>(
-  schema: TSchema,
-  data: Source[]
-): ResultItem<TSchema>[];
 function morphism<
-  Destination,
-  Source extends SourceFromSchema<TSchema> = any,
-  TSchema extends Schema<Destination, Source> = Schema<Destination, Source>
->(schema: TSchema, data: Source): ResultItem<TSchema>;
+  TSchema extends Schema = Schema<DestinationFromSchema<Schema>, SourceFromSchema<Schema>>,
+  Source extends SourceFromSchema<TSchema> = SourceFromSchema<TSchema>
+>(schema: TSchema, data: Source[]): DestinationFromSchema<TSchema>[];
 
-function morphism<Destination, Source = any, TSchema extends Schema<Destination, Source> = Schema<Destination, Source>>(
-  schema: TSchema
-): Mapper<TSchema>; // morphism({}) => mapper(S) => T
+function morphism<
+  TSchema = Schema<DestinationFromSchema<Schema>, SourceFromSchema<Schema>>,
+  Source extends SourceFromSchema<TSchema> = SourceFromSchema<TSchema>
+>(schema: TSchema, data: Source): DestinationFromSchema<TSchema>;
+
+function morphism<
+  TSchema extends Schema<DestinationFromSchema<TSchema>, SourceFromSchema<TSchema>> = Schema<
+    DestinationFromSchema<Schema>,
+    SourceFromSchema<Schema>
+  >
+>(schema: TSchema): Mapper<TSchema>; // morphism({}) => mapper(S) => T
 
 function morphism<TSchema extends Schema, TDestination>(
   schema: TSchema,
