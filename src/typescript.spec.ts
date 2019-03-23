@@ -103,7 +103,6 @@ describe('Typescript', () => {
       }
       morphism(schema, [{ s1: 'teest' }]);
       morphism(schema, [{ s1: 'test' }]);
-      morphism(schema, [{}]);
     });
 
     it('should not fail with typescript', () => {
@@ -123,17 +122,22 @@ describe('Typescript', () => {
         namingIsHard: string;
       }
 
-      const a = morphism<Destination, Source>({ namingIsHard: 'boring_api_field' }, [{ boring_api_field: 2 }]);
+      const a = morphism<StrictSchema<Destination, Source>>({ namingIsHard: 'boring_api_field' }, [
+        { boring_api_field: 2 }
+      ]);
       const itemA = a.pop();
       expect(itemA).toBeDefined();
       if (itemA) {
         itemA.namingIsHard;
       }
 
-      const b = morphism<Destination, Source>({ namingIsHard: 'boring_api_field' }, { boring_api_field: 2 });
+      const b = morphism<StrictSchema<Destination, Source>>(
+        { namingIsHard: 'boring_api_field' },
+        { boring_api_field: 2 }
+      );
       b.namingIsHard;
 
-      const c = morphism<Destination>({ namingIsHard: 'boring_api_field' }, [{ boring_api_field: 2 }]);
+      const c = morphism<StrictSchema<Destination>>({ namingIsHard: 'boring_api_field' }, [{ boring_api_field: 2 }]);
       const itemC = c.pop();
       expect(itemC).toBeDefined();
       if (itemC) {
@@ -144,23 +148,23 @@ describe('Typescript', () => {
       d.namingIsHard;
 
       morphism({ namingIsHard: 'boring_api_field' });
-      morphism<Destination, Source>({ namingIsHard: 'boring_api_field' })({ boring_api_field: 2 });
-      const e = morphism<Destination>({ namingIsHard: 'boring_api_field' })([{ boring_api_field: 2 }]);
+      morphism<StrictSchema<Destination, Source>>({ namingIsHard: 'boring_api_field' })({ boring_api_field: 2 });
+      const e = morphism<StrictSchema<Destination>>({ namingIsHard: 'boring_api_field' })([{ boring_api_field: 2 }]);
       const itemE = e.pop();
       expect(itemE).toBeDefined();
       if (itemE) {
         itemE.namingIsHard;
       }
 
-      interface S {
+      interface S1 {
         _a: string;
       }
-      interface D {
+      interface D1 {
         a: string;
       }
 
-      morphism<D, S>({ a: ({ _a }) => _a.toString() });
-      morphism<D, S>({ a: ({ _a }) => _a.toString() });
+      morphism<StrictSchema<D1, S1>>({ a: ({ _a }) => _a.toString() });
+      morphism<StrictSchema<D1, S1>>({ a: ({ _a }) => _a.toString() });
     });
   });
 });
