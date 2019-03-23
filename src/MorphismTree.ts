@@ -9,7 +9,9 @@ import {
   isActionFunction,
   isFunction,
   isString,
-  isObject
+  isObject,
+  SCHEMA_OPTIONS_SYMBOL,
+  isEmptyObject
 } from './helpers';
 
 export enum NodeKind {
@@ -45,9 +47,24 @@ type AddNode<Target, Source> = Overwrite<
     preparedAction?: (...args: any) => any;
   }
 >;
+export interface SchemaOptions<Target = any> {
+  undefinedValues?: {
+    strip: boolean;
+    default?(target: Target, propertyPath: string): any;
+  };
+}
+
+export function createSchema<Source = any, Target = any>(
+  schema: StrictSchema<Source, Target>,
+  options?: SchemaOptions<Target>
+) {
+  if (options && !isEmptyObject(options)) (schema as any)[SCHEMA_OPTIONS_SYMBOL] = options;
+  return schema;
+}
 
 export function parseSchema(schema: Schema | StrictSchema | string | number) {
-  const tree = new MophismSchemaTree();
+  const options: SchemaOptions = (schema as any)[SCHEMA_OPTIONS_SYMBOL];
+  const tree = new MophismSchemaTree(options);
   seedTreeSchema(tree, schema);
   return tree;
 }
@@ -82,13 +99,20 @@ function seedTreeSchema<Target, Source>(
 
 export class MophismSchemaTree<Target, Source> {
   root: SchemaNode<Target, Source>;
-  constructor() {
+  schemaOptions: SchemaOptions = { undefinedValues: { strip: false } };
+
+  constructor(options?: SchemaOptions) {
+    if (options) {
+      this.schemaOptions = { ...this.schemaOptions, ...options };
+    }
+
     this.root = {
       data: { targetPropertyPath: '', propertyName: 'MorphismTreeRoot', action: null, kind: NodeKind.Root },
       parent: null,
       children: []
     };
   }
+
   *traverseBFS() {
     const queue: SchemaNode<Target, Source>[] = [];
     queue.push(this.root);
@@ -132,6 +156,10 @@ export class MophismSchemaTree<Target, Source> {
         }
       }
     }
+  }
+
+  getSchemaOptions() {
+    return this.schemaOptions;
   }
 
   getActionKind(action: Actions<Target, Source> | null) {

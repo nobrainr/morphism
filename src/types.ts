@@ -158,3 +158,13 @@ export interface ActionSelector<Source = object, R = any> {
 export interface Constructable<T> {
   new (...args: any[]): T;
 }
+
+export type SourceFromSchema<T> = T extends StrictSchema<unknown, infer U> | Schema<unknown, infer U> ? U : never;
+export type DestinationFromSchema<T> = T extends StrictSchema<infer U> | Schema<infer U> ? U : never;
+
+export type ResultItem<TSchema extends Schema> = DestinationFromSchema<TSchema>;
+
+export interface Mapper<TSchema extends Schema | StrictSchema, TResult = ResultItem<TSchema>> {
+  (data: SourceFromSchema<TSchema>[]): TResult[];
+  (data: SourceFromSchema<TSchema>): TResult;
+}

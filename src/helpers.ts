@@ -1,5 +1,7 @@
 import { ActionSelector, ActionAggregator, ActionFunction } from './types';
 
+export const SCHEMA_OPTIONS_SYMBOL = Symbol.for('SchemaOptions');
+
 export function isActionSelector<S, R>(value: any): value is ActionSelector<S, R> {
   return isObject(value) && value.hasOwnProperty('fn') && value.hasOwnProperty('path');
 }
@@ -123,4 +125,13 @@ function getKey(key: any) {
     return intKey;
   }
   return key;
+}
+
+export function isEmptyObject(obj: object) {
+  for (const prop in obj) {
+    if (Object.prototype.hasOwnProperty.call(obj, prop)) {
+      return false;
+    }
+  }
+  return true;
 }

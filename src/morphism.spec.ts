@@ -1,4 +1,11 @@
-import Morphism, { StrictSchema, morphism, Schema } from './morphism';
+import Morphism, {
+  StrictSchema,
+  morphism,
+  Schema,
+  createSchema,
+  SchemaOptions,
+  SCHEMA_OPTIONS_SYMBOL
+} from './morphism';
 import { User, MockData } from './utils-test';
 import { ActionSelector, ActionAggregator } from './types';
 
@@ -329,6 +336,91 @@ describe('Morphism', () => {
         };
         let result = Morphism(schema, mock);
         expect(result).toEqual(expected);
+      });
+    });
+    describe('createSchema', () => {
+      it('should return a schema', () => {
+        interface Target {
+          keyA: string;
+        }
+        interface Source {
+          s1: string;
+        }
+        const schema = createSchema<Target, Source>({ keyA: 's1' });
+        expect(schema).toEqual({ keyA: 's1' });
+        const res = morphism(schema, { s1: 'value' });
+        expect(res).toEqual({ keyA: 'value' });
+      });
+
+      it('should return a schema with options', () => {
+        interface Target {
+          keyA: string;
+        }
+        interface Source {
+          s1: string;
+        }
+        const options: SchemaOptions = { undefinedValues: { strip: true } };
+        const schema = createSchema<Target, Source>({ keyA: 's1' }, options);
+        const res = morphism(schema, { s1: 'value' });
+
+        expect(schema).toEqual({ keyA: 's1', [SCHEMA_OPTIONS_SYMBOL]: options });
+        expect(res).toEqual({ keyA: 'value' });
+      });
+
+      it('should allow schema options using symbol', () => {
+        const source = {
+          foo: 'value',
+          bar: 'bar'
+        };
+        const schemaB = {
+          some: 'test'
+        };
+        const options: SchemaOptions = { undefinedValues: { strip: true } };
+        let schemaA = {
+          f: 'foo',
+          b: (data: any) => morphism(schemaB, data.undefined),
+          [SCHEMA_OPTIONS_SYMBOL]: options
+        };
+
+        const res = morphism(schemaA, source);
+        expect(res).toEqual({ f: 'value' });
+        expect(['f']).toEqual(Object.keys(res));
+      });
+
+      it('should strip undefined values from target when option is provided', () => {
+        const source = {
+          foo: 'value',
+          bar: 'bar'
+        };
+        const schemaB = {
+          some: 'test'
+        };
+        let schemaA = createSchema(
+          {
+            f: 'foo',
+            b: (data: any) => morphism(schemaB, data.undefined)
+          },
+          { undefinedValues: { strip: true } }
+        );
+
+        const res = morphism(schemaA, source);
+        expect(res).toEqual({ f: 'value' });
+        expect(['f']).toEqual(Object.keys(res));
+      });
+
+      it('should fallback to default when undefined value on target', () => {
+        const source = {};
+        const schema = createSchema(
+          { key: 'foo' },
+          {
+            undefinedValues: {
+              strip: true,
+              default: () => null
+            }
+          }
+        );
+
+        expect(morphism(schema, source)).toEqual({ key: null });
       });
     });
   });

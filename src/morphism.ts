@@ -1,9 +1,9 @@
 /**
  * @module morphism
  */
-import { zipObject, isUndefined, get, set } from './helpers';
-import { Schema, StrictSchema, Constructable } from './types';
-import { MophismSchemaTree, parseSchema } from './MorphismTree';
+import { zipObject, isUndefined, get, set, SCHEMA_OPTIONS_SYMBOL } from './helpers';
+import { Schema, StrictSchema, Constructable, ResultItem, SourceFromSchema, Mapper } from './types';
+import { MophismSchemaTree, parseSchema, createSchema, SchemaOptions } from './MorphismTree';
 import { MorphismRegistry, IMorphismRegistry } from './MorphismRegistry';
 import { decorator } from './MorphismDecorator';
 
@@ -21,7 +21,9 @@ function transformValuesFromObject<Source, Target>(
   items: Source[],
   objectToCompute: Target
 ) {
+  const options = tree.getSchemaOptions();
   const transformChunks = [];
+
   for (const node of tree.traverseBFS()) {
     const { preparedAction, targetPropertyPath } = node.data;
     if (preparedAction)
@@ -43,8 +45,25 @@ function transformValuesFromObject<Source, Target>(
     };
 
     const finalValue = undefinedValueCheck(get(finalObject, chunk.targetPropertyPath), chunk.preparedAction);
-    set(finalObject, chunk.targetPropertyPath, finalValue);
-    return finalObject;
+    if (finalValue === undefined) {
+      // strip undefined values
+      if (options.undefinedValues && options.undefinedValues.strip) {
+        if (options.undefinedValues.default) {
+          set(
+            finalObject,
+            chunk.targetPropertyPath,
+            options.undefinedValues.default(finalObject, chunk.targetPropertyPath)
+          );
+        }
+      } else {
+        // do not strip undefined values
+        set(finalObject, chunk.targetPropertyPath, finalValue);
+      }
+      return finalObject;
+    } else {
+      set(finalObject, chunk.targetPropertyPath, finalValue);
+      return finalObject;
+    }
   }, objectToCompute);
 }
 
@@ -87,16 +106,6 @@ function getSchemaForType<T>(type: Constructable<T>, baseSchema: Schema<T>): Sch
   return finalSchema;
 }
 
-type SourceFromSchema<T> = T extends StrictSchema<unknown, infer U> | Schema<unknown, infer U> ? U : never;
-type DestinationFromSchema<T> = T extends StrictSchema<infer U> | Schema<infer U> ? U : never;
-
-type ResultItem<TSchema extends Schema> = DestinationFromSchema<TSchema>;
-
-export interface Mapper<TSchema extends Schema | StrictSchema, TResult = ResultItem<TSchema>> {
-  (data: SourceFromSchema<TSchema>[]): TResult[];
-  (data: SourceFromSchema<TSchema>): TResult;
-}
-
 /**
  * Currying function that either outputs a mapping function or the transformed data.
  *
@@ -119,36 +128,33 @@ export interface Mapper<TSchema extends Schema | StrictSchema, TResult = ResultI
  * @param  {} type
  *
  */
-export function morphism<
+function morphism<Destination, Source = any, TSchema extends Schema<Destination, Source> = Schema<Destination, Source>>(
+  schema: TSchema,
+  data: Source[]
+): ResultItem<TSchema>[];
+function morphism<
   Destination,
-  Source = any,
-  TSchema extends Schema<Destination, Source> = Schema<Destination, Source>
->(schema: TSchema, data: Source[]): ResultItem<TSchema>[];
-export function morphism<
-  Destination,
-  Source = any,
+  Source extends SourceFromSchema<TSchema> = any,
   TSchema extends Schema<Destination, Source> = Schema<Destination, Source>
 >(schema: TSchema, data: Source): ResultItem<TSchema>;
 
-export function morphism<
-  Destination,
-  Source = any,
-  TSchema extends Schema<Destination, Source> = Schema<Destination, Source>
->(schema: TSchema): Mapper<TSchema>; // morphism({}) => mapper(S) => T
+function morphism<Destination, Source = any, TSchema extends Schema<Destination, Source> = Schema<Destination, Source>>(
+  schema: TSchema
+): Mapper<TSchema>; // morphism({}) => mapper(S) => T
 
-export function morphism<TSchema extends Schema, TDestination>(
+function morphism<TSchema extends Schema, TDestination>(
   schema: TSchema,
   items: null,
   type: Constructable<TDestination>
 ): Mapper<TSchema, TDestination>; // morphism({}, null, T) => mapper(S) => T
 
-export function morphism<TSchema extends Schema, Target>(
+function morphism<TSchema extends Schema, Target>(
   schema: TSchema,
   items: SourceFromSchema<TSchema>,
   type: Constructable<Target>
 ): Target; // morphism({}, {}, T) => T
 
-export function morphism<Target, Source, TSchema extends Schema<Target, Source>>(
+function morphism<Target, Source, TSchema extends Schema<Target, Source>>(
   schema: TSchema,
   items?: SourceFromSchema<TSchema> | null,
   type?: Constructable<Target>
@@ -181,7 +187,7 @@ export function morphism<Target, Source, TSchema extends Schema<Target, Source>>
  * @param {Schema<Target>} schema Structure-preserving object from a source data towards a target data
  * @param {Constructable<Target>} [type] Target Class Type
  */
-export function morph<Target>(schema: Schema<Target>, type?: Constructable<Target>) {
+function morph<Target>(schema: Schema<Target>, type?: Constructable<Target>) {
   const mapper = transformItems(schema, type);
   return decorator(mapper);
 }
@@ -190,7 +196,7 @@ export function morph<Target>(schema: Schema<Target>, type?: Constructable<Targe
  *
  * @param {StrictSchema<Target>} schema Structure-preserving object from a source data towards a target data
  */
-export function toJSObject<Target>(schema: StrictSchema<Target>) {
+function toJSObject<Target>(schema: StrictSchema<Target>) {
   const mapper = transformItems(schema);
   return decorator(mapper);
 }
@@ -200,7 +206,7 @@ export function toJSObject<Target>(schema: StrictSchema<Target>) {
  * @param {Schema<Target>} schema Structure-preserving object from a source data towards a target data
  * @param {Constructable<Target>} [type] Target Class Type
  */
-export function toClassObject<Target>(schema: Schema<Target>, type: Constructable<Target>) {
+function toClassObject<Target>(schema: Schema<Target>, type: Constructable<Target>) {
   const mapper = transformItems(schema, type);
   return decorator(mapper);
 }
@@ -217,5 +223,16 @@ morphismMixin.mappers = morphismRegistry.mappers;
 
 const Morphism: typeof morphism & IMorphismRegistry = morphismMixin;
 
-export { Schema, StrictSchema };
+export {
+  morphism,
+  createSchema,
+  morph,
+  toJSObject,
+  toClassObject,
+  Schema,
+  StrictSchema,
+  SchemaOptions,
+  Mapper,
+  SCHEMA_OPTIONS_SYMBOL
+};
 export default Morphism;
