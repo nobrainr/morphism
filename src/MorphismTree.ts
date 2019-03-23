@@ -47,13 +47,16 @@ type AddNode<Target, Source> = Overwrite<
     preparedAction?: (...args: any) => any;
   }
 >;
-export interface SchemaOptions {
-  stripUndefinedValues?: boolean;
+export interface SchemaOptions<Target = any> {
+  undefinedValues?: {
+    strip: boolean;
+    default?(target: Target, propertyPath: string): any;
+  };
 }
 
 export function createSchema<Source = any, Target = any>(
   schema: StrictSchema<Source, Target>,
-  options?: SchemaOptions
+  options?: SchemaOptions<Target>
 ) {
   if (options && !isEmptyObject(options)) (schema as any)[SCHEMA_OPTIONS_SYMBOL] = options;
   return schema;
@@ -96,7 +99,7 @@ function seedTreeSchema<Target, Source>(
 
 export class MophismSchemaTree<Target, Source> {
   root: SchemaNode<Target, Source>;
-  schemaOptions: SchemaOptions = { stripUndefinedValues: false };
+  schemaOptions: SchemaOptions = { undefinedValues: { strip: false } };
 
   constructor(options?: SchemaOptions) {
     if (options) {

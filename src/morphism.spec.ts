@@ -359,10 +359,10 @@ describe('Morphism', () => {
         interface Source {
           s1: string;
         }
-        const options: SchemaOptions = { stripUndefinedValues: true };
+        const options: SchemaOptions = { undefinedValues: { strip: true } };
         const schema = createSchema<Target, Source>({ keyA: 's1' }, options);
         const res = morphism(schema, { s1: 'value' });
-        console.log('schema', schema);
+
         expect(schema).toEqual({ keyA: 's1', [SCHEMA_OPTIONS_SYMBOL]: options });
         expect(res).toEqual({ keyA: 'value' });
       });
@@ -375,10 +375,11 @@ describe('Morphism', () => {
         const schemaB = {
           some: 'test'
         };
+        const options: SchemaOptions = { undefinedValues: { strip: true } };
         let schemaA = {
           f: 'foo',
           b: (data: any) => morphism(schemaB, data.undefined),
-          [SCHEMA_OPTIONS_SYMBOL]: { stripUndefinedValues: true }
+          [SCHEMA_OPTIONS_SYMBOL]: options
         };
 
         const res = morphism(schemaA, source);
@@ -399,12 +400,27 @@ describe('Morphism', () => {
             f: 'foo',
             b: (data: any) => morphism(schemaB, data.undefined)
           },
-          { stripUndefinedValues: true }
+          { undefinedValues: { strip: true } }
         );
 
         const res = morphism(schemaA, source);
         expect(res).toEqual({ f: 'value' });
         expect(['f']).toEqual(Object.keys(res));
+      });
+
+      it('should fallback to default when undefined value on target', () => {
+        const source = {};
+        const schema = createSchema(
+          { key: 'foo' },
+          {
+            undefinedValues: {
+              strip: true,
+              default: () => null
+            }
+          }
+        );
+
+        expect(morphism(schema, source)).toEqual({ key: null });
       });
     });
   });

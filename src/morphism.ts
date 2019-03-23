@@ -45,10 +45,25 @@ function transformValuesFromObject<Source, Target>(
     };
 
     const finalValue = undefinedValueCheck(get(finalObject, chunk.targetPropertyPath), chunk.preparedAction);
-    if (finalValue === undefined && options.stripUndefinedValues) return finalObject;
-
-    set(finalObject, chunk.targetPropertyPath, finalValue);
-    return finalObject;
+    if (finalValue === undefined) {
+      // strip undefined values
+      if (options.undefinedValues && options.undefinedValues.strip) {
+        if (options.undefinedValues.default) {
+          set(
+            finalObject,
+            chunk.targetPropertyPath,
+            options.undefinedValues.default(finalObject, chunk.targetPropertyPath)
+          );
+        }
+      } else {
+        // do not strip undefined values
+        set(finalObject, chunk.targetPropertyPath, finalValue);
+      }
+      return finalObject;
+    } else {
+      set(finalObject, chunk.targetPropertyPath, finalValue);
+      return finalObject;
+    }
   }, objectToCompute);
 }
 
