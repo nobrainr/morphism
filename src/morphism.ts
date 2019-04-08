@@ -2,15 +2,7 @@
  * @module morphism
  */
 import { zipObject, isUndefined, get, set, SCHEMA_OPTIONS_SYMBOL } from './helpers';
-import {
-  Schema,
-  StrictSchema,
-  Constructable,
-  ResultItem,
-  SourceFromSchema,
-  Mapper,
-  DestinationFromSchema
-} from './types';
+import { Schema, StrictSchema, Constructable, SourceFromSchema, Mapper, DestinationFromSchema } from './types';
 import { MophismSchemaTree, parseSchema, createSchema, SchemaOptions } from './MorphismTree';
 import { MorphismRegistry, IMorphismRegistry } from './MorphismRegistry';
 import { decorator } from './MorphismDecorator';
@@ -198,7 +190,7 @@ function morphism<Target, Source, TSchema extends Schema<Target, Source>>(
  * @param {Schema<Target>} schema Structure-preserving object from a source data towards a target data
  * @param {Constructable<Target>} [type] Target Class Type
  */
-function morph<Target>(schema: Schema<Target>, type?: Constructable<Target>) {
+export function morph<Target>(schema: Schema<Target>, type?: Constructable<Target>) {
   const mapper = transformItems(schema, type);
   return decorator(mapper);
 }
@@ -207,7 +199,7 @@ function morph<Target>(schema: Schema<Target>, type?: Constructable<Target>) {
  *
  * @param {StrictSchema<Target>} schema Structure-preserving object from a source data towards a target data
  */
-function toJSObject<Target>(schema: StrictSchema<Target>) {
+export function toJSObject<Target>(schema: StrictSchema<Target>) {
   const mapper = transformItems(schema);
   return decorator(mapper);
 }
@@ -217,7 +209,7 @@ function toJSObject<Target>(schema: StrictSchema<Target>) {
  * @param {Schema<Target>} schema Structure-preserving object from a source data towards a target data
  * @param {Constructable<Target>} [type] Target Class Type
  */
-function toClassObject<Target>(schema: Schema<Target>, type: Constructable<Target>) {
+export function toClassObject<Target>(schema: Schema<Target>, type: Constructable<Target>) {
   const mapper = transformItems(schema, type);
   return decorator(mapper);
 }
@@ -234,16 +226,5 @@ morphismMixin.mappers = morphismRegistry.mappers;
 
 const Morphism: typeof morphism & IMorphismRegistry = morphismMixin;
 
-export {
-  morphism,
-  createSchema,
-  morph,
-  toJSObject,
-  toClassObject,
-  Schema,
-  StrictSchema,
-  SchemaOptions,
-  Mapper,
-  SCHEMA_OPTIONS_SYMBOL
-};
+export { morphism, createSchema, Schema, StrictSchema, SchemaOptions, Mapper, SCHEMA_OPTIONS_SYMBOL };
 export default Morphism;
