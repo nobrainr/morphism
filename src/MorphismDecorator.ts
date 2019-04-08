@@ -1,4 +1,4 @@
-import { Mapper } from './morphism';
+import { Mapper } from './types';
 import { isPromise } from './helpers';
 
 export function decorator<Target>(mapper: Mapper<Target>) {

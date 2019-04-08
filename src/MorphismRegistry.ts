@@ -1,5 +1,5 @@
-import { Constructable, Schema } from './types';
-import { Mapper, morphism } from './morphism';
+import { Constructable, Schema, Mapper } from './types';
+import { morphism } from './morphism';
 
 export interface IMorphismRegistry {
   /**
