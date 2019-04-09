@@ -10,6 +10,7 @@
 [![Coveralls github](https://img.shields.io/coveralls/github/emyann/morphism.svg?style=for-the-badge)][coveralls-url]
 [![CircleCI (all branches)](https://img.shields.io/circleci/project/github/nobrainr/morphism/master.svg?style=for-the-badge)][circleci-url]
 [![Deps](https://img.shields.io/david/nobrainr/morphism.svg?style=for-the-badge)][deps-url]
+[![Greenkeeper badge](https://badges.greenkeeper.io/nobrainr/morphism.svg)](https://greenkeeper.io/)
 
 > In many fields of mathematics, morphism refers to a structure-preserving map from one mathematical structure to another. A morphism **f** with source **X** and target **Y** is written **f : X → Y**. Thus a morphism is represented by an arrow from its **source** to its **target**.
 
