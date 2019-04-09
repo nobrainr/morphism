@@ -5,7 +5,7 @@
 </div> -->
 
 [![npm](https://img.shields.io/npm/v/morphism.svg?style=for-the-badge)][npm-url]
-[![npm bundle size (minified)](https://img.shields.io/bundlephobia/min/morphism.svg?style=for-the-badge)](https://github.com/nobrainr/morphism)
+[![npm bundle size (minified)](https://img.shields.io/bundlephobia/min/morphism.svg?style=for-the-badge)](https://github.com/nobrainr/morphism) [![Greenkeeper badge](https://badges.greenkeeper.io/nobrainr/morphism.svg)](https://greenkeeper.io/)
 [![npm](https://img.shields.io/npm/dy/morphism.svg?style=for-the-badge)][trends-url]
 [![Coveralls github](https://img.shields.io/coveralls/github/emyann/morphism.svg?style=for-the-badge)][coveralls-url]
 [![CircleCI (all branches)](https://img.shields.io/circleci/project/github/nobrainr/morphism/master.svg?style=for-the-badge)][circleci-url]
