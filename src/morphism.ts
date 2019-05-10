@@ -26,8 +26,7 @@ function transformValuesFromObject<Source, Target>(
 
   for (const node of tree.traverseBFS()) {
     const { preparedAction, targetPropertyPath } = node.data;
-    if (preparedAction)
-      transformChunks.push({ targetPropertyPath, preparedAction: preparedAction({ object, objectToCompute, items }) });
+    if (preparedAction) transformChunks.push({ targetPropertyPath, preparedAction: preparedAction({ object, objectToCompute, items }) });
   }
 
   return transformChunks.reduce((finalObject, chunk) => {
@@ -49,11 +48,7 @@ function transformValuesFromObject<Source, Target>(
       // strip undefined values
       if (options.undefinedValues && options.undefinedValues.strip) {
         if (options.undefinedValues.default) {
-          set(
-            finalObject,
-            chunk.targetPropertyPath,
-            options.undefinedValues.default(finalObject, chunk.targetPropertyPath)
-          );
+          set(finalObject, chunk.targetPropertyPath, options.undefinedValues.default(finalObject, chunk.targetPropertyPath));
         }
       } else {
         // do not strip undefined values
@@ -129,7 +124,7 @@ function getSchemaForType<T>(type: Constructable<T>, baseSchema: Schema<T>): Sch
  *
  */
 function morphism<
-  TSchema extends Schema = Schema<DestinationFromSchema<Schema>, SourceFromSchema<Schema>>,
+  TSchema = Schema<DestinationFromSchema<Schema>, SourceFromSchema<Schema>>,
   Source extends SourceFromSchema<TSchema> = SourceFromSchema<TSchema>
 >(schema: TSchema, data: Source[]): DestinationFromSchema<TSchema>[];
 
@@ -151,11 +146,7 @@ function morphism<TSchema extends Schema, TDestination>(
   type: Constructable<TDestination>
 ): Mapper<TSchema, TDestination>; // morphism({}, null, T) => mapper(S) => T
 
-function morphism<TSchema extends Schema, Target>(
-  schema: TSchema,
-  items: SourceFromSchema<TSchema>,
-  type: Constructable<Target>
-): Target; // morphism({}, {}, T) => T
+function morphism<TSchema extends Schema, Target>(schema: TSchema, items: SourceFromSchema<TSchema>, type: Constructable<Target>): Target; // morphism({}, {}, T) => T
 
 function morphism<Target, Source, TSchema extends Schema<Target, Source>>(
   schema: TSchema,
@@ -175,9 +166,7 @@ function morphism<Target, Source, TSchema extends Schema<Target, Source>>(
         if (items !== null) return transformItems(finalSchema, type)(items); // TODO: deprecate this option morphism(schema,null,Type) in favor of createSchema({},options={class: Type})
         return transformItems(finalSchema, type);
       } else {
-        throw new Error(
-          `When using morphism(schema, items, type), type should be defined but value received is ${type}`
-        );
+        throw new Error(`When using morphism(schema, items, type), type should be defined but value received is ${type}`);
       }
     }
   }
