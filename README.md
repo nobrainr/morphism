@@ -16,8 +16,8 @@
 
 _https://en.wikipedia.org/wiki/Morphism_
 
-- :atom_symbol: Write your schema once, Transform your data everywhere
-- :zero: Zero dependencies
+- ⚛️ Write your schema once, Transform your data everywhere
+- 0️⃣ Zero dependencies
 - 💪🏽 Typescript Support
 
 ---
@@ -25,9 +25,10 @@ _https://en.wikipedia.org/wiki/Morphism_
 - [Morphism](#morphism)
   - [Getting started](#getting-started)
     - [Installation](#installation)
-    - [Example (JavaScript)](#example-javascript)
+    - [Usage](#usage)
     - [Example (TypeScript)](#example-typescript)
   - [Motivation](#motivation)
+  - [TypeScript integration](#typescript-integration)
   - [Docs](#docs)
     - [1. The Schema](#1-the-schema)
       - [Schema Example](#schema-example)
@@ -35,11 +36,11 @@ _https://en.wikipedia.org/wiki/Morphism_
     - [2. Morphism as Currying Function](#2-morphism-as-currying-function)
       - [API](#api)
       - [Currying Function Example](#currying-function-example)
-    - [3. Morphism as Function Decorators](#3-morphism-as-function-decorators)
+    - [3. Morphism Function as Decorators](#3-morphism-function-as-decorators)
       - [`toJsObject` Decorator](#tojsobject-decorator)
       - [`toClassObject` Decorator](#toclassobject-decorator)
-      - [- `morph` Decorator](#morph-decorator)
-    - [4. Morphism as Mixin](#4-morphism-as-mixin)
+      - [`morph` Decorator](#morph-decorator)
+    - [4. Default export: Morphism object](#4-default-export-morphism-object)
   - [More Schema examples](#more-schema-examples)
     - [Flattening or Projection](#flattening-or-projection)
     - [Function over a source property's value](#function-over-a-source-propertys-value)
@@ -63,48 +64,100 @@ _https://en.wikipedia.org/wiki/Morphism_
 npm install --save morphism
 ```
 
-### Example (JavaScript)
+or in the browser
+
+```html
+<script src="https://unpkg.com/morphism/dist/morphism.js"></script>
+<script>
+  const { morphism, createSchema } = Morphism
+</script>
+```
+
+### Usage
+
+The entry point of a **morphism** is the **schema**. The `keys` represent the shape of your **target** object, and the `values` represents one of the several ways to access the properties of the incoming source.
+
+```typescript
+const schema = {
+  targetProperty: 'sourceProperty'
+};
+```
+Then use the `morphism` function along with the **schema** to transform any **source** to your desired **target**
+
 
 ```typescript
 import { morphism } from 'morphism';
 
-// Source data coming from an API.
 const source = {
-  foo: 'baz',
-  bar: ['bar', 'foo'],
-  baz: {
-    qux: 'bazqux'
+  _firstName: 'Mirza'
+};
+
+const schema = {
+  name: '_firstName'
+};
+
+morphism(schema, source);
+➡
+{
+  "name": "Mirza"
+}
+```
+
+You may specify properties deep within the source object to be copied to your desired target by using dot notation in the mapping `value`. 
+This is [one of the actions available]() to transform the source data
+
+```typescript
+const schema = {
+  foo: 'deep.foo',
+  bar: {
+	baz: 'deep.foo'
   }
 };
 
-// Target Class in which to morph the source data. (Optional)
-class Destination {
-  foo = null;
-  bar = null;
-  bazqux = null;
+const source = {
+  deep: {
+	foo: 'value'
+  }
+};
+
+morphism(schema, source);
+➡
+{
+  "foo": "value",
+  "bar": {
+    "baz": "value"
+  }
+}
+```
+
+One important rule of `Morphism` is that **it will always return a result respecting the dimension of the source data.** If the source data is an `array`, morphism will outputs an `array`, if the source data is an `object` you'll have an `object`
+
+```typescript
+const schema = {
+  foo: 'bar'
+};
+
+// The source is a single object
+const object = {
+  bar: 'value'
+};
+
+morphism(schema, object);
+➡
+{
+  "foo": "value"
 }
 
-// A structure-preserving object from a source data towards a target data.
-const schema = {
-  foo: 'bar[1]', // Grab the property value by his path
-  bar: (iteratee, source, destination) => {
-    // Apply a Function on the current element
-    return iteratee.bar[0];
-  },
-  bazqux: {
-    // Apply a function on property value
-    path: 'baz.qux',
-    fn: (propertyValue, source) => {
-      return propertyValue;
-    }
-  }
-};
+// The source is a collection of objects
+const multipleObjects = [{
+  bar: 'value'
+}];
 
-const classObjects = morphism(schema, source, Destination);
-// Destination {foo: "foo", bar: "bar", bazqux: "bazqux"}
-
-const jsObjects = morphism(schema, source);
-// Object {foo: "foo", bar: "bar", bazqux: "bazqux"}
+morphism(schema, multipleObjects);
+➡
+[{
+  "foo": "value"
+}]
 ```
 
 ### Example (TypeScript)
@@ -145,6 +198,18 @@ We live in a era where we deal with mutiple data contracts coming from several s
 
 `Morphism` allows you to keep this business logic centralized and brings you a top-down view of your data transformation. When a contract change occurs, it helps to track the bug since you just need to refer to your `schema`
 
+## TypeScript integration
+
+When you type your schema, this library will require you to specify each transformation for your required fields.
+
+![schema](https://raw.githubusercontent.com/nobrainr/morphism/fix/update-documentation/images/schema-required-fields.png)
+
+![schema](https://raw.githubusercontent.com/nobrainr/morphism/fix/update-documentation/images/schema.png)
+
+This library uses TypeScript extensively. The target type will be inferred from the defined schema.
+
+![inferred field type](https://raw.githubusercontent.com/nobrainr/morphism/fix/update-documentation/images/inferred-field-type.png)
+
 ## Docs
 
 📚 **[API documentation](https://morphism.now.sh)**
@@ -177,6 +242,7 @@ const input = {
 
 const schema = {
   bar: 'foo', // ActionString: Allows to perform a projection from a property
+  qux: ['foo', 'foo.baz'], // ActionAggregator: Allows to aggregate multiple properties
   quux: (iteratee, source, destination) => {
     // ActionFunction: Allows to perform a function over source property
     return iteratee.foo;
@@ -264,7 +330,7 @@ const result = morphism(schema, data, Foo);
 // => Items in result are instance of Foo
 ```
 
-### 3. Morphism as Function Decorators
+### 3. Morphism Function as Decorators
 
 You can also use Function Decorators on your method or functions to transform the return value using `Morphism`:
 
@@ -351,7 +417,7 @@ class Service {
 // }
 ```
 
-#### - `morph` Decorator
+#### `morph` Decorator
 
 Utility decorator wrapping `toClassObject` and `toJSObject` decorators
 
@@ -400,7 +466,7 @@ class Service {
 // }
 ```
 
-### 4. Morphism as Mixin
+### 4. Default export: Morphism object
 
 Morphism comes along with an internal registry you can use to save your schema attached to a specific **ES6 Class**.
 
@@ -410,7 +476,7 @@ In order to use the registry, you might want to use the default export:
 import Morphism from 'morphism';
 ```
 
-All features available with the currying function are also available when using the mixin plus the internal registry:
+All features available with the currying function are also available when using the plain object plus the internal registry:
 
 ```typescript
 // Currying Function
