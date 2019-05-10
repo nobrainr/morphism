@@ -122,19 +122,14 @@ describe('Typescript', () => {
         namingIsHard: string;
       }
 
-      const a = morphism<StrictSchema<Destination, Source>>({ namingIsHard: 'boring_api_field' }, [
-        { boring_api_field: 2 }
-      ]);
+      const a = morphism<StrictSchema<Destination, Source>>({ namingIsHard: 'boring_api_field' }, [{ boring_api_field: 2 }]);
       const itemA = a.pop();
       expect(itemA).toBeDefined();
       if (itemA) {
         itemA.namingIsHard;
       }
 
-      const b = morphism<StrictSchema<Destination, Source>>(
-        { namingIsHard: 'boring_api_field' },
-        { boring_api_field: 2 }
-      );
+      const b = morphism<StrictSchema<Destination, Source>>({ namingIsHard: 'boring_api_field' }, { boring_api_field: 2 });
       b.namingIsHard;
 
       const c = morphism<StrictSchema<Destination>>({ namingIsHard: 'boring_api_field' }, [{ boring_api_field: 2 }]);
