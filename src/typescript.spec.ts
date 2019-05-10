@@ -167,4 +167,22 @@ describe('Typescript', () => {
       morphism<StrictSchema<D1, S1>>({ a: ({ _a }) => _a.toString() });
     });
   });
+
+  describe('Morphism Function Type Checking', () => {
+    it('should infer target type from array input', () => {
+      interface Source {
+        ID: number;
+      }
+
+      interface Destination {
+        id: number;
+      }
+
+      const rows: Array<Source> = [{ ID: 1234 }];
+
+      const schema: StrictSchema<Destination, Source> = { id: 'ID' };
+      expect(morphism(schema, rows)).toBeDefined();
+      expect(morphism(schema, rows)[0].id).toEqual(1234);
+    });
+  });
 });

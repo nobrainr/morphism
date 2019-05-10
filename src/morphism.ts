@@ -129,7 +129,7 @@ function getSchemaForType<T>(type: Constructable<T>, baseSchema: Schema<T>): Sch
  *
  */
 function morphism<
-  TSchema extends Schema = Schema<DestinationFromSchema<Schema>, SourceFromSchema<Schema>>,
+  TSchema = Schema<DestinationFromSchema<Schema>, SourceFromSchema<Schema>>,
   Source extends SourceFromSchema<TSchema> = SourceFromSchema<TSchema>
 >(schema: TSchema, data: Source[]): DestinationFromSchema<TSchema>[];
 
