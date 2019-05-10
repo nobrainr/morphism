@@ -35,7 +35,7 @@ const webpackconfiguration: webpack.Configuration = {
     libraryTarget: 'umd',
     globalObject: 'this',
     sourceMapFilename: 'morphism.map',
-    library: 'morphism'
+    library: 'Morphism'
   },
   resolve: {
     extensions: ['.ts', '.tsx', '.js', '.json']
