@@ -210,6 +210,12 @@ This library uses TypeScript extensively. The target type will be inferred from 
 
 ![inferred field type](https://raw.githubusercontent.com/nobrainr/morphism/fix/update-documentation/images/inferred-field-type.png)
 
+When using an [`ActionFunction`](https://morphism.now.sh/modules/morphism#actionfunction) the input type is also inferred to enforce your transformations
+
+![typed action function](https://raw.githubusercontent.com/nobrainr/morphism/fix/update-documentation/images/ts-action-function.png)
+
+See below the different options you have for the schema.
+
 ## Docs
 
 📚 **[API documentation](https://morphism.now.sh)**
