@@ -127,13 +127,13 @@ const source: Source = {
 };
 
 // Destination and Source types are optional
-morphism<Destination, Source>({ field: 'ugly_field' }, source);
+morphism<StrictSchema<Destination, Source>>({ field: 'ugly_field' }, source);
 // => {field: "field value"}
 
 // Or
 const sources = [source];
 const schema: StrictSchema<Destination, Source> = { field: 'ugly_field' };
-morphism<Destination, Source>(schema, sources);
+morphism(schema, sources);
 // => [{field: "field value"}]
 ```
 
@@ -177,7 +177,6 @@ const input = {
 
 const schema = {
   bar: 'foo', // ActionString: Allows to perform a projection from a property
-  qux: ['foo', 'foo.baz'], // ActionAggregator: Allows to aggregate multiple properties
   quux: (iteratee, source, destination) => {
     // ActionFunction: Allows to perform a function over source property
     return iteratee.foo;
