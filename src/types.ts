@@ -51,10 +51,14 @@ export type Schema<Target = any, Source = any> = {
 export type Actions<Target, Source> = ActionFunction<Target, Source> | ActionAggregator | ActionString<Target> | ActionSelector<Source>;
 
 /**
- * A Function invoked per iteration
- * @param {} iteratee The current element to transform
- * @param source The source input to transform
- * @param target The current element transformed
+ * @interface ActionFunction
+ * @description A Function invoked per iteration
+ * @param {S} iteratee The current element to transform
+ * @param {S|S[]} source The source input to transform
+ * @param {D} target The current element transformed
+ * @typeparam D Destination / Target type
+ * @typeparam S Source / Input type
+ * @typeparam R Inferred result type
  * @example
  * ```typescript
  *
@@ -80,7 +84,7 @@ export interface ActionFunction<D = any, S = any, R = any> {
 }
 
 /**
- * A String path that indicates where to find the property in the source input
+ * @description A String path that indicates where to find the property in the source input
  *
  * @example
  * ```typescript
@@ -125,7 +129,11 @@ export type ActionString<Source> = string; // TODO: ActionString should support 
  */
 export type ActionAggregator<T extends unknown = unknown> = T extends object ? (keyof T)[] | string[] : string[];
 /**
- * An Object that allows to perform a function over a source property's value
+ * @interface ActionSelector
+ * @typeparam Source Source/Input Type
+ * @typeparam R Result Type
+ *
+ * @description An Object that allows to perform a function over a source property's value
  *
  * @example
  * ```typescript
