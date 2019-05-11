@@ -48,11 +48,7 @@ export type Schema<Target = any, Source = any> = {
     | Schema<Target[destinationProperty], Source>
 };
 
-export type Actions<Target, Source> =
-  | ActionFunction<Target, Source>
-  | ActionAggregator
-  | ActionString<Target>
-  | ActionSelector<Source>;
+export type Actions<Target, Source> = ActionFunction<Target, Source> | ActionAggregator | ActionString<Target> | ActionSelector<Source>;
 
 /**
  * A Function invoked per iteration
@@ -98,11 +94,12 @@ export interface ActionFunction<D = any, S = any, R = any> {
  * };
  * const schema = {
  *   foo: 'foo', // Simple Projection
- *   bazqux: 'baz.qux' // Grab a value from a nested property
+ *   bar: 'bar[0]', // Grab a value from an array
+ *   bazqux: 'baz.qux' // Grab a value from a nested property,
  * };
  *
  * morphism(schema, source);
- * //=> { foo: 'baz', bazqux: 'bazqux' }
+ * //=> { foo: 'baz', bar: 'bar', bazqux: 'bazqux' }
  * ```
  *
  */

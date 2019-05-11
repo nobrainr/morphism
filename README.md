@@ -31,6 +31,7 @@ _https://en.wikipedia.org/wiki/Morphism_
   - [TypeScript integration](#typescript-integration)
   - [Docs](#docs)
     - [1. The Schema](#1-the-schema)
+      - [Schema actions](#schema-actions)
       - [Schema Example](#schema-example)
       - [1.1 Using a strict Schema](#11-using-a-strict-schema)
     - [2. Morphism as Currying Function](#2-morphism-as-currying-function)
@@ -104,7 +105,7 @@ morphism(schema, source);
 ```
 
 You may specify properties deep within the source object to be copied to your desired target by using dot notation in the mapping `value`. 
-This is [one of the actions available]() to transform the source data
+This is [one of the actions available](#schema-actions) to transform the source data
 
 ```typescript
 const schema = {
@@ -202,17 +203,18 @@ We live in a era where we deal with mutiple data contracts coming from several s
 
 When you type your schema, this library will require you to specify each transformation for your required fields.
 
-![schema](https://raw.githubusercontent.com/nobrainr/morphism/fix/update-documentation/images/schema-required-fields.png)
+![schema](https://raw.githubusercontent.com/nobrainr/morphism/master/images/schema.png)
 
-![schema](https://raw.githubusercontent.com/nobrainr/morphism/fix/update-documentation/images/schema.png)
+![schema-required-fields](https://raw.githubusercontent.com/nobrainr/morphism/master/images/schema-required-fields.png)
+
 
 This library uses TypeScript extensively. The target type will be inferred from the defined schema.
 
-![inferred field type](https://raw.githubusercontent.com/nobrainr/morphism/fix/update-documentation/images/inferred-field-type.png)
+![inferred field type](https://raw.githubusercontent.com/nobrainr/morphism/master/images/inferred-field-type.png)
 
 When using an [`ActionFunction`](https://morphism.now.sh/modules/morphism#actionfunction) the input type is also inferred to enforce your transformations
 
-![typed action function](https://raw.githubusercontent.com/nobrainr/morphism/fix/update-documentation/images/ts-action-function.png)
+![typed action function](https://raw.githubusercontent.com/nobrainr/morphism/master/images/ts-action-function.png)
 
 See below the different options you have for the schema.
 
@@ -228,12 +230,14 @@ A schema is an object-preserving map from one data structure to another.
 
 The keys of the schema match the desired destination structure. Each value corresponds to an Action applied by Morphism when iterating over the input data.
 
-You can use **4 kind of values** in your schema:
+#### Schema actions
 
-- [`ActionString`](https://morphism.now.sh/modules/morphism#actionstring): A string that allows to perform a projection from a property
-- [`ActionSelector`](https://morphism.now.sh/modules/morphism#actionselector): An Object that allows to perform a function over a source property's value
-- [`ActionFunction`](https://morphism.now.sh/modules/morphism#actionfunction): A Function that allows to perform a function over source property
-- [`ActionAggregator`](https://morphism.now.sh/modules/morphism#actionaggregator): An Array of Strings that allows to perform a function over source property
+You can use **4 kind of values** for the keys of your schema:
+
+- [`ActionString`](https://morphism.now.sh/modules/_types_#actionstring): A string that allows to perform a projection from a property
+- [`ActionSelector`](https://morphism.now.sh/interfaces/_types_.actionselector): An Object that allows to perform a function over a source property's value
+- [`ActionFunction`](https://morphism.now.sh/interfaces/_types_.actionfunction): A Function that allows to perform a function over source property
+- [`ActionAggregator`](https://morphism.now.sh/modules/_types_#actionaggregator): An Array of Strings that allows to perform a function over source property
 
 #### Schema Example
 
@@ -644,7 +648,7 @@ Morphism.mappers;
 
 MIT © [Yann Renaudin][twitter-account]
 
-[twitter-account]: https://twitter.com/renaudin_yann
+[twitter-account]: https://twitter.com/YannRenaudin
 [npm-image]: https://badge.fury.io/js/morphism.svg?style=flat-square
 [npm-url]: https://npmjs.org/package/morphism
 [deps-url]: https://www.npmjs.com/package/morphism?activeTab=dependencies
