@@ -60,10 +60,7 @@ export interface SchemaOptions<Target = any> {
  * @param {StrictSchema} schema
  * @param {SchemaOptions<Target>} [options]
  */
-export function createSchema<Target = any, Source = any>(
-  schema: StrictSchema<Target, Source>,
-  options?: SchemaOptions<Target>
-) {
+export function createSchema<Target = any, Source = any>(schema: StrictSchema<Target, Source>, options?: SchemaOptions<Target>) {
   if (options && !isEmptyObject(options)) (schema as any)[SCHEMA_OPTIONS_SYMBOL] = options;
   return schema;
 }
@@ -198,9 +195,7 @@ export class MophismSchemaTree<Target, Source> {
           result = action.fn.call(undefined, value, object, items, objectToCompute);
         } catch (e) {
           e.message = `Unable to set target property [${targetProperty}].
-                                        \n An error occured when applying [${action.fn.name}] on property [${
-            action.path
-          }]
+                                        \n An error occured when applying [${action.fn.name}] on property [${action.path}]
                                         \n Internal error: ${e.message}`;
           throw e;
         }
