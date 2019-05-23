@@ -1,11 +1,4 @@
-import Morphism, {
-  StrictSchema,
-  morphism,
-  Schema,
-  createSchema,
-  SchemaOptions,
-  SCHEMA_OPTIONS_SYMBOL
-} from './morphism';
+import Morphism, { StrictSchema, morphism, Schema, createSchema, SchemaOptions, SCHEMA_OPTIONS_SYMBOL } from './morphism';
 import { User, MockData } from './utils-test';
 import { ActionSelector, ActionAggregator } from './types';
 
@@ -316,8 +309,7 @@ describe('Morphism', () => {
       it('should be resilient when doing nesting mapping and using destructuration on array', function() {
         let nestedSchema = {
           target: 'source',
-          nestedTargets: ({ nestedSources }: any) =>
-            Morphism({ nestedTarget: ({ nestedSource }: any) => nestedSource }, nestedSources)
+          nestedTargets: ({ nestedSources }: any) => Morphism({ nestedTarget: ({ nestedSource }: any) => nestedSource }, nestedSources)
         };
         let schema = {
           complexTarget: ({ complexSource }: any) => Morphism(nestedSchema, complexSource)
@@ -359,7 +351,7 @@ describe('Morphism', () => {
         interface Source {
           s1: string;
         }
-        const options: SchemaOptions = { undefinedValues: { strip: true } };
+        const options: SchemaOptions = { class: { automapping: true }, undefinedValues: { strip: true } };
         const schema = createSchema<Target, Source>({ keyA: 's1' }, options);
         const res = morphism(schema, { s1: 'value' });
 

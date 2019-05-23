@@ -3,7 +3,7 @@
  */
 import { zipObject, isUndefined, get, set, SCHEMA_OPTIONS_SYMBOL } from './helpers';
 import { Schema, StrictSchema, Constructable, SourceFromSchema, Mapper, DestinationFromSchema } from './types';
-import { MophismSchemaTree, parseSchema, createSchema, SchemaOptions } from './MorphismTree';
+import { MophismSchemaTree, createSchema, SchemaOptions } from './MorphismTree';
 import { MorphismRegistry, IMorphismRegistry } from './MorphismRegistry';
 import { decorator } from './MorphismDecorator';
 
@@ -46,7 +46,7 @@ function transformValuesFromObject<Source, Target>(
     const finalValue = undefinedValueCheck(get(finalObject, chunk.targetPropertyPath), chunk.preparedAction);
     if (finalValue === undefined) {
       // strip undefined values
-      if (options.undefinedValues && options.undefinedValues.strip) {
+      if (options && options.undefinedValues && options.undefinedValues.strip) {
         if (options.undefinedValues.default) {
           set(finalObject, chunk.targetPropertyPath, options.undefinedValues.default(finalObject, chunk.targetPropertyPath));
         }
@@ -63,7 +63,7 @@ function transformValuesFromObject<Source, Target>(
 }
 
 function transformItems<T, TSchema extends Schema<T | {}>>(schema: TSchema, type?: Constructable<T>) {
-  const tree = parseSchema(schema);
+  const tree = new MophismSchemaTree(schema);
 
   function mapper(source: any) {
     if (!source) {

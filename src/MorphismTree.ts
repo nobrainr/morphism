@@ -48,6 +48,7 @@ type AddNode<Target, Source> = Overwrite<
   }
 >;
 export interface SchemaOptions<Target = any> {
+  class?: { automapping: boolean };
   undefinedValues?: {
     strip: boolean;
     default?: (target: Target, propertyPath: string) => any;
@@ -65,55 +66,57 @@ export function createSchema<Target = any, Source = any>(schema: StrictSchema<Ta
   return schema;
 }
 
-export function parseSchema(schema: Schema | StrictSchema | string | number) {
-  const options: SchemaOptions = (schema as any)[SCHEMA_OPTIONS_SYMBOL];
-  const tree = new MophismSchemaTree(options);
-  seedTreeSchema(tree, schema);
-  return tree;
-}
-
-function seedTreeSchema<Target, Source>(
-  tree: MophismSchemaTree<Target, Source>,
-  partialSchema: Partial<Schema | StrictSchema> | string | number,
-  actionKey?: string,
-  parentKeyPath?: string
-): void {
-  if (isValidAction(partialSchema) && actionKey) {
-    tree.add({ propertyName: actionKey, action: partialSchema as Actions<Target, Source> }, parentKeyPath);
-    parentKeyPath = parentKeyPath ? `${parentKeyPath}.${actionKey}` : actionKey;
-  } else {
-    if (actionKey) {
-      // check if actionKey exists to verify if not root node
-      tree.add({ propertyName: actionKey, action: null }, parentKeyPath);
-      parentKeyPath = parentKeyPath ? `${parentKeyPath}.${actionKey}` : actionKey;
-    }
-
-    if (Array.isArray(partialSchema)) {
-      partialSchema.forEach((subSchema, index) => {
-        seedTreeSchema(tree, subSchema, index.toString(), parentKeyPath);
-      });
-    } else if (isObject(partialSchema)) {
-      Object.keys(partialSchema).forEach(key => {
-        seedTreeSchema(tree, (partialSchema as any)[key], key, parentKeyPath);
-      });
-    }
-  }
+export function getSchemaOptions(schema: Schema | StrictSchema): SchemaOptions | undefined {
+  return (schema as any)[SCHEMA_OPTIONS_SYMBOL];
 }
 
 export class MophismSchemaTree<Target, Source> {
-  root: SchemaNode<Target, Source>;
-  schemaOptions: SchemaOptions = { undefinedValues: { strip: false } };
+  private defaultSchemaOptions: SchemaOptions<Target> = { class: { automapping: true }, undefinedValues: { strip: false } };
 
-  constructor(options?: SchemaOptions) {
-    if (options) {
-      this.schemaOptions = { ...this.schemaOptions, ...options };
-    }
+  root: SchemaNode<Target, Source>;
+  schema: Schema | StrictSchema;
+
+  constructor(schema: Schema | StrictSchema) {
+    this.schema = schema;
+    (this.schema as any)[SCHEMA_OPTIONS_SYMBOL] = { ...this.defaultSchemaOptions, ...this.schemaOptions };
 
     this.root = {
       data: { targetPropertyPath: '', propertyName: 'MorphismTreeRoot', action: null, kind: NodeKind.Root },
       parent: null,
       children: []
     };
+    this.parseSchema(schema);
+  }
+
+  get schemaOptions(): SchemaOptions<Target> {
+    return (this.schema as any)[SCHEMA_OPTIONS_SYMBOL];
+  }
+
+  static getSchemaOptions(schema: Schema | StrictSchema) {
+    return (schema as any)[SCHEMA_OPTIONS_SYMBOL];
+  }
+
+  private parseSchema(partialSchema: Partial<Schema | StrictSchema> | string | number, actionKey?: string, parentKeyPath?: string): void {
+    if (isValidAction(partialSchema) && actionKey) {
+      this.add({ propertyName: actionKey, action: partialSchema as Actions<Target, Source> }, parentKeyPath);
+      parentKeyPath = parentKeyPath ? `${parentKeyPath}.${actionKey}` : actionKey;
+    } else {
+      if (actionKey) {
+        // check if actionKey exists to verify if not root node
+        this.add({ propertyName: actionKey, action: null }, parentKeyPath);
+        parentKeyPath = parentKeyPath ? `${parentKeyPath}.${actionKey}` : actionKey;
+      }
+
+      if (Array.isArray(partialSchema)) {
+        partialSchema.forEach((subSchema, index) => {
+          this.parseSchema(subSchema, index.toString(), parentKeyPath);
+        });
+      } else if (isObject(partialSchema)) {
+        Object.keys(partialSchema).forEach(key => {
+          this.parseSchema((partialSchema as any)[key], key, parentKeyPath);
+        });
+      }
+    }
   }
 
   *traverseBFS() {
