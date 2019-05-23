@@ -21,7 +21,7 @@ function transformValuesFromObject<Source, Target>(
   items: Source[],
   objectToCompute: Target
 ) {
-  const options = tree.getSchemaOptions();
+  const options = tree.schemaOptions;
   const transformChunks = [];
 
   for (const node of tree.traverseBFS()) {

@@ -164,10 +164,6 @@ export class MophismSchemaTree<Target, Source> {
     }
   }
 
-  getSchemaOptions() {
-    return this.schemaOptions;
-  }
-
   getActionKind(action: Actions<Target, Source> | null) {
     if (isActionString(action)) return NodeKind.ActionString;
     if (isFunction(action)) return NodeKind.ActionFunction;
