@@ -1,5 +1,6 @@
 import Morphism, { toClassObject, morph, morphism } from './morphism';
 import { User } from './utils-test';
+import { createSchema } from './MorphismTree';
 
 describe('Class Objects', () => {
   describe('Class Type Mapping', function() {
@@ -143,6 +144,21 @@ describe('Class Objects', () => {
 
       let result = Morphism.map(User, mock);
       expect(result.type).toEqual('User');
+    });
+
+    it('should automatically map class fields when source fields match the target', () => {
+      class Target {
+        a: string;
+        b: number;
+        c: string;
+      }
+
+      const source = { a: 'auto', b: 1, c: 'normal' };
+
+      const schema = { c: 'c' };
+      const result = morphism(schema, source, Target);
+
+      expect(result).toEqual(source);
     });
   });
   describe('Projection', () => {
