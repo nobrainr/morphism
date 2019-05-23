@@ -50,7 +50,7 @@ type AddNode<Target, Source> = Overwrite<
 export interface SchemaOptions<Target = any> {
   undefinedValues?: {
     strip: boolean;
-    default?(target: Target, propertyPath: string): any;
+    default?: (target: Target, propertyPath: string) => any;
   };
 }
 
