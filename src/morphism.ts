@@ -94,7 +94,7 @@ function transformItems<T, TSchema extends Schema<T | {}>>(schema: TSchema, type
   return mapper;
 }
 
-function getSchemaForType<T>(type: Constructable<T>, baseSchema: Schema<T>): Schema<T> {
+function getSchemaForClass<T>(type: Constructable<T>, baseSchema: Schema<T>): Schema<T> {
   let typeFields = Object.keys(new type());
   let defaultSchema = zipObject(typeFields, typeFields);
   let finalSchema = Object.assign(defaultSchema, baseSchema);
@@ -162,7 +162,7 @@ function morphism<Target, Source, TSchema extends Schema<Target, Source>>(
     }
     case 3: {
       if (type) {
-        const finalSchema = getSchemaForType(type, schema);
+        const finalSchema = getSchemaForClass(type, schema);
         if (items !== null) return transformItems(finalSchema, type)(items); // TODO: deprecate this option morphism(schema,null,Type) in favor of createSchema({},options={class: Type})
         return transformItems(finalSchema, type);
       } else {
