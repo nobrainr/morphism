@@ -1,3 +1,5 @@
+import { SCHEMA_OPTIONS_SYMBOL, SchemaOptions } from './morphism';
+
 /**
  * A structure-preserving object from a source data towards a target data.
  *
@@ -37,7 +39,7 @@ export type StrictSchema<Target = any, Source = any> = {
     | ActionAggregator<Source>
     | ActionSelector<Source, Target[destinationProperty]>
     | StrictSchema<Target[destinationProperty], Source>
-};
+} & { [SCHEMA_OPTIONS_SYMBOL]?: SchemaOptions<Target> };
 export type Schema<Target = any, Source = any> = {
   /** `destinationProperty` is the name of the property of the target object you want to produce */
   [destinationProperty in keyof Target]?:
@@ -46,7 +48,7 @@ export type Schema<Target = any, Source = any> = {
     | ActionAggregator<Source>
     | ActionSelector<Source, Target[destinationProperty]>
     | Schema<Target[destinationProperty], Source>
-};
+} & { [SCHEMA_OPTIONS_SYMBOL]?: SchemaOptions<Target | any> };
 
 export type Actions<Target, Source> = ActionFunction<Target, Source> | ActionAggregator | ActionString<Target> | ActionSelector<Source>;
 

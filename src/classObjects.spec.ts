@@ -1,5 +1,6 @@
-import Morphism, { toClassObject, morph, morphism } from './morphism';
+import Morphism, { toClassObject, morph, morphism, SCHEMA_OPTIONS_SYMBOL, Schema } from './morphism';
 import { User } from './utils-test';
+import { createSchema } from './MorphismTree';
 
 describe('Class Objects', () => {
   describe('Class Type Mapping', function() {
@@ -143,6 +144,52 @@ describe('Class Objects', () => {
 
       let result = Morphism.map(User, mock);
       expect(result.type).toEqual('User');
+    });
+
+    it('should automatically map class fields when source fields match the target', () => {
+      class Target {
+        a: string;
+        b: number;
+        c: string;
+      }
+
+      const source = { a: 'auto', b: 1, c: 'normal' };
+
+      const schema = { c: 'c' };
+      const result = morphism(schema, source, Target);
+
+      expect(result).toEqual(source);
+    });
+
+    it('should not automatically map class fields when automapping is turned off', () => {
+      class Target {
+        a: string;
+        b: number;
+        c: string;
+      }
+
+      const source = { a: 'auto', b: 1, c: 'normal' };
+
+      const schema: Schema = { c: 'c', [SCHEMA_OPTIONS_SYMBOL]: { class: { automapping: false } } };
+      const result = morphism(schema, source, Target);
+
+      expect(result).toEqual({ c: 'normal' });
+    });
+
+    it('(Registry API) should not automatically map class fields when automapping is turned off', () => {
+      class Target {
+        a: string;
+        b: number;
+        c: string;
+      }
+
+      const source = { a: 'auto', b: 1, c: 'normal' };
+
+      const schema = createSchema({ c: 'c' }, { class: { automapping: false } });
+      Morphism.register(Target, schema);
+      const result = Morphism.map(Target, source);
+
+      expect(result).toEqual({ c: 'normal' });
     });
   });
   describe('Projection', () => {

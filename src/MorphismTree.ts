@@ -48,9 +48,10 @@ type AddNode<Target, Source> = Overwrite<
   }
 >;
 export interface SchemaOptions<Target = any> {
+  class?: { automapping: boolean };
   undefinedValues?: {
     strip: boolean;
-    default?(target: Target, propertyPath: string): any;
+    default?: (target: Target, propertyPath: string) => any;
   };
 }
 
@@ -60,63 +61,59 @@ export interface SchemaOptions<Target = any> {
  * @param {StrictSchema} schema
  * @param {SchemaOptions<Target>} [options]
  */
-export function createSchema<Target = any, Source = any>(
-  schema: StrictSchema<Target, Source>,
-  options?: SchemaOptions<Target>
-) {
+export function createSchema<Target = any, Source = any>(schema: StrictSchema<Target, Source>, options?: SchemaOptions<Target>) {
   if (options && !isEmptyObject(options)) (schema as any)[SCHEMA_OPTIONS_SYMBOL] = options;
   return schema;
 }
 
-export function parseSchema(schema: Schema | StrictSchema | string | number) {
-  const options: SchemaOptions = (schema as any)[SCHEMA_OPTIONS_SYMBOL];
-  const tree = new MophismSchemaTree(options);
-  seedTreeSchema(tree, schema);
-  return tree;
-}
+export class MorphismSchemaTree<Target, Source> {
+  schemaOptions: SchemaOptions<Target>;
 
-function seedTreeSchema<Target, Source>(
-  tree: MophismSchemaTree<Target, Source>,
-  partialSchema: Partial<Schema | StrictSchema> | string | number,
-  actionKey?: string,
-  parentKeyPath?: string
-): void {
-  if (isValidAction(partialSchema) && actionKey) {
-    tree.add({ propertyName: actionKey, action: partialSchema as Actions<Target, Source> }, parentKeyPath);
-    parentKeyPath = parentKeyPath ? `${parentKeyPath}.${actionKey}` : actionKey;
-  } else {
-    if (actionKey) {
-      // check if actionKey exists to verify if not root node
-      tree.add({ propertyName: actionKey, action: null }, parentKeyPath);
-      parentKeyPath = parentKeyPath ? `${parentKeyPath}.${actionKey}` : actionKey;
-    }
-
-    if (Array.isArray(partialSchema)) {
-      partialSchema.forEach((subSchema, index) => {
-        seedTreeSchema(tree, subSchema, index.toString(), parentKeyPath);
-      });
-    } else if (isObject(partialSchema)) {
-      Object.keys(partialSchema).forEach(key => {
-        seedTreeSchema(tree, (partialSchema as any)[key], key, parentKeyPath);
-      });
-    }
-  }
-}
-
-export class MophismSchemaTree<Target, Source> {
   root: SchemaNode<Target, Source>;
-  schemaOptions: SchemaOptions = { undefinedValues: { strip: false } };
+  schema: Schema | StrictSchema | null;
 
-  constructor(options?: SchemaOptions) {
-    if (options) {
-      this.schemaOptions = { ...this.schemaOptions, ...options };
-    }
+  constructor(schema: Schema<Target, Source> | StrictSchema<Target, Source> | null) {
+    this.schema = schema;
+    this.schemaOptions = MorphismSchemaTree.getSchemaOptions(this.schema);
 
     this.root = {
       data: { targetPropertyPath: '', propertyName: 'MorphismTreeRoot', action: null, kind: NodeKind.Root },
       parent: null,
       children: []
     };
+    if (schema) {
+      this.parseSchema(schema);
+    }
+  }
+
+  static getSchemaOptions<Target>(schema: Schema | StrictSchema | null): SchemaOptions<Target> {
+    const defaultSchemaOptions: SchemaOptions<Target> = { class: { automapping: true }, undefinedValues: { strip: false } };
+    const options = schema ? (schema as any)[SCHEMA_OPTIONS_SYMBOL] : undefined;
+
+    return { ...defaultSchemaOptions, ...options };
+  }
+
+  private parseSchema(partialSchema: Partial<Schema | StrictSchema> | string | number, actionKey?: string, parentKeyPath?: string): void {
+    if (isValidAction(partialSchema) && actionKey) {
+      this.add({ propertyName: actionKey, action: partialSchema as Actions<Target, Source> }, parentKeyPath);
+      parentKeyPath = parentKeyPath ? `${parentKeyPath}.${actionKey}` : actionKey;
+    } else {
+      if (actionKey) {
+        // check if actionKey exists to verify if not root node
+        this.add({ propertyName: actionKey, action: null }, parentKeyPath);
+        parentKeyPath = parentKeyPath ? `${parentKeyPath}.${actionKey}` : actionKey;
+      }
+
+      if (Array.isArray(partialSchema)) {
+        partialSchema.forEach((subSchema, index) => {
+          this.parseSchema(subSchema, index.toString(), parentKeyPath);
+        });
+      } else if (isObject(partialSchema)) {
+        Object.keys(partialSchema).forEach(key => {
+          this.parseSchema((partialSchema as any)[key], key, parentKeyPath);
+        });
+      }
+    }
   }
 
   *traverseBFS() {
@@ -164,10 +161,6 @@ export class MophismSchemaTree<Target, Source> {
     }
   }
 
-  getSchemaOptions() {
-    return this.schemaOptions;
-  }
-
   getActionKind(action: Actions<Target, Source> | null) {
     if (isActionString(action)) return NodeKind.ActionString;
     if (isFunction(action)) return NodeKind.ActionFunction;
@@ -202,9 +195,7 @@ export class MophismSchemaTree<Target, Source> {
           result = action.fn.call(undefined, value, object, items, objectToCompute);
         } catch (e) {
           e.message = `Unable to set target property [${targetProperty}].
-                                        \n An error occured when applying [${action.fn.name}] on property [${
-            action.path
-          }]
+                                        \n An error occured when applying [${action.fn.name}] on property [${action.path}]
                                         \n Internal error: ${e.message}`;
           throw e;
         }

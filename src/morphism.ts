@@ -3,7 +3,7 @@
  */
 import { zipObject, isUndefined, get, set, SCHEMA_OPTIONS_SYMBOL } from './helpers';
 import { Schema, StrictSchema, Constructable, SourceFromSchema, Mapper, DestinationFromSchema } from './types';
-import { MophismSchemaTree, parseSchema, createSchema, SchemaOptions } from './MorphismTree';
+import { MorphismSchemaTree, createSchema, SchemaOptions } from './MorphismTree';
 import { MorphismRegistry, IMorphismRegistry } from './MorphismRegistry';
 import { decorator } from './MorphismDecorator';
 
@@ -17,11 +17,11 @@ import { decorator } from './MorphismDecorator';
  */
 function transformValuesFromObject<Source, Target>(
   object: Source,
-  tree: MophismSchemaTree<Target, Source>,
+  tree: MorphismSchemaTree<Target, Source>,
   items: Source[],
   objectToCompute: Target
 ) {
-  const options = tree.getSchemaOptions();
+  const options = tree.schemaOptions;
   const transformChunks = [];
 
   for (const node of tree.traverseBFS()) {
@@ -46,7 +46,7 @@ function transformValuesFromObject<Source, Target>(
     const finalValue = undefinedValueCheck(get(finalObject, chunk.targetPropertyPath), chunk.preparedAction);
     if (finalValue === undefined) {
       // strip undefined values
-      if (options.undefinedValues && options.undefinedValues.strip) {
+      if (options && options.undefinedValues && options.undefinedValues.strip) {
         if (options.undefinedValues.default) {
           set(finalObject, chunk.targetPropertyPath, options.undefinedValues.default(finalObject, chunk.targetPropertyPath));
         }
@@ -63,7 +63,14 @@ function transformValuesFromObject<Source, Target>(
 }
 
 function transformItems<T, TSchema extends Schema<T | {}>>(schema: TSchema, type?: Constructable<T>) {
-  const tree = parseSchema(schema);
+  const options = MorphismSchemaTree.getSchemaOptions<T>(schema);
+  let tree: MorphismSchemaTree<any, any>;
+  if (type && options.class && options.class.automapping) {
+    const finalSchema = getSchemaForClass(type, schema);
+    tree = new MorphismSchemaTree(finalSchema);
+  } else {
+    tree = new MorphismSchemaTree(schema);
+  }
 
   function mapper(source: any) {
     if (!source) {
@@ -94,7 +101,7 @@ function transformItems<T, TSchema extends Schema<T | {}>>(schema: TSchema, type
   return mapper;
 }
 
-function getSchemaForType<T>(type: Constructable<T>, baseSchema: Schema<T>): Schema<T> {
+function getSchemaForClass<T>(type: Constructable<T>, baseSchema: Schema<T>): Schema<T> {
   let typeFields = Object.keys(new type());
   let defaultSchema = zipObject(typeFields, typeFields);
   let finalSchema = Object.assign(defaultSchema, baseSchema);
@@ -133,12 +140,7 @@ function morphism<
   Source extends SourceFromSchema<TSchema> = SourceFromSchema<TSchema>
 >(schema: TSchema, data: Source): DestinationFromSchema<TSchema>;
 
-function morphism<
-  TSchema extends Schema<DestinationFromSchema<TSchema>, SourceFromSchema<TSchema>> = Schema<
-    DestinationFromSchema<Schema>,
-    SourceFromSchema<Schema>
-  >
->(schema: TSchema): Mapper<TSchema>; // morphism({}) => mapper(S) => T
+function morphism<TSchema = Schema<DestinationFromSchema<Schema>, SourceFromSchema<Schema>>>(schema: TSchema): Mapper<TSchema>; // morphism({}) => mapper(S) => T
 
 function morphism<TSchema extends Schema, TDestination>(
   schema: TSchema,
@@ -162,9 +164,8 @@ function morphism<Target, Source, TSchema extends Schema<Target, Source>>(
     }
     case 3: {
       if (type) {
-        const finalSchema = getSchemaForType(type, schema);
-        if (items !== null) return transformItems(finalSchema, type)(items); // TODO: deprecate this option morphism(schema,null,Type) in favor of createSchema({},options={class: Type})
-        return transformItems(finalSchema, type);
+        if (items !== null) return transformItems(schema, type)(items); // TODO: deprecate this option morphism(schema,null,Type) in favor of createSchema({},options={class: Type})
+        return transformItems(schema, type);
       } else {
         throw new Error(`When using morphism(schema, items, type), type should be defined but value received is ${type}`);
       }
