@@ -66,10 +66,6 @@ export function createSchema<Target = any, Source = any>(schema: StrictSchema<Ta
   return schema;
 }
 
-export function getSchemaOptions(schema: Schema | StrictSchema): SchemaOptions | undefined {
-  return (schema as any)[SCHEMA_OPTIONS_SYMBOL];
-}
-
 export class MorphismSchemaTree<Target, Source> {
   schemaOptions: SchemaOptions<Target>;
 
