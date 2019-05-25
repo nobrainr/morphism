@@ -70,30 +70,31 @@ export function getSchemaOptions(schema: Schema | StrictSchema): SchemaOptions |
   return (schema as any)[SCHEMA_OPTIONS_SYMBOL];
 }
 
-export class MophismSchemaTree<Target, Source> {
-  private defaultSchemaOptions: SchemaOptions<Target> = { class: { automapping: true }, undefinedValues: { strip: false } };
+export class MorphismSchemaTree<Target, Source> {
+  schemaOptions: SchemaOptions<Target>;
 
   root: SchemaNode<Target, Source>;
-  schema: Schema | StrictSchema;
+  schema: Schema | StrictSchema | null;
 
-  constructor(schema: Schema | StrictSchema) {
+  constructor(schema: Schema<Target, Source> | StrictSchema<Target, Source> | null) {
     this.schema = schema;
-    (this.schema as any)[SCHEMA_OPTIONS_SYMBOL] = { ...this.defaultSchemaOptions, ...this.schemaOptions };
+    this.schemaOptions = MorphismSchemaTree.getSchemaOptions(this.schema);
 
     this.root = {
       data: { targetPropertyPath: '', propertyName: 'MorphismTreeRoot', action: null, kind: NodeKind.Root },
       parent: null,
       children: []
     };
-    this.parseSchema(schema);
+    if (schema) {
+      this.parseSchema(schema);
+    }
   }
 
-  get schemaOptions(): SchemaOptions<Target> {
-    return (this.schema as any)[SCHEMA_OPTIONS_SYMBOL];
-  }
+  static getSchemaOptions<Target>(schema: Schema | StrictSchema | null): SchemaOptions<Target> {
+    const defaultSchemaOptions: SchemaOptions<Target> = { class: { automapping: true }, undefinedValues: { strip: false } };
+    const options = schema ? (schema as any)[SCHEMA_OPTIONS_SYMBOL] : undefined;
 
-  static getSchemaOptions(schema: Schema | StrictSchema) {
-    return (schema as any)[SCHEMA_OPTIONS_SYMBOL];
+    return { ...defaultSchemaOptions, ...options };
   }
 
   private parseSchema(partialSchema: Partial<Schema | StrictSchema> | string | number, actionKey?: string, parentKeyPath?: string): void {

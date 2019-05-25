@@ -1,4 +1,4 @@
-import { MophismSchemaTree, SchemaNode, NodeKind } from './MorphismTree';
+import { MorphismSchemaTree, SchemaNode, NodeKind } from './MorphismTree';
 import Morphism, { StrictSchema } from './morphism';
 
 describe('Tree', () => {
@@ -7,7 +7,7 @@ describe('Tree', () => {
       interface Target {
         keyA: string;
       }
-      const tree = new MophismSchemaTree<Target, {}>({});
+      const tree = new MorphismSchemaTree<Target, {}>({});
       tree.add({ action: 'keyA', propertyName: 'keyA' });
 
       const root: SchemaNode<Target, {}> = {
@@ -36,7 +36,7 @@ describe('Tree', () => {
       interface Target {
         keyA: string;
       }
-      const tree = new MophismSchemaTree<Target, {}>({});
+      const tree = new MorphismSchemaTree<Target, {}>({});
       const parentTargetPropertyPath = 'keyA';
       tree.add({ action: null, propertyName: 'keyA', targetPropertyPath: parentTargetPropertyPath });
       tree.add({ action: 'keyA', propertyName: 'keyA1' }, parentTargetPropertyPath);
@@ -74,7 +74,7 @@ describe('Tree', () => {
         keyA: string;
       }
       const schema: StrictSchema<Target> = { keyA: 'test' };
-      const tree = new MophismSchemaTree(schema);
+      const tree = new MorphismSchemaTree(schema);
 
       const expected = {
         propertyName: 'keyA',
@@ -110,7 +110,7 @@ describe('Tree', () => {
         keyA: { keyA1: mockAction },
         keyB: { keyB1: { keyB11: mockAction } }
       };
-      const tree = new MophismSchemaTree(schema);
+      const tree = new MorphismSchemaTree(schema);
 
       const expected = [
         {
@@ -174,7 +174,7 @@ describe('Tree', () => {
       const schema: StrictSchema<Target> = {
         keyA: [{ keyA1: mockAction, keyA2: mockAction }, { keyB1: mockAction, keyB2: mockAction }]
       };
-      const tree = new MophismSchemaTree(schema);
+      const tree = new MorphismSchemaTree(schema);
 
       const expected = [
         {

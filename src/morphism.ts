@@ -3,7 +3,7 @@
  */
 import { zipObject, isUndefined, get, set, SCHEMA_OPTIONS_SYMBOL } from './helpers';
 import { Schema, StrictSchema, Constructable, SourceFromSchema, Mapper, DestinationFromSchema } from './types';
-import { MophismSchemaTree, createSchema, SchemaOptions } from './MorphismTree';
+import { MorphismSchemaTree, createSchema, SchemaOptions } from './MorphismTree';
 import { MorphismRegistry, IMorphismRegistry } from './MorphismRegistry';
 import { decorator } from './MorphismDecorator';
 
@@ -17,7 +17,7 @@ import { decorator } from './MorphismDecorator';
  */
 function transformValuesFromObject<Source, Target>(
   object: Source,
-  tree: MophismSchemaTree<Target, Source>,
+  tree: MorphismSchemaTree<Target, Source>,
   items: Source[],
   objectToCompute: Target
 ) {
@@ -63,7 +63,14 @@ function transformValuesFromObject<Source, Target>(
 }
 
 function transformItems<T, TSchema extends Schema<T | {}>>(schema: TSchema, type?: Constructable<T>) {
-  const tree = new MophismSchemaTree(schema);
+  const options = MorphismSchemaTree.getSchemaOptions<T>(schema);
+  let tree: MorphismSchemaTree<any, any>;
+  if (type && options.class && options.class.automapping) {
+    const finalSchema = getSchemaForClass(type, schema);
+    tree = new MorphismSchemaTree(finalSchema);
+  } else {
+    tree = new MorphismSchemaTree(schema);
+  }
 
   function mapper(source: any) {
     if (!source) {
@@ -133,12 +140,7 @@ function morphism<
   Source extends SourceFromSchema<TSchema> = SourceFromSchema<TSchema>
 >(schema: TSchema, data: Source): DestinationFromSchema<TSchema>;
 
-function morphism<
-  TSchema extends Schema<DestinationFromSchema<TSchema>, SourceFromSchema<TSchema>> = Schema<
-    DestinationFromSchema<Schema>,
-    SourceFromSchema<Schema>
-  >
->(schema: TSchema): Mapper<TSchema>; // morphism({}) => mapper(S) => T
+function morphism<TSchema = Schema<DestinationFromSchema<Schema>, SourceFromSchema<Schema>>>(schema: TSchema): Mapper<TSchema>; // morphism({}) => mapper(S) => T
 
 function morphism<TSchema extends Schema, TDestination>(
   schema: TSchema,
@@ -162,9 +164,8 @@ function morphism<Target, Source, TSchema extends Schema<Target, Source>>(
     }
     case 3: {
       if (type) {
-        const finalSchema = getSchemaForClass(type, schema);
-        if (items !== null) return transformItems(finalSchema, type)(items); // TODO: deprecate this option morphism(schema,null,Type) in favor of createSchema({},options={class: Type})
-        return transformItems(finalSchema, type);
+        if (items !== null) return transformItems(schema, type)(items); // TODO: deprecate this option morphism(schema,null,Type) in favor of createSchema({},options={class: Type})
+        return transformItems(schema, type);
       } else {
         throw new Error(`When using morphism(schema, items, type), type should be defined but value received is ${type}`);
       }
