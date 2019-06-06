@@ -48,7 +48,7 @@ export function isPromise(object: any) {
     // tslint:disable-next-line:triple-equals
     return Promise.resolve(object) == object;
   } else {
-    throw 'Promise not supported in your environment';
+    throw new Error('Promise not supported in your environment');
   }
 }
 export function get(object: any, path: string) {
