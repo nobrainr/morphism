@@ -135,3 +135,9 @@ export function isEmptyObject(obj: object) {
   }
   return true;
 }
+
+export function getSymbolName(symbol: Symbol): string {
+  const regExp = /\(([^)]+)\)/;
+  const names = regExp.exec(symbol.toString()) || [];
+  return names[1];
+}
