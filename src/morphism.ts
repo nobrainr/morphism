@@ -72,7 +72,7 @@ function transformItems<T, TSchema extends Schema<T | {}>>(schema: TSchema, type
     tree = new MorphismSchemaTree(schema);
   }
 
-  function mapper(source: any) {
+  const mapper: Mapper<TSchema> = (source: any) => {
     if (!source) {
       return source;
     }
@@ -96,7 +96,7 @@ function transformItems<T, TSchema extends Schema<T | {}>>(schema: TSchema, type
         return transformValuesFromObject(object, tree, [object], jsObject);
       }
     }
-  }
+  };
 
   return mapper;
 }

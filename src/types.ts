@@ -1,4 +1,5 @@
 import { SCHEMA_OPTIONS_SYMBOL, SchemaOptions } from './morphism';
+import { BasicTypes } from './validation/validators';
 
 /**
  * A structure-preserving object from a source data towards a target data.
@@ -159,7 +160,9 @@ export type ActionAggregator<T extends unknown = unknown> = T extends object ? (
  */
 export interface ActionSelector<Source = object, R = any> {
   path: ActionString<Source> | ActionAggregator<Source>;
-  fn: (fieldValue: any, object: Source, items: Source, objectToCompute: R) => R;
+  // | ((source: Source) => unknown);
+  fn?: (fieldValue: any, object: Source, items: Source, objectToCompute: R) => R;
+  type?: BasicTypes;
 }
 
 export interface Constructable<T> {
@@ -172,6 +175,6 @@ export type DestinationFromSchema<T> = T extends StrictSchema<infer U> | Schema<
 export type ResultItem<TSchema extends Schema> = DestinationFromSchema<TSchema>;
 
 export interface Mapper<TSchema extends Schema | StrictSchema, TResult = ResultItem<TSchema>> {
-  (data: SourceFromSchema<TSchema>[]): TResult[];
-  (data: SourceFromSchema<TSchema>): TResult;
+  (data?: SourceFromSchema<TSchema>[] | null): TResult[];
+  (data?: SourceFromSchema<TSchema> | null): TResult;
 }
