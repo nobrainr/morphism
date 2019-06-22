@@ -13,6 +13,8 @@ import {
   SCHEMA_OPTIONS_SYMBOL,
   isEmptyObject
 } from './helpers';
+import { parse, ValidationError, ERRORS, targetContainsErrors } from './validation/reporter';
+import { PropertyValidationError } from './validation/PropertyValidationError';
 
 export enum NodeKind {
   Root = 'Root',
@@ -185,19 +187,39 @@ export class MorphismSchemaTree<Target, Source> {
       // Action<Object>: a path and a function: [ destination : { path: 'source', fn:(fieldValue, items) }]
       return ({ object, items, objectToCompute }) => {
         let result;
-        try {
-          let value;
-          if (Array.isArray(action.path)) {
-            value = aggregator(action.path, object);
-          } else if (isString(action.path)) {
-            value = get(object, action.path);
+        if (Array.isArray(action.path)) {
+          result = aggregator(action.path, object);
+        } else if (isString(action.path)) {
+          result = get(object, action.path);
+        }
+
+        if (action.fn) {
+          try {
+            result = action.fn.call(undefined, result, object, items, objectToCompute);
+          } catch (e) {
+            e.message = `Unable to set target property [${targetProperty}].
+            \n An error occured when applying [${action.fn.name}] on property [${action.path}]
+            \n Internal error: ${e.message}`;
+            throw e;
           }
-          result = action.fn.call(undefined, value, object, items, objectToCompute);
-        } catch (e) {
-          e.message = `Unable to set target property [${targetProperty}].
-                                        \n An error occured when applying [${action.fn.name}] on property [${action.path}]
-                                        \n Internal error: ${e.message}`;
-          throw e;
+        }
+
+        if (action.type) {
+          try {
+            result = parse(result, action.type);
+          } catch (error) {
+            if (error instanceof PropertyValidationError) {
+              const validationError: ValidationError = { type: error.type, value: error.value, targetProperty };
+
+              if (targetContainsErrors(objectToCompute)) {
+                objectToCompute[ERRORS].push(validationError);
+              } else {
+                objectToCompute[ERRORS] = [validationError];
+              }
+            } else {
+              throw error;
+            }
+          }
         }
         return result;
       };
