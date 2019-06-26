@@ -65,12 +65,8 @@ export class MorphismRegistry implements IMorphismRegistry {
    *Creates an instance of MorphismRegistry.
    * @param {Map<any, any>} cache Cache implementation to store the mapping functions.
    */
-  constructor(cache?: Map<any, any> | WeakMap<any, any>) {
-    if (!cache) {
-      this._registry = { cache: new Map() };
-    } else {
-      this._registry = cache;
-    }
+  constructor() {
+    this._registry = { cache: new Map() };
   }
 
   /**
