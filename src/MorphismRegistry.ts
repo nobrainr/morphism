@@ -127,9 +127,7 @@ export class MorphismRegistry implements IMorphismRegistry {
     if (!schema) {
       throw new Error(`The schema must be an Object. Found ${schema}`);
     } else if (!this.exists(type)) {
-      throw new Error(
-        `The type ${type.name} is not registered. Register it using \`Mophism.register(${type.name}, schema)\``
-      );
+      throw new Error(`The type ${type.name} is not registered. Register it using \`Mophism.register(${type.name}, schema)\``);
     } else {
       let fn = morphism(schema, null, type);
       this._registry.cache.set(type, fn);
