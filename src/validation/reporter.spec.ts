@@ -40,54 +40,58 @@ describe('Reporter', () => {
       expect(errors[0]).toBe(message1);
       expect(errors[1]).toBe(message2);
     });
-    it('should report error on string undefined', () => {
-      interface S {
-        s1: string;
-      }
-      interface T {
-        t1: string;
-      }
 
-      const schema = createSchema<T, S>({ t1: { path: 's1', fn: val => val, type: string } });
-      const result = morphism(schema, JSON.parse('{}'));
-      const message = formatter({ targetProperty: 't1', value: undefined, type: string });
-      const errors = reporter(result);
+    describe('string', () => {
+      it('should report error on string undefined', () => {
+        interface S {
+          s1: string;
+        }
+        interface T {
+          t1: string;
+        }
 
-      expect(errors.length).toEqual(1);
-      expect(errors[0]).toBe(message);
+        const schema = createSchema<T, S>({ t1: { path: 's1', fn: val => val, type: string } });
+        const result = morphism(schema, JSON.parse('{}'));
+        const message = formatter({ targetProperty: 't1', value: undefined, type: string });
+        const errors = reporter(result);
+
+        expect(errors.length).toEqual(1);
+        expect(errors[0]).toBe(message);
+      });
     });
 
-    it('should report error on number undefined', () => {
-      interface S {
-        s1: string;
-      }
-      interface T {
-        t1: number;
-      }
+    describe('number', () => {
+      it('should report error on number undefined', () => {
+        interface S {
+          s1: string;
+        }
+        interface T {
+          t1: number;
+        }
 
-      const schema = createSchema<T, S>({ t1: { path: 's1', fn: val => val, type: number } });
-      const result = morphism(schema, JSON.parse('{}'));
-      const message = formatter({ targetProperty: 't1', value: undefined, type: number });
-      const errors = reporter(result);
+        const schema = createSchema<T, S>({ t1: { path: 's1', fn: val => val, type: number } });
+        const result = morphism(schema, JSON.parse('{}'));
+        const message = formatter({ targetProperty: 't1', value: undefined, type: number });
+        const errors = reporter(result);
 
-      expect(errors.length).toEqual(1);
-      expect(errors[0]).toBe(message);
-    });
+        expect(errors.length).toEqual(1);
+        expect(errors[0]).toBe(message);
+      });
+      it('should parse number from string', () => {
+        interface S {
+          s1: string;
+        }
+        interface T {
+          t1: number;
+        }
 
-    it('should parse number from string', () => {
-      interface S {
-        s1: string;
-      }
-      interface T {
-        t1: number;
-      }
+        const schema = createSchema<T, S>({ t1: { path: 's1', fn: val => val, type: number } });
+        const result = morphism(schema, JSON.parse('{ "s1": "1234" }'));
+        const errors = reporter(result);
 
-      const schema = createSchema<T, S>({ t1: { path: 's1', fn: val => val, type: number } });
-      const result = morphism(schema, JSON.parse('{ "s1": "1234" }'));
-      const errors = reporter(result);
-
-      expect(errors.length).toEqual(0);
-      expect(result).toEqual({ t1: 1234 });
+        expect(errors.length).toEqual(0);
+        expect(result).toEqual({ t1: 1234 });
+      });
     });
 
     describe('boolean', () => {
