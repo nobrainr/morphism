@@ -1,8 +1,6 @@
-import { getSymbolName } from '../helpers';
 import { StringValidator } from './validators';
 import { BooleanValidator } from './validators';
 import { NumberValidator } from './validators';
-import { ValuePropertyValidationError } from './PropertyValidationError';
 
 export const ERRORS = Symbol('errors');
 
