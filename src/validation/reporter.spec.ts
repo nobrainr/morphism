@@ -2,7 +2,6 @@ import { morphism, createSchema } from '../morphism';
 import { string, boolean } from './validators';
 import { number } from './validators';
 import { defaultFormatter, reporter } from './reporter';
-import { getSymbolName } from '../helpers';
 import { PropertyValidationError } from './PropertyValidationError';
 
 describe('Reporter', () => {

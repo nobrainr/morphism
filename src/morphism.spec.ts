@@ -263,6 +263,72 @@ describe('Morphism', () => {
   });
 
   describe('Schema', function() {
+    describe('Action Selector', () => {
+      it('should accept a selector action in deep nested schema property', () => {
+        interface Source {
+          keySource: string;
+          keySource1: string;
+        }
+        const sample: Source = {
+          keySource: 'value',
+          keySource1: 'value1'
+        };
+
+        interface Target {
+          keyA: {
+            keyA1: [
+              {
+                keyA11: string;
+                keyA12: number;
+              }
+            ];
+            keyA2: string;
+          };
+        }
+        const selector: ActionSelector<Source> = {
+          path: 'keySource',
+          fn: () => 'value-test'
+        };
+        const aggregator: ActionAggregator<Source> = ['keySource', 'keySource1'];
+        const schema: StrictSchema<Target, Source> = {
+          keyA: {
+            keyA1: [{ keyA11: aggregator, keyA12: selector }],
+            keyA2: 'keySource'
+          }
+        };
+
+        const target = morphism(schema, sample);
+
+        expect(target).toEqual({
+          keyA: {
+            keyA1: [
+              {
+                keyA11: {
+                  keySource: 'value',
+                  keySource1: 'value1'
+                },
+                keyA12: 'value-test'
+              }
+            ],
+            keyA2: 'value'
+          }
+        });
+      });
+      it('should compute function on data from specified path', function() {
+        let schema = {
+          state: {
+            path: 'address.state',
+            fn: (s: any) => s.toLowerCase()
+          }
+        };
+
+        let desiredResult = {
+          state: 'ny' // from NY to ny
+        };
+        let results = Morphism(schema, dataToCrunch);
+        expect(results[0]).toEqual(desiredResult);
+      });
+    });
     describe('Function Predicate', function() {
       it('should support es6 destructuring as function predicate', function() {
         let schema = {
@@ -494,21 +560,6 @@ describe('Morphism', () => {
       expect(results[0]).toEqual(desiredResult);
     });
 
-    it('should compute function on data from specified path', function() {
-      let schema = {
-        state: {
-          path: 'address.state',
-          fn: (s: any) => s.toLowerCase()
-        }
-      };
-
-      let desiredResult = {
-        state: 'ny' // from NY to ny
-      };
-      let results = Morphism(schema, dataToCrunch);
-      expect(results[0]).toEqual(desiredResult);
-    });
-
     it('should pass the object value to the function when no path is specified', function() {
       interface D {
         firstName: string;
@@ -581,57 +632,6 @@ describe('Morphism', () => {
       const target = morphism(schema, sample);
 
       expect(target).toEqual({ keyA: { keyA1: [{ keyA11: 'value', keyA12: 'value' }], keyA2: 'value' } });
-    });
-
-    it('should accept a selector action in deep nested schema property', () => {
-      interface Source {
-        keySource: string;
-        keySource1: string;
-      }
-      const sample: Source = {
-        keySource: 'value',
-        keySource1: 'value1'
-      };
-
-      interface Target {
-        keyA: {
-          keyA1: [
-            {
-              keyA11: string;
-              keyA12: number;
-            }
-          ];
-          keyA2: string;
-        };
-      }
-      const selector: ActionSelector<Source> = {
-        path: 'keySource',
-        fn: () => 'value-test'
-      };
-      const aggregator: ActionAggregator<Source> = ['keySource', 'keySource1'];
-      const schema: StrictSchema<Target, Source> = {
-        keyA: {
-          keyA1: [{ keyA11: aggregator, keyA12: selector }],
-          keyA2: 'keySource'
-        }
-      };
-
-      const target = morphism(schema, sample);
-
-      expect(target).toEqual({
-        keyA: {
-          keyA1: [
-            {
-              keyA11: {
-                keySource: 'value',
-                keySource1: 'value1'
-              },
-              keyA12: 'value-test'
-            }
-          ],
-          keyA2: 'value'
-        }
-      });
     });
   });
 });
