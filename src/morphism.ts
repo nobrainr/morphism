@@ -6,6 +6,7 @@ import { Schema, StrictSchema, Constructable, SourceFromSchema, Mapper, Destinat
 import { MorphismSchemaTree, createSchema, SchemaOptions } from './MorphismTree';
 import { MorphismRegistry, IMorphismRegistry } from './MorphismRegistry';
 import { decorator } from './MorphismDecorator';
+import { Reporter, reporter, Formatter } from './validation/reporter';
 
 /**
  * Low Level transformer function.
@@ -216,5 +217,5 @@ morphismMixin.mappers = morphismRegistry.mappers;
 
 const Morphism: typeof morphism & IMorphismRegistry = morphismMixin;
 
-export { morphism, createSchema, Schema, StrictSchema, SchemaOptions, Mapper, SCHEMA_OPTIONS_SYMBOL };
+export { morphism, createSchema, Schema, StrictSchema, SchemaOptions, Mapper, SCHEMA_OPTIONS_SYMBOL, Reporter, reporter, Formatter };
 export default Morphism;
