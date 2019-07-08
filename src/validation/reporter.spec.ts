@@ -1,8 +1,9 @@
 import { morphism, createSchema } from '../morphism';
 import { string, boolean } from './validators';
 import { number } from './validators';
-import { formatter, reporter } from './reporter';
+import { defaultFormatter, reporter } from './reporter';
 import { getSymbolName } from '../helpers';
+import { PropertyValidationError } from './PropertyValidationError';
 
 describe('Reporter', () => {
   describe('Formatter', () => {
@@ -10,9 +11,10 @@ describe('Reporter', () => {
       const targetProperty = 'targetProperty';
       const value = undefined;
       const type = string;
-      const message = formatter({ targetProperty, value, type });
+      const error = new PropertyValidationError({ type, value });
+      const message = defaultFormatter({ targetProperty, ...error });
       expect(message).toEqual(
-        `Invalid value ${value} supplied to : [⚠️ Schema With Type] at property ${targetProperty}. Expecting type ${getSymbolName(type)}`
+        `Invalid value ${value} supplied to : [⚠️ Schema With Type] at property ${targetProperty}. Expecting type ${error.type}`
       );
     });
   });
@@ -32,13 +34,18 @@ describe('Reporter', () => {
         t2: { path: 's2', fn: val => val, type: number }
       });
       const result = morphism(schema, JSON.parse('{}'));
-      const errors = reporter(result);
-      const message1 = formatter({ targetProperty: 't1', value: undefined, type: boolean });
-      const message2 = formatter({ targetProperty: 't2', value: undefined, type: number });
+      const errors = reporter.report(result);
+      const error1 = new PropertyValidationError({ type: boolean, value: undefined });
+      const error2 = new PropertyValidationError({ type: number, value: undefined });
 
-      expect(errors.length).toEqual(2);
-      expect(errors[0]).toBe(message1);
-      expect(errors[1]).toBe(message2);
+      const message1 = defaultFormatter({ targetProperty: 't1', ...error1 });
+      const message2 = defaultFormatter({ targetProperty: 't2', ...error2 });
+      expect(errors).not.toBeNull();
+      if (errors) {
+        expect(errors.length).toEqual(2);
+        expect(errors[0]).toBe(message1);
+        expect(errors[1]).toBe(message2);
+      }
     });
 
     describe('string', () => {
@@ -52,11 +59,14 @@ describe('Reporter', () => {
 
         const schema = createSchema<T, S>({ t1: { path: 's1', fn: val => val, type: string } });
         const result = morphism(schema, JSON.parse('{}'));
-        const message = formatter({ targetProperty: 't1', value: undefined, type: string });
-        const errors = reporter(result);
-
-        expect(errors.length).toEqual(1);
-        expect(errors[0]).toBe(message);
+        const error = new PropertyValidationError({ type: string, value: undefined });
+        const message = defaultFormatter({ targetProperty: 't1', ...error });
+        const errors = reporter.report(result);
+        expect(errors).not.toBeNull();
+        if (errors) {
+          expect(errors.length).toEqual(1);
+          expect(errors[0]).toBe(message);
+        }
       });
     });
 
@@ -71,11 +81,14 @@ describe('Reporter', () => {
 
         const schema = createSchema<T, S>({ t1: { path: 's1', fn: val => val, type: number } });
         const result = morphism(schema, JSON.parse('{}'));
-        const message = formatter({ targetProperty: 't1', value: undefined, type: number });
-        const errors = reporter(result);
-
-        expect(errors.length).toEqual(1);
-        expect(errors[0]).toBe(message);
+        const error = new PropertyValidationError({ type: number, value: undefined });
+        const message = defaultFormatter({ targetProperty: 't1', ...error });
+        const errors = reporter.report(result);
+        expect(errors).not.toBeNull();
+        if (errors) {
+          expect(errors.length).toEqual(1);
+          expect(errors[0]).toBe(message);
+        }
       });
       it('should parse number from string', () => {
         interface S {
@@ -87,9 +100,8 @@ describe('Reporter', () => {
 
         const schema = createSchema<T, S>({ t1: { path: 's1', fn: val => val, type: number } });
         const result = morphism(schema, JSON.parse('{ "s1": "1234" }'));
-        const errors = reporter(result);
-
-        expect(errors.length).toEqual(0);
+        const errors = reporter.report(result);
+        expect(errors).toBeNull();
         expect(result).toEqual({ t1: 1234 });
       });
     });
@@ -105,9 +117,8 @@ describe('Reporter', () => {
 
         const schema = createSchema<T, S>({ t1: { path: 's1', fn: val => val, type: boolean } });
         const result = morphism(schema, JSON.parse('{ "s1": true }'));
-        const errors = reporter(result);
-
-        expect(errors.length).toEqual(0);
+        const errors = reporter.report(result);
+        expect(errors).toBeNull();
         expect(result).toEqual({ t1: true });
       });
 
@@ -121,9 +132,8 @@ describe('Reporter', () => {
 
         const schema = createSchema<T, S>({ t1: { path: 's1', fn: val => val, type: boolean } });
         const result = morphism(schema, JSON.parse('{ "s1": "true" }'));
-        const errors = reporter(result);
-
-        expect(errors.length).toEqual(0);
+        const errors = reporter.report(result);
+        expect(errors).toBeNull();
         expect(result).toEqual({ t1: true });
       });
 
@@ -137,9 +147,8 @@ describe('Reporter', () => {
 
         const schema = createSchema<T, S>({ t1: { path: 's1', fn: val => val, type: boolean } });
         const result = morphism(schema, JSON.parse('{ "s1": "false" }'));
-        const errors = reporter(result);
-
-        expect(errors.length).toEqual(0);
+        const errors = reporter.report(result);
+        expect(errors).toBeNull();
         expect(result).toEqual({ t1: false });
       });
 
@@ -153,12 +162,17 @@ describe('Reporter', () => {
 
         const schema = createSchema<T, S>({ t1: { path: 's1', fn: val => val, type: boolean } });
         const result = morphism(schema, JSON.parse('{ "s1": "a value" }'));
-        const errors = reporter(result);
-        const message = formatter({ targetProperty: 't1', value: 'a value', type: boolean });
+        const error = new PropertyValidationError({ type: boolean, value: 'a value' });
+        const message = defaultFormatter({ targetProperty: 't1', ...error });
+
+        const errors = reporter.report(result);
 
         expect(result.t1).toEqual('a value');
-        expect(errors.length).toEqual(1);
-        expect(errors[0]).toBe(message);
+        expect(errors).not.toBeNull();
+        if (errors) {
+          expect(errors.length).toEqual(1);
+          expect(errors[0]).toBe(message);
+        }
       });
     });
   });
