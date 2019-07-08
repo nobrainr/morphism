@@ -49,10 +49,38 @@ type AddNode<Target, Source> = Overwrite<
     preparedAction?: (...args: any) => any;
   }
 >;
+
+/**
+ * Options attached to a `Schema` or `StrictSchema`
+ */
 export interface SchemaOptions<Target = any> {
-  class?: { automapping: boolean };
+  /**
+   * Specify how to handle ES6 Class
+   * @memberof SchemaOptions
+   */
+  class?: {
+    /**
+     * Specify wether ES6 Class fields should be automapped if names on source and target match
+     * @default true
+     * @type {boolean}
+     */
+    automapping: boolean;
+  };
+  /**
+   * Specify how to handle undefined values mapped during the transformations
+   * @memberof SchemaOptions
+   */
   undefinedValues?: {
+    /**
+     * Undefined values should be removed from the target
+     * @default false
+     * @type {boolean}
+     */
     strip: boolean;
+    /**
+     * Optional callback to be executed for every undefined property on the Target
+     * @function default
+     */
     default?: (target: Target, propertyPath: string) => any;
   };
 }

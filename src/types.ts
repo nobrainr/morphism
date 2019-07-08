@@ -174,6 +174,12 @@ export type DestinationFromSchema<T> = T extends StrictSchema<infer U> | Schema<
 
 export type ResultItem<TSchema extends Schema> = DestinationFromSchema<TSchema>;
 
+/**
+ * Function to map an Input source towards a Target. Input can be a single object, or a collection of objects
+ * @function
+ * @typeparam TSchema Schema
+ * @typeparam TResult Result Type
+ */
 export interface Mapper<TSchema extends Schema | StrictSchema, TResult = ResultItem<TSchema>> {
   (data?: SourceFromSchema<TSchema>[] | null): TResult[];
   (data?: SourceFromSchema<TSchema> | null): TResult;

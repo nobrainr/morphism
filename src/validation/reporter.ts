@@ -34,14 +34,31 @@ export function parse(value: any, type: symbol) {
   }
 }
 
+/**
+ * Formatting function called by the reporter for each errors found during the mapping towards a target.
+ *
+ * @interface Formatter
+ */
 export interface Formatter {
   (error: ValidationError): string;
 }
 
+/**
+ * Class to handle reporting of errors found on a target when executing a mapping.
+ *
+ * @class Reporter
+ */
 export class Reporter {
   constructor(private formatter: Formatter = defaultFormatter) {}
 
-  report(target: any) {
+  /**
+   * Report a list of messages corresponding to the errors found during the transformations. Returns null when no errors has been found.
+   *
+   * @param {*} target
+   * @returns {string[] | null}
+   * @memberof Reporter
+   */
+  report(target: any): string[] | null {
     if (!targetHasErrors(target)) return null;
 
     const errors = target[ERRORS];
@@ -49,4 +66,8 @@ export class Reporter {
   }
 }
 
+/**
+ * Singleton instance of a Reporter class.
+ *
+ */
 export const reporter = new Reporter();
