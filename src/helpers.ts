@@ -15,7 +15,7 @@ import { ActionSelector, ActionAggregator, ActionFunction } from './types';
 export const SCHEMA_OPTIONS_SYMBOL = Symbol('SchemaOptions');
 
 export function isActionSelector<S, R>(value: any): value is ActionSelector<S, R> {
-  return isObject(value) && value.hasOwnProperty('fn') && value.hasOwnProperty('path');
+  return isObject(value) && (value.hasOwnProperty('fn') || value.hasOwnProperty('path'));
 }
 export function isActionString(value: any): value is string {
   return isString(value);

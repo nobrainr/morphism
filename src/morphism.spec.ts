@@ -328,6 +328,17 @@ describe('Morphism', () => {
         let results = Morphism(schema, dataToCrunch);
         expect(results[0]).toEqual(desiredResult);
       });
+      it('should allow to use an action selector without a `fn` specified', () => {
+        interface Source {
+          s1: string;
+        }
+        interface Target {
+          t1: string;
+        }
+        const schema = createSchema<Target, Source>({ t1: { path: 's1' } });
+        const result = morphism(schema, { s1: 'value' });
+        expect(result.t1).toEqual('value');
+      });
     });
     describe('Function Predicate', function() {
       it('should support es6 destructuring as function predicate', function() {

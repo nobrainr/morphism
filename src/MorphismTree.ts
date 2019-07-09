@@ -151,7 +151,6 @@ export class MorphismSchemaTree<Target, Source> {
     queue.push(this.root);
     while (queue.length > 0) {
       let node = queue.shift();
-
       if (node) {
         for (let i = 0, length = node.children.length; i < length; i++) {
           queue.push(node.children[i]);
