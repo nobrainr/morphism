@@ -1,7 +1,7 @@
 import Morphism, { StrictSchema, morphism, Schema, createSchema, SchemaOptions, SCHEMA_OPTIONS_SYMBOL, reporter } from './morphism';
 import { User, MockData } from './utils-test';
 import { ActionSelector, ActionAggregator } from './types';
-import { string } from './validation/validators';
+import { Validation } from './validation/Validation';
 
 describe('Morphism', () => {
   const dataToCrunch: MockData[] = [
@@ -345,7 +345,7 @@ describe('Morphism', () => {
         interface Target {
           t1: string;
         }
-        const schema = createSchema<Target>({ t1: { path: 's1', type: string } });
+        const schema = createSchema<Target>({ t1: { path: 's1', validation: Validation.string() } });
         const result = morphism(schema, { s1: 1234 });
         const errors = reporter.report(result);
         expect(errors).not.toBeNull();
@@ -367,7 +367,7 @@ describe('Morphism', () => {
         interface Target {
           t1: string;
         }
-        const schema = createSchema<Target>({ t1: { fn: value => value.s1, type: string } });
+        const schema = createSchema<Target>({ t1: { fn: value => value.s1, validation: Validation.string() } });
         const result = morphism(schema, { s1: 1234 });
         const errors = reporter.report(result);
         expect(errors).not.toBeNull();

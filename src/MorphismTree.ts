@@ -13,7 +13,7 @@ import {
   SCHEMA_OPTIONS_SYMBOL,
   isEmptyObject
 } from './helpers';
-import { parse, ValidationError, ERRORS, targetHasErrors } from './validation/reporter';
+import { ValidationError, ERRORS, targetHasErrors } from './validation/reporter';
 import { PropertyValidationError } from './validation/PropertyValidationError';
 
 export enum NodeKind {
@@ -239,9 +239,9 @@ export class MorphismSchemaTree<Target, Source> {
           }
         }
 
-        if (action.type) {
+        if (action.validation) {
           try {
-            result = parse(result, action.type);
+            result = action.validation.validate(result);
           } catch (error) {
             if (error instanceof PropertyValidationError) {
               const validationError: ValidationError = { type: error.type, value: error.value, targetProperty };

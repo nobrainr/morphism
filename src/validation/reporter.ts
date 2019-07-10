@@ -1,7 +1,3 @@
-import { StringValidator } from './validators';
-import { BooleanValidator } from './validators';
-import { NumberValidator } from './validators';
-
 export const ERRORS = Symbol('errors');
 
 export interface ValidationError {
@@ -22,16 +18,6 @@ export function targetHasErrors(target: any): target is Validation {
 export function defaultFormatter(error: ValidationError) {
   const { value, targetProperty, type } = error;
   return `Invalid value ${value} supplied to : [⚠️ Schema With Type] at property ${targetProperty}. Expecting type ${type}`;
-}
-
-export function parse(value: any, type: symbol) {
-  if (type === StringValidator.type) {
-    return StringValidator.validateAndParse(value);
-  } else if (type === NumberValidator.type) {
-    return NumberValidator.validateAndParse(value);
-  } else if (type === BooleanValidator.type) {
-    return BooleanValidator.validateAndParse(value);
-  }
 }
 
 /**

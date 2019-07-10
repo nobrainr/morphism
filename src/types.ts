@@ -1,5 +1,5 @@
 import { SCHEMA_OPTIONS_SYMBOL, SchemaOptions } from './morphism';
-import { BasicTypes } from './validation/validators';
+import { BaseValidator } from './validation/validators/BaseValidator';
 
 /**
  * A structure-preserving object from a source data towards a target data.
@@ -162,7 +162,7 @@ export interface ActionSelector<Source = object, R = any> {
   path?: ActionString<Source> | ActionAggregator<Source>;
   // | ((source: Source) => unknown);
   fn?: (fieldValue: any, object: Source, items: Source, objectToCompute: R) => R;
-  type?: BasicTypes;
+  validation?: BaseValidator<ReturnType<undefined extends ActionSelector['fn'] ? any : ActionSelector['fn']>>;
 }
 
 export interface Constructable<T> {

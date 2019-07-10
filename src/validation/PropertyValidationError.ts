@@ -1,8 +1,6 @@
-import { getSymbolName } from '../helpers';
-
 export interface ValuePropertyValidationError {
   value: unknown;
-  type: symbol;
+  type: string;
 }
 export class PropertyValidationError extends Error {
   value: unknown;
@@ -10,6 +8,6 @@ export class PropertyValidationError extends Error {
   constructor(infos: ValuePropertyValidationError) {
     super();
     this.value = infos.value;
-    this.type = getSymbolName(infos.type);
+    this.type = infos.type;
   }
 }
