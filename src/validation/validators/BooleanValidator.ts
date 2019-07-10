@@ -4,6 +4,7 @@ export class BooleanValidator extends BaseValidator<boolean> {
   constructor() {
     super({
       name: 'boolean',
+      expect: 'value to be typeof boolean',
       test: function(value) {
         if (typeof value === 'boolean') {
           return value;
@@ -12,7 +13,7 @@ export class BooleanValidator extends BaseValidator<boolean> {
         } else if (/false/i.test(value)) {
           return false;
         } else {
-          throw new PropertyValidationError({ value, type: this.name });
+          throw new PropertyValidationError({ value, expect: this.expect });
         }
       }
     });

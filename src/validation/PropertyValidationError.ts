@@ -1,13 +1,13 @@
 export interface ValuePropertyValidationError {
   value: unknown;
-  type: string;
+  expect: string;
 }
 export class PropertyValidationError extends Error {
   value: unknown;
-  type: string;
+  expect: string;
   constructor(infos: ValuePropertyValidationError) {
-    super();
+    super(infos.expect);
     this.value = infos.value;
-    this.type = infos.type;
+    this.expect = infos.expect;
   }
 }

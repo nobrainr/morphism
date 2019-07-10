@@ -1,5 +1,6 @@
-interface Rule<T> {
+export interface Rule<T> {
   name: string;
+  expect: string;
   test: (value: T) => T;
 }
 
@@ -12,6 +13,7 @@ export abstract class BaseValidator<T = unknown> {
     if (this.rules.has(rule.name)) throw new Error(`Rule ${rule.name} has already been used`);
     this.rules.set(rule.name, rule);
   }
+
   validate(value: T) {
     return [...this.rules.values()].reduce((acc, rule) => {
       return rule.test(acc);

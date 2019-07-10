@@ -1,23 +1,24 @@
+import { PropertyValidationError } from './PropertyValidationError';
+
 export const ERRORS = Symbol('errors');
 
-export interface ValidationError {
+export interface ValidationError extends PropertyValidationError {
   targetProperty: string;
   value: unknown;
-  type: string;
 }
 
-export interface Errors extends Array<ValidationError> {}
+export interface ValidationErrors extends Array<ValidationError> {}
 
 export interface Validation {
-  [ERRORS]: Errors;
+  [ERRORS]: ValidationErrors;
 }
 
 export function targetHasErrors(target: any): target is Validation {
   return target && target[ERRORS] && target[ERRORS].length > 0;
 }
 export function defaultFormatter(error: ValidationError) {
-  const { value, targetProperty, type } = error;
-  return `Invalid value ${value} supplied to : [⚠️ Schema With Type] at property ${targetProperty}. Expecting type ${type}`;
+  const { value, targetProperty, expect } = error;
+  return `Invalid value ${value} supplied at property ${targetProperty}. Expecting: ${expect}`;
 }
 
 /**
