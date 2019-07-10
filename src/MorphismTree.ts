@@ -129,6 +129,10 @@ export class MorphismSchemaTree<Target, Source> {
       parentKeyPath = parentKeyPath ? `${parentKeyPath}.${actionKey}` : actionKey;
     } else {
       if (actionKey) {
+        if (isEmptyObject(partialSchema as any))
+          throw new Error(
+            `A value of a schema property can't be an empty object. Value ${JSON.stringify(partialSchema)} found for property ${actionKey}`
+          );
         // check if actionKey exists to verify if not root node
         this.add({ propertyName: actionKey, action: null }, parentKeyPath);
         parentKeyPath = parentKeyPath ? `${parentKeyPath}.${actionKey}` : actionKey;
@@ -214,10 +218,14 @@ export class MorphismSchemaTree<Target, Source> {
       // Action<Object>: a path and a function: [ destination : { path: 'source', fn:(fieldValue, items) }]
       return ({ object, items, objectToCompute }) => {
         let result;
-        if (Array.isArray(action.path)) {
-          result = aggregator(action.path, object);
-        } else if (isString(action.path)) {
-          result = get(object, action.path);
+        if (action.path) {
+          if (Array.isArray(action.path)) {
+            result = aggregator(action.path, object);
+          } else if (isString(action.path)) {
+            result = get(object, action.path);
+          }
+        } else {
+          result = object;
         }
 
         if (action.fn) {

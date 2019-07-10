@@ -353,6 +353,28 @@ describe('Morphism', () => {
           expect(errors.length).toBe(1);
         }
       });
+
+      it('should allow to use an action selector with a `fn` callback only', () => {
+        interface Target {
+          t1: string;
+        }
+        const schema = createSchema<Target>({ t1: { fn: value => value.s1 } });
+        const result = morphism(schema, { s1: 'value' });
+        expect(result.t1).toEqual('value');
+      });
+
+      it('should allow to use an action selector with a `fn` callback only along with validation options', () => {
+        interface Target {
+          t1: string;
+        }
+        const schema = createSchema<Target>({ t1: { fn: value => value.s1, type: string } });
+        const result = morphism(schema, { s1: 1234 });
+        const errors = reporter.report(result);
+        expect(errors).not.toBeNull();
+        if (errors) {
+          expect(errors.length).toBe(1);
+        }
+      });
     });
     describe('Function Predicate', function() {
       it('should support es6 destructuring as function predicate', function() {

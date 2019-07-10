@@ -159,7 +159,7 @@ export type ActionAggregator<T extends unknown = unknown> = T extends object ? (
  *
  */
 export interface ActionSelector<Source = object, R = any> {
-  path: ActionString<Source> | ActionAggregator<Source>;
+  path?: ActionString<Source> | ActionAggregator<Source>;
   // | ((source: Source) => unknown);
   fn?: (fieldValue: any, object: Source, items: Source, objectToCompute: R) => R;
   type?: BasicTypes;
