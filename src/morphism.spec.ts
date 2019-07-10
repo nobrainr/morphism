@@ -1,6 +1,7 @@
-import Morphism, { StrictSchema, morphism, Schema, createSchema, SchemaOptions, SCHEMA_OPTIONS_SYMBOL } from './morphism';
+import Morphism, { StrictSchema, morphism, Schema, createSchema, SchemaOptions, SCHEMA_OPTIONS_SYMBOL, reporter } from './morphism';
 import { User, MockData } from './utils-test';
 import { ActionSelector, ActionAggregator } from './types';
+import { string } from './validation/validators';
 
 describe('Morphism', () => {
   const dataToCrunch: MockData[] = [
@@ -338,6 +339,19 @@ describe('Morphism', () => {
         const schema = createSchema<Target, Source>({ t1: { path: 's1' } });
         const result = morphism(schema, { s1: 'value' });
         expect(result.t1).toEqual('value');
+      });
+
+      it('should allow to use an action selector without a `fn` specified along with validation options', () => {
+        interface Target {
+          t1: string;
+        }
+        const schema = createSchema<Target>({ t1: { path: 's1', type: string } });
+        const result = morphism(schema, { s1: 1234 });
+        const errors = reporter.report(result);
+        expect(errors).not.toBeNull();
+        if (errors) {
+          expect(errors.length).toBe(1);
+        }
       });
     });
     describe('Function Predicate', function() {
