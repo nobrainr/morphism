@@ -375,6 +375,20 @@ describe('Morphism', () => {
           expect(errors.length).toBe(1);
         }
       });
+
+      it('should throw an exception when a schema property is an empty object', () => {
+        const schema = createSchema({ prop: {} });
+        expect(() => {
+          morphism(schema, {});
+        }).toThrow(`A value of a schema property can't be an empty object. Value {} found for property prop`);
+      });
+
+      it('should throw an exception when a schema property is not supported', () => {
+        const schema = createSchema({ prop: 1234 });
+        expect(() => {
+          morphism(schema, {});
+        }).toThrow(`The action specified for prop is not supported.`);
+      });
     });
     describe('Function Predicate', function() {
       it('should support es6 destructuring as function predicate', function() {

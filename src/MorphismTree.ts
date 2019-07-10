@@ -129,12 +129,12 @@ export class MorphismSchemaTree<Target, Source> {
       parentKeyPath = parentKeyPath ? `${parentKeyPath}.${actionKey}` : actionKey;
     } else {
       if (actionKey) {
-        if (isEmptyObject(partialSchema as any))
+        if (isObject(partialSchema) && isEmptyObject(partialSchema as any))
           throw new Error(
             `A value of a schema property can't be an empty object. Value ${JSON.stringify(partialSchema)} found for property ${actionKey}`
           );
         // check if actionKey exists to verify if not root node
-        this.add({ propertyName: actionKey, action: null }, parentKeyPath);
+        this.add({ propertyName: actionKey, action: partialSchema as Actions<Target, Source> }, parentKeyPath);
         parentKeyPath = parentKeyPath ? `${parentKeyPath}.${actionKey}` : actionKey;
       }
 
@@ -162,15 +162,12 @@ export class MorphismSchemaTree<Target, Source> {
         if (node.data.kind !== NodeKind.Root) {
           yield node;
         }
-      } else {
-        return;
       }
     }
   }
 
   add(data: AddNode<Target, Source>, targetPropertyPath?: string) {
-    const kind = this.getActionKind(data.action);
-    if (!kind) throw new Error(`The action specified for ${data.propertyName} is not supported.`);
+    const kind = this.getActionKind(data);
 
     const nodeToAdd: SchemaNode<Target, Source> = {
       data: { ...data, kind, targetPropertyPath: '' },
@@ -194,15 +191,16 @@ export class MorphismSchemaTree<Target, Source> {
     }
   }
 
-  getActionKind(action: Actions<Target, Source> | null) {
-    if (isActionString(action)) return NodeKind.ActionString;
-    if (isFunction(action)) return NodeKind.ActionFunction;
-    if (isActionSelector(action)) return NodeKind.ActionSelector;
-    if (isActionAggregator(action)) return NodeKind.ActionAggregator;
-    if (action === null) return NodeKind.Property;
+  getActionKind(data: AddNode<Target, Source>) {
+    if (isActionString(data.action)) return NodeKind.ActionString;
+    if (isFunction(data.action)) return NodeKind.ActionFunction;
+    if (isActionSelector(data.action)) return NodeKind.ActionSelector;
+    if (isActionAggregator(data.action)) return NodeKind.ActionAggregator;
+    if (isObject(data.action)) return NodeKind.Property;
+    throw new Error(`The action specified for ${data.propertyName} is not supported.`);
   }
 
-  getPreparedAction(nodeData: SchemaNodeData<Target, Source>): PreparedAction | null {
+  getPreparedAction(nodeData: SchemaNodeData<Target, Source>): PreparedAction | null | undefined {
     const { propertyName: targetProperty, action, kind } = nodeData;
     // iterate on every action of the schema
     if (isActionString(action)) {
@@ -244,8 +242,7 @@ export class MorphismSchemaTree<Target, Source> {
             result = action.validation.validate(result);
           } catch (error) {
             if (error instanceof PropertyValidationError) {
-              const validationError: ValidationError = { type: error.type, value: error.value, targetProperty };
-
+              const validationError: ValidationError = { targetProperty, ...error };
               if (targetHasErrors(objectToCompute)) {
                 objectToCompute[ERRORS].push(validationError);
               } else {
@@ -260,8 +257,6 @@ export class MorphismSchemaTree<Target, Source> {
       };
     } else if (kind === NodeKind.Property) {
       return null;
-    } else {
-      throw new Error(`The action specified for ${targetProperty} is not supported.`);
     }
   }
 }
