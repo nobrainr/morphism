@@ -6,7 +6,7 @@ import { Schema, StrictSchema, Constructable, SourceFromSchema, Mapper, Destinat
 import { MorphismSchemaTree, createSchema, SchemaOptions } from './MorphismTree';
 import { MorphismRegistry, IMorphismRegistry } from './MorphismRegistry';
 import { decorator } from './MorphismDecorator';
-import { Reporter, reporter, Formatter } from './validation/reporter';
+import { Reporter, reporter, Formatter, targetHasErrors } from './validation/reporter';
 
 /**
  * Low Level transformer function.
@@ -55,12 +55,25 @@ function transformValuesFromObject<Source, Target>(
         // do not strip undefined values
         set(finalObject, chunk.targetPropertyPath, finalValue);
       }
+      checkIfValidationShouldThrow<Target>(options, finalObject);
       return finalObject;
     } else {
       set(finalObject, chunk.targetPropertyPath, finalValue);
+      checkIfValidationShouldThrow<Target>(options, finalObject);
       return finalObject;
     }
   }, objectToCompute);
+}
+
+function checkIfValidationShouldThrow<Target>(options: SchemaOptions<Target>, finalObject: Target) {
+  if (options && options.validation && options.validation.throw) {
+    if (targetHasErrors(finalObject)) {
+      const errors = reporter.extractErrors(finalObject);
+      if (errors) {
+        throw errors;
+      }
+    }
+  }
 }
 
 function transformItems<T, TSchema extends Schema<T | {}>>(schema: TSchema, type?: Constructable<T>) {

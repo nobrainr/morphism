@@ -2,6 +2,7 @@ import Morphism, { StrictSchema, morphism, Schema, createSchema, SchemaOptions, 
 import { User, MockData } from './utils-test';
 import { ActionSelector, ActionAggregator } from './types';
 import { Validation } from './validation/Validation';
+import { defaultFormatter, ValidationError } from './validation/reporter';
 
 describe('Morphism', () => {
   const dataToCrunch: MockData[] = [
@@ -540,6 +541,32 @@ describe('Morphism', () => {
         );
 
         expect(morphism(schema, source)).toEqual({ key: null });
+      });
+
+      it('should throw when validation.throw option is set to true', () => {
+        interface Source {
+          s1: string;
+        }
+        interface Target {
+          t1: string;
+          t2: string;
+        }
+        const schema = createSchema<Target, Source>(
+          {
+            t1: { fn: value => value.s1, validation: Validation.string() },
+            t2: { fn: value => value.s1, validation: Validation.string() }
+          },
+          { validation: { throw: true } }
+        );
+        const error1 = new ValidationError({ targetProperty: 't1', expect: 'value to be typeof string', value: undefined });
+        const error2 = new ValidationError({ targetProperty: 't2', expect: 'value to be typeof string', value: undefined });
+
+        const message1 = defaultFormatter(error1);
+        const message2 = defaultFormatter(error2);
+
+        expect(() => {
+          morphism(schema, JSON.parse('{}'));
+        }).toThrow(`${message1}\n${message2}`);
       });
     });
   });

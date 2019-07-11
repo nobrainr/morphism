@@ -1,4 +1,4 @@
-import { PropertyValidationError } from '../PropertyValidationError';
+import { ValidatorError } from './ValidatorError';
 import { BaseValidator } from './BaseValidator';
 export class BooleanValidator extends BaseValidator<boolean> {
   constructor() {
@@ -13,7 +13,7 @@ export class BooleanValidator extends BaseValidator<boolean> {
         } else if (/false/i.test(value)) {
           return false;
         } else {
-          throw new PropertyValidationError({ value, expect: this.expect });
+          throw new ValidatorError({ value, expect: this.expect });
         }
       }
     });

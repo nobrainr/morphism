@@ -1,4 +1,4 @@
-import { PropertyValidationError } from '../PropertyValidationError';
+import { ValidatorError } from './ValidatorError';
 import { BaseValidator } from './BaseValidator';
 export class NumberValidator extends BaseValidator<number> {
   constructor() {
@@ -8,7 +8,7 @@ export class NumberValidator extends BaseValidator<number> {
       test: function(value) {
         const result = +value;
         if (isNaN(result)) {
-          throw new PropertyValidationError({ value, expect: this.expect });
+          throw new ValidatorError({ value, expect: this.expect });
         } else {
           return result;
         }

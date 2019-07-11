@@ -1,6 +1,6 @@
 import { BaseValidator } from './BaseValidator';
 import { isString } from '../../helpers';
-import { PropertyValidationError } from '../PropertyValidationError';
+import { ValidatorError } from './ValidatorError';
 
 export class StringValidator extends BaseValidator<string> {
   constructor() {
@@ -10,7 +10,7 @@ export class StringValidator extends BaseValidator<string> {
       test: function(value) {
         const result = value;
         if (!isString(result)) {
-          throw new PropertyValidationError({ value, expect: this.expect });
+          throw new ValidatorError({ value, expect: this.expect });
         }
         return result;
       }
@@ -23,7 +23,7 @@ export class StringValidator extends BaseValidator<string> {
       expect: `value to be greater or equal than ${val}`,
       test: function(value) {
         if (value.length < val) {
-          throw new PropertyValidationError({ value, expect: this.expect });
+          throw new ValidatorError({ value, expect: this.expect });
         }
         return value;
       }
@@ -36,7 +36,7 @@ export class StringValidator extends BaseValidator<string> {
       expect: `value to be less or equal than ${val}`,
       test: function(value) {
         if (value.length > val) {
-          throw new PropertyValidationError({ value, expect: this.expect });
+          throw new ValidatorError({ value, expect: this.expect });
         }
         return value;
       }

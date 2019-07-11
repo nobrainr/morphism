@@ -13,8 +13,8 @@ import {
   SCHEMA_OPTIONS_SYMBOL,
   isEmptyObject
 } from './helpers';
-import { ValidationError, ERRORS, targetHasErrors } from './validation/reporter';
-import { PropertyValidationError } from './validation/PropertyValidationError';
+import { ValidationError, ERRORS, targetHasErrors, ValidationErrors, reporter } from './validation/reporter';
+import { ValidatorError } from './validation/validators/ValidatorError';
 
 export enum NodeKind {
   Root = 'Root',
@@ -82,6 +82,18 @@ export interface SchemaOptions<Target = any> {
      * @function default
      */
     default?: (target: Target, propertyPath: string) => any;
+  };
+  /**
+   * Schema validation options
+   * @memberof SchemaOptions
+   */
+  validation?: {
+    /**
+     * Should throw when property validation fails
+     * @default false
+     * @type {boolean}
+     */
+    throw: boolean;
   };
 }
 
@@ -241,12 +253,13 @@ export class MorphismSchemaTree<Target, Source> {
           try {
             result = action.validation.validate(result);
           } catch (error) {
-            if (error instanceof PropertyValidationError) {
-              const validationError: ValidationError = { targetProperty, ...error };
+            if (error instanceof ValidatorError) {
+              const validationError = new ValidationError({ targetProperty, expect: error.expect, value: error.value });
               if (targetHasErrors(objectToCompute)) {
-                objectToCompute[ERRORS].push(validationError);
+                objectToCompute[ERRORS].addError(validationError);
               } else {
-                objectToCompute[ERRORS] = [validationError];
+                objectToCompute[ERRORS] = new ValidationErrors(reporter, objectToCompute);
+                objectToCompute[ERRORS].addError(validationError);
               }
             } else {
               throw error;

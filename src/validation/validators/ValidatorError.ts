@@ -1,11 +1,11 @@
-export interface ValuePropertyValidationError {
+export interface ValidatorErrorInfos {
   value: unknown;
   expect: string;
 }
-export class PropertyValidationError extends Error {
+export class ValidatorError extends Error {
   value: unknown;
   expect: string;
-  constructor(infos: ValuePropertyValidationError) {
+  constructor(infos: ValidatorErrorInfos) {
     super(infos.expect);
     this.value = infos.value;
     this.expect = infos.expect;
