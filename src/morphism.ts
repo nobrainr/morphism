@@ -6,7 +6,7 @@ import { Schema, StrictSchema, Constructable, SourceFromSchema, Mapper, Destinat
 import { MorphismSchemaTree, createSchema, SchemaOptions } from './MorphismTree';
 import { MorphismRegistry, IMorphismRegistry } from './MorphismRegistry';
 import { decorator } from './MorphismDecorator';
-import { Reporter, reporter, Formatter, targetHasErrors } from './validation/reporter';
+import { Reporter, reporter as defaultReporter, Formatter, targetHasErrors, ValidationErrors } from './validation/reporter';
 
 /**
  * Low Level transformer function.
@@ -68,7 +68,13 @@ function transformValuesFromObject<Source, Target>(
 function checkIfValidationShouldThrow<Target>(options: SchemaOptions<Target>, finalObject: Target) {
   if (options && options.validation && options.validation.throw) {
     if (targetHasErrors(finalObject)) {
-      const errors = reporter.extractErrors(finalObject);
+      let errors: ValidationErrors | null;
+      if (options.validation.reporter) {
+        const reporter = options.validation.reporter;
+        errors = reporter.extractErrors(finalObject);
+      } else {
+        errors = defaultReporter.extractErrors(finalObject);
+      }
       if (errors) {
         throw errors;
       }
@@ -230,5 +236,16 @@ morphismMixin.mappers = morphismRegistry.mappers;
 
 const Morphism: typeof morphism & IMorphismRegistry = morphismMixin;
 
-export { morphism, createSchema, Schema, StrictSchema, SchemaOptions, Mapper, SCHEMA_OPTIONS_SYMBOL, Reporter, reporter, Formatter };
+export {
+  morphism,
+  createSchema,
+  Schema,
+  StrictSchema,
+  SchemaOptions,
+  Mapper,
+  SCHEMA_OPTIONS_SYMBOL,
+  Reporter,
+  defaultReporter as reporter,
+  Formatter
+};
 export default Morphism;

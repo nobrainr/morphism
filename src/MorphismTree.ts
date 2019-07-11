@@ -13,7 +13,7 @@ import {
   SCHEMA_OPTIONS_SYMBOL,
   isEmptyObject
 } from './helpers';
-import { ValidationError, ERRORS, targetHasErrors, ValidationErrors, reporter } from './validation/reporter';
+import { ValidationError, ERRORS, targetHasErrors, ValidationErrors, reporter, Reporter } from './validation/reporter';
 import { ValidatorError } from './validation/validators/ValidatorError';
 
 export enum NodeKind {
@@ -94,6 +94,12 @@ export interface SchemaOptions<Target = any> {
      * @type {boolean}
      */
     throw: boolean;
+    /**
+     * Custom reporter to use when throw option is set to true
+     * @default false
+     * @type {boolean}
+     */
+    reporter?: Reporter;
   };
 }
 
@@ -258,7 +264,11 @@ export class MorphismSchemaTree<Target, Source> {
               if (targetHasErrors(objectToCompute)) {
                 objectToCompute[ERRORS].addError(validationError);
               } else {
-                objectToCompute[ERRORS] = new ValidationErrors(reporter, objectToCompute);
+                if (this.schemaOptions.validation && this.schemaOptions.validation.reporter) {
+                  objectToCompute[ERRORS] = new ValidationErrors(this.schemaOptions.validation.reporter, objectToCompute);
+                } else {
+                  objectToCompute[ERRORS] = new ValidationErrors(reporter, objectToCompute);
+                }
                 objectToCompute[ERRORS].addError(validationError);
               }
             } else {

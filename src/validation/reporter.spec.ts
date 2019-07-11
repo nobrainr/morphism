@@ -1,5 +1,5 @@
-import { morphism, createSchema } from '../morphism';
-import { defaultFormatter, reporter, ValidationError } from './reporter';
+import { morphism, createSchema, Reporter } from '../morphism';
+import { defaultFormatter, reporter, ValidationError, Formatter } from './reporter';
 import { Validation } from './Validation';
 
 describe('Reporter', () => {
@@ -48,6 +48,49 @@ describe('Reporter', () => {
           .max(1)
           .max(1);
       }).toThrow('Rule max has already been used');
+    });
+
+    it('should allow to use a reporter with a custom formatter', () => {
+      interface Target {
+        t1: string;
+      }
+      const formatter: Formatter = error => {
+        const { expect, targetProperty, value } = error;
+        return `Expected ${expect} but received ${value} for property ${targetProperty}`;
+      };
+      const reporter = new Reporter(formatter);
+
+      const schema = createSchema<Target>({ t1: { path: 's1', validation: Validation.string() } });
+      const result = morphism(schema, { s1: 1234 });
+      const error = new ValidationError({ targetProperty: 't1', value: 1234, expect: 'value to be typeof string' });
+      const message = formatter(error);
+      const errors = reporter.report(result);
+      expect(errors).not.toBeNull();
+      if (errors) {
+        expect(errors[0]).toBe(message);
+      }
+    });
+
+    it('should allow to use a reporter with a custom formatter via schema options', () => {
+      interface Target {
+        t1: string;
+      }
+      const formatter: Formatter = error => {
+        const { expect, targetProperty, value } = error;
+        return `Expected ${expect} but received ${value} for property ${targetProperty}`;
+      };
+      const reporter = new Reporter(formatter);
+
+      const schema = createSchema<Target>(
+        { t1: { path: 's1', validation: Validation.string() } },
+        { validation: { throw: true, reporter } }
+      );
+
+      const error = new ValidationError({ targetProperty: 't1', value: 1234, expect: 'value to be typeof string' });
+      const message = formatter(error);
+      expect(() => {
+        morphism(schema, { s1: 1234 });
+      }).toThrow(message);
     });
 
     describe('string', () => {
