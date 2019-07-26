@@ -43,4 +43,17 @@ export class StringValidator extends BaseValidator<string> {
     });
     return this;
   }
+  length(val: number) {
+    this.addRule({
+      name: 'length',
+      expect: `value to be length of ${val}`,
+      test: function(value) {
+        if (value.length !== val) {
+          throw new ValidatorError({ value, expect: this.expect });
+        }
+        return value;
+      }
+    });
+    return this;
+  }
 }

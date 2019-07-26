@@ -175,6 +175,32 @@ describe('Reporter', () => {
         expect(errors).toBeNull();
         expect(result.t1).toBe('aaa');
       });
+
+      it('should report an error when string length is not met', () => {
+        interface S {
+          s1: string;
+        }
+        interface T {
+          t1: string;
+        }
+
+        const LENGTH = 1;
+        const schema = createSchema<T, S>({
+          t1: {
+            fn: value => value.s1,
+            validation: Validation.string().length(LENGTH)
+          }
+        });
+        const result = morphism(schema, { s1: 'aaa' });
+        const error = new ValidationError({ targetProperty: 't1', expect: `value to be length of ${LENGTH}`, value: 'aaa' });
+        const message = defaultFormatter(error);
+        const errors = reporter.report(result);
+        expect(errors).not.toBeNull();
+        if (errors) {
+          expect(errors.length).toEqual(1);
+          expect(errors[0]).toBe(message);
+        }
+      });
     });
 
     describe('number', () => {
