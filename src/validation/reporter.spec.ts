@@ -290,6 +290,60 @@ describe('Reporter', () => {
         expect(errors).toBeNull();
         expect(result).toEqual({ t1: 1234 });
       });
+
+      it('should report an error when number is greater than max rule', () => {
+        interface S {
+          s1: number;
+        }
+        interface T {
+          t1: number;
+        }
+
+        const VALUE = 10;
+        const MAX = 5;
+        const schema = createSchema<T, S>({
+          t1: {
+            fn: value => value.s1,
+            validation: Validation.number().max(MAX)
+          }
+        });
+        const result = morphism(schema, { s1: VALUE });
+        const error = new ValidationError({ targetProperty: 't1', expect: `value to be less or equal than ${MAX}`, value: VALUE });
+        const message = defaultFormatter(error);
+        const errors = reporter.report(result);
+        expect(errors).not.toBeNull();
+        if (errors) {
+          expect(errors.length).toEqual(1);
+          expect(errors[0]).toBe(message);
+        }
+      });
+
+      it('should report an error when number is less than min rule', () => {
+        interface S {
+          s1: number;
+        }
+        interface T {
+          t1: number;
+        }
+
+        const VALUE = 2;
+        const MIN = 5;
+        const schema = createSchema<T, S>({
+          t1: {
+            fn: value => value.s1,
+            validation: Validation.number().min(MIN)
+          }
+        });
+        const result = morphism(schema, { s1: VALUE });
+        const error = new ValidationError({ targetProperty: 't1', expect: `value to be greater or equal than ${MIN}`, value: VALUE });
+        const message = defaultFormatter(error);
+        const errors = reporter.report(result);
+        expect(errors).not.toBeNull();
+        if (errors) {
+          expect(errors.length).toEqual(1);
+          expect(errors[0]).toBe(message);
+        }
+      });
     });
 
     describe('boolean', () => {

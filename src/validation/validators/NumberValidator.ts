@@ -15,4 +15,31 @@ export class NumberValidator extends BaseValidator<number> {
       }
     });
   }
+
+  min(val: number) {
+    this.addRule({
+      name: 'min',
+      expect: `value to be greater or equal than ${val}`,
+      test: function(value) {
+        if (value < val) {
+          throw new ValidatorError({ value, expect: this.expect });
+        }
+        return value;
+      }
+    });
+    return this;
+  }
+  max(val: number) {
+    this.addRule({
+      name: 'max',
+      expect: `value to be less or equal than ${val}`,
+      test: function(value) {
+        if (value > val) {
+          throw new ValidatorError({ value, expect: this.expect });
+        }
+        return value;
+      }
+    });
+    return this;
+  }
 }
