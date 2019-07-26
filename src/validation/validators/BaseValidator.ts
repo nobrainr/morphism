@@ -1,11 +1,16 @@
 export interface Rule<T> {
   name: string;
   expect: string;
-  test: (value: T) => T;
+  test: (input: any) => T;
 }
 
-export abstract class BaseValidator<T = unknown> {
-  protected rules = new Map<string, Rule<T>>();
+export interface Validator<T = any> {
+  rules: Map<string, Rule<T>>;
+  validate: (value: T) => T;
+}
+
+export abstract class BaseValidator<T = unknown> implements Validator<T> {
+  rules = new Map<string, Rule<T>>();
   constructor(rule: Rule<T>) {
     this.addRule(rule);
   }
@@ -14,9 +19,9 @@ export abstract class BaseValidator<T = unknown> {
     this.rules.set(rule.name, rule);
   }
 
-  validate(value: T) {
+  validate = (value: T) => {
     return [...this.rules.values()].reduce((acc, rule) => {
       return rule.test(acc);
     }, value);
-  }
+  };
 }
