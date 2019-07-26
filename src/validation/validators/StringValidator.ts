@@ -1,4 +1,4 @@
-import { BaseValidator } from './BaseValidator';
+import { BaseValidator, Rule } from './BaseValidator';
 import { isString } from '../../helpers';
 import { ValidatorError } from './ValidatorError';
 
@@ -56,17 +56,27 @@ export class StringValidator extends BaseValidator<string> {
     });
     return this;
   }
-  regex(regex: RegExp) {
-    this.addRule({
-      name: 'regex',
-      expect: `value to match pattern: ${regex}`,
+  private createRegexRule(name: string, expect: string, regex: RegExp): Rule<string> {
+    return {
+      name,
+      expect,
       test: function(value) {
         if (!regex.test(value)) {
           throw new ValidatorError({ value, expect: this.expect });
         }
         return value;
       }
-    });
+    };
+  }
+  regex(regex: RegExp) {
+    const rule = this.createRegexRule('regex', `value to match pattern: ${regex}`, regex);
+    this.addRule(rule);
+    return this;
+  }
+
+  alphanum() {
+    const rule = this.createRegexRule('regex', `value to contain only alphanumeric characters`, /^[a-z0-9]+$/i);
+    this.addRule(rule);
     return this;
   }
 }
