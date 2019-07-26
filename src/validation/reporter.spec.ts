@@ -201,6 +201,33 @@ describe('Reporter', () => {
           expect(errors[0]).toBe(message);
         }
       });
+
+      it('should report an error when string does not match specified regex', () => {
+        interface S {
+          s1: string;
+        }
+        interface T {
+          t1: string;
+        }
+
+        const REGEX = /^[0-9]+$/;
+        const VALUE = 'aaa';
+        const schema = createSchema<T, S>({
+          t1: {
+            fn: value => value.s1,
+            validation: Validation.string().regex(REGEX)
+          }
+        });
+        const result = morphism(schema, { s1: VALUE });
+        const error = new ValidationError({ targetProperty: 't1', expect: `value to match pattern: ${REGEX}`, value: VALUE });
+        const message = defaultFormatter(error);
+        const errors = reporter.report(result);
+        expect(errors).not.toBeNull();
+        if (errors) {
+          expect(errors.length).toEqual(1);
+          expect(errors[0]).toBe(message);
+        }
+      });
     });
 
     describe('number', () => {

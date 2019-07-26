@@ -56,4 +56,17 @@ export class StringValidator extends BaseValidator<string> {
     });
     return this;
   }
+  regex(regex: RegExp) {
+    this.addRule({
+      name: 'regex',
+      expect: `value to match pattern: ${regex}`,
+      test: function(value) {
+        if (!regex.test(value)) {
+          throw new ValidatorError({ value, expect: this.expect });
+        }
+        return value;
+      }
+    });
+    return this;
+  }
 }
