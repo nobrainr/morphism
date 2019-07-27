@@ -19,6 +19,12 @@
     "docs": "typedoc",
     "docs:deploy": "now ./docs/typedoc -A ../../now.json --public --team $TEAM_NAME --token $NOW_TOKEN && now alias --team $TEAM_NAME --token $NOW_TOKEN"
   },
+  "release": {
+    "branches": [
+      "master",
+      "next"
+    ]
+  },
   "author": {
     "name": "Yann Renaudin",
     "email": "renaudin.yann@gmail.com",
