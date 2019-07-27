@@ -1,4 +1,5 @@
 import { SCHEMA_OPTIONS_SYMBOL, SchemaOptions } from './morphism';
+import { BaseValidator } from './validation/validators/BaseValidator';
 
 /**
  * A structure-preserving object from a source data towards a target data.
@@ -37,7 +38,7 @@ export type StrictSchema<Target = any, Source = any> = {
     | ActionString<Source>
     | ActionFunction<Target, Source, Target[destinationProperty]>
     | ActionAggregator<Source>
-    | ActionSelector<Source, Target[destinationProperty]>
+    | ActionSelector<Source, Target>
     | StrictSchema<Target[destinationProperty], Source>
 } & { [SCHEMA_OPTIONS_SYMBOL]?: SchemaOptions<Target> };
 export type Schema<Target = any, Source = any> = {
@@ -46,7 +47,7 @@ export type Schema<Target = any, Source = any> = {
     | ActionString<Source>
     | ActionFunction<Target, Source, Target[destinationProperty]>
     | ActionAggregator<Source>
-    | ActionSelector<Source, Target[destinationProperty]>
+    | ActionSelector<Source, Target>
     | Schema<Target[destinationProperty], Source>
 } & { [SCHEMA_OPTIONS_SYMBOL]?: SchemaOptions<Target | any> };
 
@@ -109,7 +110,7 @@ export interface ActionFunction<D = any, S = any, R = any> {
  * ```
  *
  */
-export type ActionString<Source> = string; // TODO: ActionString should support string and string[] for deep properties
+export type ActionString<Source> = string | keyof Source; // TODO: ActionString should support string and string[] for deep properties
 
 /**
  * An Array of String that allows to perform a function over source property
@@ -157,9 +158,10 @@ export type ActionAggregator<T extends unknown = unknown> = T extends object ? (
  *```
  *
  */
-export interface ActionSelector<Source = object, R = any> {
-  path: ActionString<Source> | ActionAggregator<Source>;
-  fn: (fieldValue: any, object: Source, items: Source, objectToCompute: R) => R;
+export interface ActionSelector<Source = object, Target = any> {
+  path?: ActionString<Source> | ActionAggregator<Source>;
+  fn?: (fieldValue: any, object: Source, items: Source, objectToCompute: Target) => Target;
+  validation?: BaseValidator<ReturnType<undefined extends ActionSelector['fn'] ? any : ActionSelector['fn']>>;
 }
 
 export interface Constructable<T> {
@@ -171,7 +173,13 @@ export type DestinationFromSchema<T> = T extends StrictSchema<infer U> | Schema<
 
 export type ResultItem<TSchema extends Schema> = DestinationFromSchema<TSchema>;
 
+/**
+ * Function to map an Input source towards a Target. Input can be a single object, or a collection of objects
+ * @function
+ * @typeparam TSchema Schema
+ * @typeparam TResult Result Type
+ */
 export interface Mapper<TSchema extends Schema | StrictSchema, TResult = ResultItem<TSchema>> {
-  (data: SourceFromSchema<TSchema>[]): TResult[];
-  (data: SourceFromSchema<TSchema>): TResult;
+  (data?: SourceFromSchema<TSchema>[] | null): TResult[];
+  (data?: SourceFromSchema<TSchema> | null): TResult;
 }

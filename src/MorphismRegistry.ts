@@ -65,12 +65,8 @@ export class MorphismRegistry implements IMorphismRegistry {
    *Creates an instance of MorphismRegistry.
    * @param {Map<any, any>} cache Cache implementation to store the mapping functions.
    */
-  constructor(cache?: Map<any, any> | WeakMap<any, any>) {
-    if (!cache) {
-      this._registry = { cache: new Map() };
-    } else {
-      this._registry = cache;
-    }
+  constructor() {
+    this._registry = { cache: new Map() };
   }
 
   /**
@@ -131,9 +127,7 @@ export class MorphismRegistry implements IMorphismRegistry {
     if (!schema) {
       throw new Error(`The schema must be an Object. Found ${schema}`);
     } else if (!this.exists(type)) {
-      throw new Error(
-        `The type ${type.name} is not registered. Register it using \`Mophism.register(${type.name}, schema)\``
-      );
+      throw new Error(`The type ${type.name} is not registered. Register it using \`Mophism.register(${type.name}, schema)\``);
     } else {
       let fn = morphism(schema, null, type);
       this._registry.cache.set(type, fn);

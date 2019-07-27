@@ -38,11 +38,11 @@ describe('Tree', () => {
       }
       const tree = new MorphismSchemaTree<Target, {}>({});
       const parentTargetPropertyPath = 'keyA';
-      tree.add({ action: null, propertyName: 'keyA', targetPropertyPath: parentTargetPropertyPath });
+      tree.add({ action: {}, propertyName: 'keyA', targetPropertyPath: parentTargetPropertyPath });
       tree.add({ action: 'keyA', propertyName: 'keyA1' }, parentTargetPropertyPath);
 
       const nodeKeyA: SchemaNode<Target, {}> = {
-        data: { targetPropertyPath: 'keyA', propertyName: 'keyA', action: null, kind: NodeKind.Property },
+        data: { targetPropertyPath: 'keyA', propertyName: 'keyA', action: {}, kind: NodeKind.Property },
         parent: null,
         children: []
       };
@@ -117,13 +117,13 @@ describe('Tree', () => {
           propertyName: 'keyA',
           targetPropertyPath: 'keyA',
           kind: NodeKind.Property,
-          action: null
+          action: { keyA1: mockAction }
         },
         {
           propertyName: 'keyB',
           targetPropertyPath: 'keyB',
           kind: NodeKind.Property,
-          action: null
+          action: { keyB1: { keyB11: mockAction } }
         },
         {
           propertyName: 'keyA1',
@@ -135,7 +135,7 @@ describe('Tree', () => {
           propertyName: 'keyB1',
           targetPropertyPath: 'keyB.keyB1',
           kind: NodeKind.Property,
-          action: null
+          action: { keyB11: mockAction }
         },
         {
           propertyName: 'keyB11',
@@ -178,19 +178,28 @@ describe('Tree', () => {
 
       const expected = [
         {
-          action: null,
+          action: [
+            {
+              keyA1: mockAction,
+              keyA2: mockAction
+            },
+            {
+              keyB1: mockAction,
+              keyB2: mockAction
+            }
+          ],
           kind: 'Property',
           propertyName: 'keyA',
           targetPropertyPath: 'keyA'
         },
         {
-          action: null,
+          action: { keyA1: mockAction, keyA2: mockAction },
           kind: 'Property',
           propertyName: '0',
           targetPropertyPath: 'keyA.0'
         },
         {
-          action: null,
+          action: { keyB1: mockAction, keyB2: mockAction },
           kind: 'Property',
           propertyName: '1',
           targetPropertyPath: 'keyA.1'

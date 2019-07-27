@@ -1,6 +1,8 @@
-import Morphism, { StrictSchema, morphism, Schema, createSchema, SchemaOptions, SCHEMA_OPTIONS_SYMBOL } from './morphism';
+import Morphism, { StrictSchema, morphism, Schema, createSchema, SchemaOptions, SCHEMA_OPTIONS_SYMBOL, reporter } from './morphism';
 import { User, MockData } from './utils-test';
 import { ActionSelector, ActionAggregator } from './types';
+import { Validation } from './validation/Validation';
+import { defaultFormatter, ValidationError } from './validation/reporter';
 
 describe('Morphism', () => {
   const dataToCrunch: MockData[] = [
@@ -263,6 +265,132 @@ describe('Morphism', () => {
   });
 
   describe('Schema', function() {
+    describe('Action Selector', () => {
+      it('should accept a selector action in deep nested schema property', () => {
+        interface Source {
+          keySource: string;
+          keySource1: string;
+        }
+        const sample: Source = {
+          keySource: 'value',
+          keySource1: 'value1'
+        };
+
+        interface Target {
+          keyA: {
+            keyA1: [
+              {
+                keyA11: string;
+                keyA12: number;
+              }
+            ];
+            keyA2: string;
+          };
+        }
+        const selector: ActionSelector<Source> = {
+          path: 'keySource',
+          fn: () => 'value-test'
+        };
+        const aggregator: ActionAggregator<Source> = ['keySource', 'keySource1'];
+        const schema: StrictSchema<Target, Source> = {
+          keyA: {
+            keyA1: [{ keyA11: aggregator, keyA12: selector }],
+            keyA2: 'keySource'
+          }
+        };
+
+        const target = morphism(schema, sample);
+
+        expect(target).toEqual({
+          keyA: {
+            keyA1: [
+              {
+                keyA11: {
+                  keySource: 'value',
+                  keySource1: 'value1'
+                },
+                keyA12: 'value-test'
+              }
+            ],
+            keyA2: 'value'
+          }
+        });
+      });
+      it('should compute function on data from specified path', function() {
+        let schema = {
+          state: {
+            path: 'address.state',
+            fn: (s: any) => s.toLowerCase()
+          }
+        };
+
+        let desiredResult = {
+          state: 'ny' // from NY to ny
+        };
+        let results = Morphism(schema, dataToCrunch);
+        expect(results[0]).toEqual(desiredResult);
+      });
+      it('should allow to use an action selector without a `fn` specified', () => {
+        interface Source {
+          s1: string;
+        }
+        interface Target {
+          t1: string;
+        }
+        const schema = createSchema<Target, Source>({ t1: { path: 's1' } });
+        const result = morphism(schema, { s1: 'value' });
+        expect(result.t1).toEqual('value');
+      });
+
+      it('should allow to use an action selector without a `fn` specified along with validation options', () => {
+        interface Target {
+          t1: string;
+        }
+        const schema = createSchema<Target>({ t1: { path: 's1', validation: Validation.string() } });
+        const result = morphism(schema, { s1: 1234 });
+        const errors = reporter.report(result);
+        expect(errors).not.toBeNull();
+        if (errors) {
+          expect(errors.length).toBe(1);
+        }
+      });
+
+      it('should allow to use an action selector with a `fn` callback only', () => {
+        interface Target {
+          t1: string;
+        }
+        const schema = createSchema<Target>({ t1: { fn: value => value.s1 } });
+        const result = morphism(schema, { s1: 'value' });
+        expect(result.t1).toEqual('value');
+      });
+
+      it('should allow to use an action selector with a `fn` callback only along with validation options', () => {
+        interface Target {
+          t1: string;
+        }
+        const schema = createSchema<Target>({ t1: { fn: value => value.s1, validation: Validation.string() } });
+        const result = morphism(schema, { s1: 1234 });
+        const errors = reporter.report(result);
+        expect(errors).not.toBeNull();
+        if (errors) {
+          expect(errors.length).toBe(1);
+        }
+      });
+
+      it('should throw an exception when a schema property is an empty object', () => {
+        const schema = createSchema({ prop: {} });
+        expect(() => {
+          morphism(schema, {});
+        }).toThrow(`A value of a schema property can't be an empty object. Value {} found for property prop`);
+      });
+
+      it('should throw an exception when a schema property is not supported', () => {
+        const schema = createSchema({ prop: 1234 });
+        expect(() => {
+          morphism(schema, {});
+        }).toThrow(`The action specified for prop is not supported.`);
+      });
+    });
     describe('Function Predicate', function() {
       it('should support es6 destructuring as function predicate', function() {
         let schema = {
@@ -414,6 +542,32 @@ describe('Morphism', () => {
 
         expect(morphism(schema, source)).toEqual({ key: null });
       });
+
+      it('should throw when validation.throw option is set to true', () => {
+        interface Source {
+          s1: string;
+        }
+        interface Target {
+          t1: string;
+          t2: string;
+        }
+        const schema = createSchema<Target, Source>(
+          {
+            t1: { fn: value => value.s1, validation: Validation.string() },
+            t2: { fn: value => value.s1, validation: Validation.string() }
+          },
+          { validation: { throw: true } }
+        );
+        const error1 = new ValidationError({ targetProperty: 't1', expect: 'value to be typeof string', value: undefined });
+        const error2 = new ValidationError({ targetProperty: 't2', expect: 'value to be typeof string', value: undefined });
+
+        const message1 = defaultFormatter(error1);
+        const message2 = defaultFormatter(error2);
+
+        expect(() => {
+          morphism(schema, JSON.parse('{}'));
+        }).toThrow(`${message1}\n${message2}`);
+      });
     });
   });
 
@@ -494,21 +648,6 @@ describe('Morphism', () => {
       expect(results[0]).toEqual(desiredResult);
     });
 
-    it('should compute function on data from specified path', function() {
-      let schema = {
-        state: {
-          path: 'address.state',
-          fn: (s: any) => s.toLowerCase()
-        }
-      };
-
-      let desiredResult = {
-        state: 'ny' // from NY to ny
-      };
-      let results = Morphism(schema, dataToCrunch);
-      expect(results[0]).toEqual(desiredResult);
-    });
-
     it('should pass the object value to the function when no path is specified', function() {
       interface D {
         firstName: string;
@@ -581,57 +720,6 @@ describe('Morphism', () => {
       const target = morphism(schema, sample);
 
       expect(target).toEqual({ keyA: { keyA1: [{ keyA11: 'value', keyA12: 'value' }], keyA2: 'value' } });
-    });
-
-    it('should accept a selector action in deep nested schema property', () => {
-      interface Source {
-        keySource: string;
-        keySource1: string;
-      }
-      const sample: Source = {
-        keySource: 'value',
-        keySource1: 'value1'
-      };
-
-      interface Target {
-        keyA: {
-          keyA1: [
-            {
-              keyA11: string;
-              keyA12: number;
-            }
-          ];
-          keyA2: string;
-        };
-      }
-      const selector: ActionSelector<Source> = {
-        path: 'keySource',
-        fn: () => 'value-test'
-      };
-      const aggregator: ActionAggregator<Source> = ['keySource', 'keySource1'];
-      const schema: StrictSchema<Target, Source> = {
-        keyA: {
-          keyA1: [{ keyA11: aggregator, keyA12: selector }],
-          keyA2: 'keySource'
-        }
-      };
-
-      const target = morphism(schema, sample);
-
-      expect(target).toEqual({
-        keyA: {
-          keyA1: [
-            {
-              keyA11: {
-                keySource: 'value',
-                keySource1: 'value1'
-              },
-              keyA12: 'value-test'
-            }
-          ],
-          keyA2: 'value'
-        }
-      });
     });
   });
 });

@@ -1,9 +1,21 @@
 import { ActionSelector, ActionAggregator, ActionFunction } from './types';
 
-export const SCHEMA_OPTIONS_SYMBOL = Symbol.for('SchemaOptions');
+/**
+ * Symbol identifier used to store options on a Morphism schema. Using the `createSchema` helper to avoid using the symbol directly.
+ *
+ * @example
+ * ```typescript
+ * import { SCHEMA_OPTIONS_SYMBOL } from 'morphism';
+ *
+ * const options: SchemaOptions = { class: { automapping: true }, undefinedValues: { strip: true } };
+ * const schema: Schema = { targetProperty: 'sourceProperty', [SCHEMA_OPTIONS_SYMBOL]: options }
+
+ * ```
+ */
+export const SCHEMA_OPTIONS_SYMBOL = Symbol('SchemaOptions');
 
 export function isActionSelector<S, R>(value: any): value is ActionSelector<S, R> {
-  return isObject(value) && value.hasOwnProperty('fn') && value.hasOwnProperty('path');
+  return isObject(value) && (value.hasOwnProperty('fn') || value.hasOwnProperty('path'));
 }
 export function isActionString(value: any): value is string {
   return isString(value);
@@ -48,7 +60,7 @@ export function isPromise(object: any) {
     // tslint:disable-next-line:triple-equals
     return Promise.resolve(object) == object;
   } else {
-    throw 'Promise not supported in your environment';
+    throw new Error('Promise not supported in your environment');
   }
 }
 export function get(object: any, path: string) {

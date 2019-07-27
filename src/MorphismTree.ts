@@ -13,6 +13,8 @@ import {
   SCHEMA_OPTIONS_SYMBOL,
   isEmptyObject
 } from './helpers';
+import { ValidationError, ERRORS, targetHasErrors, ValidationErrors, reporter, Reporter } from './validation/reporter';
+import { ValidatorError } from './validation/validators/ValidatorError';
 
 export enum NodeKind {
   Root = 'Root',
@@ -47,11 +49,57 @@ type AddNode<Target, Source> = Overwrite<
     preparedAction?: (...args: any) => any;
   }
 >;
+
+/**
+ * Options attached to a `Schema` or `StrictSchema`
+ */
 export interface SchemaOptions<Target = any> {
-  class?: { automapping: boolean };
+  /**
+   * Specify how to handle ES6 Class
+   * @memberof SchemaOptions
+   */
+  class?: {
+    /**
+     * Specify wether ES6 Class fields should be automapped if names on source and target match
+     * @default true
+     * @type {boolean}
+     */
+    automapping: boolean;
+  };
+  /**
+   * Specify how to handle undefined values mapped during the transformations
+   * @memberof SchemaOptions
+   */
   undefinedValues?: {
+    /**
+     * Undefined values should be removed from the target
+     * @default false
+     * @type {boolean}
+     */
     strip: boolean;
+    /**
+     * Optional callback to be executed for every undefined property on the Target
+     * @function default
+     */
     default?: (target: Target, propertyPath: string) => any;
+  };
+  /**
+   * Schema validation options
+   * @memberof SchemaOptions
+   */
+  validation?: {
+    /**
+     * Should throw when property validation fails
+     * @default false
+     * @type {boolean}
+     */
+    throw: boolean;
+    /**
+     * Custom reporter to use when throw option is set to true
+     * @default false
+     * @type {boolean}
+     */
+    reporter?: Reporter;
   };
 }
 
@@ -99,8 +147,12 @@ export class MorphismSchemaTree<Target, Source> {
       parentKeyPath = parentKeyPath ? `${parentKeyPath}.${actionKey}` : actionKey;
     } else {
       if (actionKey) {
+        if (isObject(partialSchema) && isEmptyObject(partialSchema as any))
+          throw new Error(
+            `A value of a schema property can't be an empty object. Value ${JSON.stringify(partialSchema)} found for property ${actionKey}`
+          );
         // check if actionKey exists to verify if not root node
-        this.add({ propertyName: actionKey, action: null }, parentKeyPath);
+        this.add({ propertyName: actionKey, action: partialSchema as Actions<Target, Source> }, parentKeyPath);
         parentKeyPath = parentKeyPath ? `${parentKeyPath}.${actionKey}` : actionKey;
       }
 
@@ -121,7 +173,6 @@ export class MorphismSchemaTree<Target, Source> {
     queue.push(this.root);
     while (queue.length > 0) {
       let node = queue.shift();
-
       if (node) {
         for (let i = 0, length = node.children.length; i < length; i++) {
           queue.push(node.children[i]);
@@ -129,15 +180,12 @@ export class MorphismSchemaTree<Target, Source> {
         if (node.data.kind !== NodeKind.Root) {
           yield node;
         }
-      } else {
-        return;
       }
     }
   }
 
   add(data: AddNode<Target, Source>, targetPropertyPath?: string) {
-    const kind = this.getActionKind(data.action);
-    if (!kind) throw new Error(`The action specified for ${data.propertyName} is not supported.`);
+    const kind = this.getActionKind(data);
 
     const nodeToAdd: SchemaNode<Target, Source> = {
       data: { ...data, kind, targetPropertyPath: '' },
@@ -161,15 +209,16 @@ export class MorphismSchemaTree<Target, Source> {
     }
   }
 
-  getActionKind(action: Actions<Target, Source> | null) {
-    if (isActionString(action)) return NodeKind.ActionString;
-    if (isFunction(action)) return NodeKind.ActionFunction;
-    if (isActionSelector(action)) return NodeKind.ActionSelector;
-    if (isActionAggregator(action)) return NodeKind.ActionAggregator;
-    if (action === null) return NodeKind.Property;
+  getActionKind(data: AddNode<Target, Source>) {
+    if (isActionString(data.action)) return NodeKind.ActionString;
+    if (isFunction(data.action)) return NodeKind.ActionFunction;
+    if (isActionSelector(data.action)) return NodeKind.ActionSelector;
+    if (isActionAggregator(data.action)) return NodeKind.ActionAggregator;
+    if (isObject(data.action)) return NodeKind.Property;
+    throw new Error(`The action specified for ${data.propertyName} is not supported.`);
   }
 
-  getPreparedAction(nodeData: SchemaNodeData<Target, Source>): PreparedAction | null {
+  getPreparedAction(nodeData: SchemaNodeData<Target, Source>): PreparedAction | null | undefined {
     const { propertyName: targetProperty, action, kind } = nodeData;
     // iterate on every action of the schema
     if (isActionString(action)) {
@@ -185,26 +234,52 @@ export class MorphismSchemaTree<Target, Source> {
       // Action<Object>: a path and a function: [ destination : { path: 'source', fn:(fieldValue, items) }]
       return ({ object, items, objectToCompute }) => {
         let result;
-        try {
-          let value;
+        if (action.path) {
           if (Array.isArray(action.path)) {
-            value = aggregator(action.path, object);
+            result = aggregator(action.path, object);
           } else if (isString(action.path)) {
-            value = get(object, action.path);
+            result = get(object, action.path);
           }
-          result = action.fn.call(undefined, value, object, items, objectToCompute);
-        } catch (e) {
-          e.message = `Unable to set target property [${targetProperty}].
-                                        \n An error occured when applying [${action.fn.name}] on property [${action.path}]
-                                        \n Internal error: ${e.message}`;
-          throw e;
+        } else {
+          result = object;
+        }
+
+        if (action.fn) {
+          try {
+            result = action.fn.call(undefined, result, object, items, objectToCompute);
+          } catch (e) {
+            e.message = `Unable to set target property [${targetProperty}].
+            \n An error occured when applying [${action.fn.name}] on property [${action.path}]
+            \n Internal error: ${e.message}`;
+            throw e;
+          }
+        }
+
+        if (action.validation) {
+          try {
+            result = action.validation.validate(result);
+          } catch (error) {
+            if (error instanceof ValidatorError) {
+              const validationError = new ValidationError({ targetProperty, expect: error.expect, value: error.value });
+              if (targetHasErrors(objectToCompute)) {
+                objectToCompute[ERRORS].addError(validationError);
+              } else {
+                if (this.schemaOptions.validation && this.schemaOptions.validation.reporter) {
+                  objectToCompute[ERRORS] = new ValidationErrors(this.schemaOptions.validation.reporter, objectToCompute);
+                } else {
+                  objectToCompute[ERRORS] = new ValidationErrors(reporter, objectToCompute);
+                }
+                objectToCompute[ERRORS].addError(validationError);
+              }
+            } else {
+              throw error;
+            }
+          }
         }
         return result;
       };
     } else if (kind === NodeKind.Property) {
       return null;
-    } else {
-      throw new Error(`The action specified for ${targetProperty} is not supported.`);
     }
   }
 }
