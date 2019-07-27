@@ -70,16 +70,17 @@ workflows:
   test:
     jobs:
       - test-job
-      - deploy-docs:
+      - publish-job:
           requires:
             - test-job
           filters:
             branches:
               only:
+                - next
                 - master
-      - publish-job:
+      - deploy-docs:
           requires:
-            - deploy-docs
+            - publish-job
           filters:
             branches:
               only:
