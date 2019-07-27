@@ -638,6 +638,8 @@ Morphism.mappers;
 
 ## Similar Projects
 
+- [`io-ts`](https://github.com/gcanti/io-ts)
+- [`joi`](https://github.com/hapijs/joi/)
 - [`object-mapper`](https://www.npmjs.com/package/object-mapper)
 - [`autoMapper-ts`](https://www.npmjs.com/package/automapper-ts)
 - [`C# AutoMapper`](https://github.com/AutoMapper/AutoMapper)
