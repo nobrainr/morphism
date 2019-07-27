@@ -7,7 +7,6 @@
 [![npm](https://img.shields.io/npm/v/morphism.svg?style=for-the-badge)][npm-url]
 [![npm bundle size (minified)](https://img.shields.io/bundlephobia/min/morphism.svg?style=for-the-badge)](https://github.com/nobrainr/morphism)
 [![npm](https://img.shields.io/npm/dy/morphism.svg?style=for-the-badge)][trends-url]
-[![Coveralls github](https://img.shields.io/coveralls/github/emyann/morphism.svg?style=for-the-badge)][coveralls-url]
 [![CircleCI (all branches)](https://img.shields.io/circleci/project/github/nobrainr/morphism/master.svg?style=for-the-badge)][circleci-url]
 [![Deps](https://img.shields.io/david/nobrainr/morphism.svg?style=for-the-badge)][deps-url]
 [![Greenkeeper badge](https://badges.greenkeeper.io/nobrainr/morphism.svg)](https://greenkeeper.io/)
@@ -22,40 +21,40 @@ _https://en.wikipedia.org/wiki/Morphism_
 
 ---
 
-- [Morphism](#morphism)
-  - [Getting started](#getting-started)
-    - [Installation](#installation)
-    - [Usage](#usage)
-    - [Example (TypeScript)](#example-typescript)
-  - [Motivation](#motivation)
-  - [TypeScript integration](#typescript-integration)
-  - [Docs](#docs)
-    - [1. The Schema](#1-the-schema)
-      - [Schema actions](#schema-actions)
-      - [Schema Example](#schema-example)
-      - [1.1 Using a strict Schema](#11-using-a-strict-schema)
-    - [2. Morphism as Currying Function](#2-morphism-as-currying-function)
-      - [API](#api)
-      - [Currying Function Example](#currying-function-example)
-    - [3. Morphism Function as Decorators](#3-morphism-function-as-decorators)
-      - [`toJsObject` Decorator](#tojsobject-decorator)
-      - [`toClassObject` Decorator](#toclassobject-decorator)
-      - [`morph` Decorator](#morph-decorator)
-    - [4. Default export: Morphism object](#4-default-export-morphism-object)
-  - [More Schema examples](#more-schema-examples)
-    - [Flattening or Projection](#flattening-or-projection)
-    - [Function over a source property's value](#function-over-a-source-propertys-value)
-    - [Function over a source property](#function-over-a-source-property)
-    - [Properties Aggregation](#properties-aggregation)
-  - [Registry API](#registry-api)
-      - [Register](#register)
-      - [Map](#map)
-      - [Get or Set an existing mapper configuration](#get-or-set-an-existing-mapper-configuration)
-      - [Delete a registered mapper](#delete-a-registered-mapper)
-      - [List registered mappers](#list-registered-mappers)
-  - [Contribution](#contribution)
-  - [Similar Projects](#similar-projects)
-  - [License](#license)
+- [Morphism](#Morphism)
+  - [Getting started](#Getting-started)
+    - [Installation](#Installation)
+    - [Usage](#Usage)
+    - [Example (TypeScript)](#Example-TypeScript)
+  - [Motivation](#Motivation)
+  - [TypeScript integration](#TypeScript-integration)
+  - [Docs](#Docs)
+    - [1. The Schema](#1-The-Schema)
+      - [Schema actions](#Schema-actions)
+      - [Schema Example](#Schema-Example)
+      - [1.1 Using a strict Schema](#11-Using-a-strict-Schema)
+    - [2. Morphism as Currying Function](#2-Morphism-as-Currying-Function)
+      - [API](#API)
+      - [Currying Function Example](#Currying-Function-Example)
+    - [3. Morphism Function as Decorators](#3-Morphism-Function-as-Decorators)
+      - [`toJsObject` Decorator](#toJsObject-Decorator)
+      - [`toClassObject` Decorator](#toClassObject-Decorator)
+      - [`morph` Decorator](#morph-Decorator)
+    - [4. Default export: Morphism object](#4-Default-export-Morphism-object)
+  - [More Schema examples](#More-Schema-examples)
+    - [Flattening or Projection](#Flattening-or-Projection)
+    - [Function over a source property's value](#Function-over-a-source-propertys-value)
+    - [Function over a source property](#Function-over-a-source-property)
+    - [Properties Aggregation](#Properties-Aggregation)
+  - [Registry API](#Registry-API)
+      - [Register](#Register)
+      - [Map](#Map)
+      - [Get or Set an existing mapper configuration](#Get-or-Set-an-existing-mapper-configuration)
+      - [Delete a registered mapper](#Delete-a-registered-mapper)
+      - [List registered mappers](#List-registered-mappers)
+  - [Contribution](#Contribution)
+  - [Similar Projects](#Similar-Projects)
+  - [License](#License)
 
 ## Getting started
 
@@ -652,7 +651,5 @@ MIT © [Yann Renaudin][twitter-account]
 [npm-image]: https://badge.fury.io/js/morphism.svg?style=flat-square
 [npm-url]: https://npmjs.org/package/morphism
 [deps-url]: https://www.npmjs.com/package/morphism?activeTab=dependencies
-[coveralls-image]: https://coveralls.io/repos/emyann/morphism/badge.svg?style=flat-square
-[coveralls-url]: https://coveralls.io/r/emyann/morphism
 [circleci-url]: https://circleci.com/gh/nobrainr/morphism
 [trends-url]: https://www.npmtrends.com/morphism
