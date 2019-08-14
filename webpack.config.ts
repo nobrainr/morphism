@@ -41,7 +41,28 @@ const webpackconfiguration: webpack.Configuration = {
     extensions: ['.ts', '.tsx', '.js', '.json']
   },
   module: {
-    rules: [{ test: /\.(ts|js)x?$/, use: ['babel-loader', 'source-map-loader'], exclude: /node_modules/ }]
+    rules: [
+      { 
+        test: /\.(ts|js)x?$/, 
+        exclude: /node_modules/,
+        use: [
+          {
+            loader: 'babel-loader',
+            options: {
+              presets: [
+                [
+                  '@babel/preset-env',
+                  {
+                    exclude: ['@babel/plugin-transform-regenerator']
+                  }
+                ]
+              ]
+            }
+          }, 
+          'source-map-loader'
+        ]
+      }
+    ]
   },
   plugins: [
     new ForkTsCheckerWebpackPlugin({
