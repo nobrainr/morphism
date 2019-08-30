@@ -161,6 +161,29 @@ describe('Typescript', () => {
       morphism<StrictSchema<D1, S1>>({ a: ({ _a }) => _a.toString() });
       morphism<StrictSchema<D1, S1>>({ a: ({ _a }) => _a.toString() });
     });
+
+    it('shoud infer result type from source when a class is provided', () => {
+      class Source {
+        constructor(public id: number, public ugly_field: string) {}
+      }
+
+      class Destination {
+        constructor(public id: number, public field: string) {}
+      }
+
+      const source = [new Source(1, 'abc'), new Source(1, 'def')];
+
+      const schema: StrictSchema<Destination, Source> = {
+        id: 'id',
+        field: 'ugly_field'
+      };
+      const expected = [new Destination(1, 'abc'), new Destination(1, 'def')];
+
+      const result = morphism(schema, source, Destination);
+      result.forEach((item, idx) => {
+        expect(item).toEqual(expected[idx]);
+      });
+    });
   });
 
   describe('Morphism Function Type Checking', () => {
