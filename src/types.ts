@@ -37,7 +37,7 @@ export type StrictSchema<Target = any, Source = any> = {
     | ActionString<Source>
     | ActionFunction<Target, Source, Target[destinationProperty]>
     | ActionAggregator<Source>
-    | ActionSelector<Source, Target[destinationProperty]>
+    | ActionSelector<Source, Target>
     | StrictSchema<Target[destinationProperty], Source>;
 } & { [SCHEMA_OPTIONS_SYMBOL]?: SchemaOptions<Target> };
 export type Schema<Target = any, Source = any> = {
@@ -46,7 +46,7 @@ export type Schema<Target = any, Source = any> = {
     | ActionString<Source>
     | ActionFunction<Target, Source, Target[destinationProperty]>
     | ActionAggregator<Source>
-    | ActionSelector<Source, Target[destinationProperty]>
+    | ActionSelector<Source, Target>
     | Schema<Target[destinationProperty], Source>;
 } & { [SCHEMA_OPTIONS_SYMBOL]?: SchemaOptions<Target | any> };
 
