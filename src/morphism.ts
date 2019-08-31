@@ -6,7 +6,8 @@ import { Schema, StrictSchema, Constructable, SourceFromSchema, Mapper, Destinat
 import { MorphismSchemaTree, createSchema, SchemaOptions } from './MorphismTree';
 import { MorphismRegistry, IMorphismRegistry } from './MorphismRegistry';
 import { decorator } from './MorphismDecorator';
-import { Reporter, reporter as defaultReporter, Formatter, targetHasErrors, ValidationErrors } from './validation/reporter';
+import { Reporter, reporter as defaultReporter, Formatter, targetHasErrors, ValidationErrors, Validation } from './validation/reporter';
+import { BaseValidator, Rule } from './validation/Validation';
 
 /**
  * Low Level transformer function.
@@ -246,6 +247,9 @@ export {
   SCHEMA_OPTIONS_SYMBOL,
   Reporter,
   defaultReporter as reporter,
-  Formatter
+  Formatter,
+  Validation,
+  BaseValidator,
+  Rule
 };
 export default Morphism;
