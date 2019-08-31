@@ -72,7 +72,7 @@ function transformItems<T, TSchema extends Schema<T | {}>>(schema: TSchema, type
     tree = new MorphismSchemaTree(schema);
   }
 
-  function mapper(source: any) {
+  const mapper: Mapper<TSchema> = (source: any) => {
     if (!source) {
       return source;
     }
@@ -96,7 +96,7 @@ function transformItems<T, TSchema extends Schema<T | {}>>(schema: TSchema, type
         return transformValuesFromObject(object, tree, [object], jsObject);
       }
     }
-  }
+  };
 
   return mapper;
 }
@@ -148,7 +148,17 @@ function morphism<TSchema extends Schema, TDestination>(
   type: Constructable<TDestination>
 ): Mapper<TSchema, TDestination>; // morphism({}, null, T) => mapper(S) => T
 
-function morphism<TSchema extends Schema, Target>(schema: TSchema, items: SourceFromSchema<TSchema>, type: Constructable<Target>): Target; // morphism({}, {}, T) => T
+function morphism<
+  TSchema = Schema<DestinationFromSchema<Schema>, SourceFromSchema<Schema>>,
+  Target = never,
+  Source extends SourceFromSchema<TSchema> = SourceFromSchema<TSchema>
+>(schema: TSchema, items: Source, type: Constructable<Target>): Target; // morphism({}, {}, T) => T
+
+function morphism<
+  TSchema = Schema<DestinationFromSchema<Schema>, SourceFromSchema<Schema>>,
+  Target = never,
+  Source extends SourceFromSchema<TSchema> = SourceFromSchema<TSchema>
+>(schema: TSchema, items: Source[], type: Constructable<Target>): Target[]; // morphism({}, [], T) => T[]
 
 function morphism<Target, Source, TSchema extends Schema<Target, Source>>(
   schema: TSchema,

@@ -37,8 +37,8 @@ export type StrictSchema<Target = any, Source = any> = {
     | ActionString<Source>
     | ActionFunction<Target, Source, Target[destinationProperty]>
     | ActionAggregator<Source>
-    | ActionSelector<Source, Target[destinationProperty]>
-    | StrictSchema<Target[destinationProperty], Source>
+    | ActionSelector<Source, Target>
+    | StrictSchema<Target[destinationProperty], Source>;
 } & { [SCHEMA_OPTIONS_SYMBOL]?: SchemaOptions<Target> };
 export type Schema<Target = any, Source = any> = {
   /** `destinationProperty` is the name of the property of the target object you want to produce */
@@ -46,8 +46,8 @@ export type Schema<Target = any, Source = any> = {
     | ActionString<Source>
     | ActionFunction<Target, Source, Target[destinationProperty]>
     | ActionAggregator<Source>
-    | ActionSelector<Source, Target[destinationProperty]>
-    | Schema<Target[destinationProperty], Source>
+    | ActionSelector<Source, Target>
+    | Schema<Target[destinationProperty], Source>;
 } & { [SCHEMA_OPTIONS_SYMBOL]?: SchemaOptions<Target | any> };
 
 export type Actions<Target, Source> = ActionFunction<Target, Source> | ActionAggregator | ActionString<Target> | ActionSelector<Source>;
@@ -172,6 +172,6 @@ export type DestinationFromSchema<T> = T extends StrictSchema<infer U> | Schema<
 export type ResultItem<TSchema extends Schema> = DestinationFromSchema<TSchema>;
 
 export interface Mapper<TSchema extends Schema | StrictSchema, TResult = ResultItem<TSchema>> {
-  (data: SourceFromSchema<TSchema>[]): TResult[];
-  (data: SourceFromSchema<TSchema>): TResult;
+  (data?: SourceFromSchema<TSchema>[] | null): TResult[];
+  (data?: SourceFromSchema<TSchema> | null): TResult;
 }
