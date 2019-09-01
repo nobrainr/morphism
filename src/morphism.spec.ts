@@ -6,11 +6,12 @@ import Morphism, {
   SchemaOptions,
   SCHEMA_OPTIONS_SYMBOL,
   reporter,
-  Validation
+  Validation,
+  ValidationError
 } from './morphism';
 import { User, MockData } from './utils-test';
 import { ActionSelector, ActionAggregator } from './types';
-import { defaultFormatter, ValidationError } from './validation/reporter';
+import { defaultFormatter } from './validation/reporter';
 
 describe('Morphism', () => {
   const dataToCrunch: MockData[] = [

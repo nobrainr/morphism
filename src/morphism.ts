@@ -6,7 +6,14 @@ import { Schema, StrictSchema, Constructable, SourceFromSchema, Mapper, Destinat
 import { MorphismSchemaTree, createSchema, SchemaOptions } from './MorphismTree';
 import { MorphismRegistry, IMorphismRegistry } from './MorphismRegistry';
 import { decorator } from './MorphismDecorator';
-import { Reporter, reporter as defaultReporter, Formatter, targetHasErrors, ValidationErrors } from './validation/reporter';
+import {
+  Reporter,
+  reporter as defaultReporter,
+  Formatter,
+  targetHasErrors,
+  ValidationErrors,
+  ValidationError
+} from './validation/reporter';
 import { BaseValidator, Rule, Validation } from './validation/Validation';
 
 /**
@@ -250,6 +257,7 @@ export {
   Formatter,
   Validation,
   BaseValidator,
-  Rule
+  Rule,
+  ValidationError
 };
 export default Morphism;
