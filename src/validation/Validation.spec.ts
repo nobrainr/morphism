@@ -1,8 +1,7 @@
 import { BaseValidator, Rule, Validation } from './Validation';
 import { createSchema } from '../MorphismTree';
-import { morphism, reporter } from '../morphism';
+import { morphism, reporter, ValidatorError } from '../morphism';
 import { ValidationError, defaultFormatter } from './reporter';
-import { ValidatorError } from './validators/ValidatorError';
 
 declare module './Validation' {
   interface IValidation {
