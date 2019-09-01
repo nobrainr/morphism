@@ -1,7 +1,15 @@
-import Morphism, { StrictSchema, morphism, Schema, createSchema, SchemaOptions, SCHEMA_OPTIONS_SYMBOL, reporter } from './morphism';
+import Morphism, {
+  StrictSchema,
+  morphism,
+  Schema,
+  createSchema,
+  SchemaOptions,
+  SCHEMA_OPTIONS_SYMBOL,
+  reporter,
+  Validation
+} from './morphism';
 import { User, MockData } from './utils-test';
 import { ActionSelector, ActionAggregator } from './types';
-import { Validation } from './validation/Validation';
 import { defaultFormatter, ValidationError } from './validation/reporter';
 
 describe('Morphism', () => {
