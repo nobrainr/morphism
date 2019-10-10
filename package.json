@@ -17,7 +17,9 @@
     "test:coverage": "npm run test -- --coverage",
     "semantic-release": "semantic-release",
     "docs": "typedoc",
-    "docs:deploy": "now ./docs/typedoc -A ../../now.json --public --team $TEAM_NAME --token $NOW_TOKEN && now alias --team $TEAM_NAME --token $NOW_TOKEN"
+    "docs:deploy": "now ./docs/typedoc -A ../../now.json --public --team $TEAM_NAME --token $NOW_TOKEN && now alias --team $TEAM_NAME --token $NOW_TOKEN",
+    "analyze-bundle:dev": "WEBPACK_ANALYZE=true TS_NODE_PROJECT=\"tsconfig.webpack.json\" webpack",
+    "analyze-bundle:prod": "WEBPACK_ANALYZE=true TS_NODE_PROJECT=\"tsconfig.webpack.json\" webpack  --mode=production"
   },
   "release": {
     "branches": [
@@ -59,6 +61,7 @@
     "@types/jest": "24.0.18",
     "@types/node": "^12.0.0",
     "@types/webpack": "^4.4.27",
+    "@types/webpack-bundle-analyzer": "^2.13.3",
     "babel-loader": "^8.0.5",
     "fork-ts-checker-webpack-plugin": "^1.0.1",
     "jest": "24.7.1",
@@ -76,6 +79,7 @@
     "typedoc-plugin-internal-external": "^2.0.1",
     "typescript": "^3.5.3",
     "webpack": "4.39.3",
+    "webpack-bundle-analyzer": "^3.5.2",
     "webpack-cli": "^3.3.0"
   },
   "eslintConfig": {
