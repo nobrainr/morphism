@@ -7,7 +7,7 @@ import { MorphismSchemaTree, createSchema, SchemaOptions } from './MorphismTree'
 import { MorphismRegistry, IMorphismRegistry } from './MorphismRegistry';
 import { decorator } from './MorphismDecorator';
 import { Reporter, reporter as defaultReporter, Formatter, targetHasErrors, ValidationErrors } from './validation/reporter';
-import { BaseValidator, Rule, Validation } from './validation/Validation';
+import { BaseValidator, Rule, Validation, IValidation } from './validation/Validation';
 import { ValidatorError } from './validation/validators/ValidatorError';
 
 /**
@@ -252,6 +252,7 @@ export {
   Validation,
   BaseValidator,
   Rule,
-  ValidatorError
+  ValidatorError,
+  IValidation
 };
 export default Morphism;
