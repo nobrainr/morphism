@@ -188,7 +188,7 @@ describe('Reporter', () => {
         const schema = createSchema<T, S>({
           t1: {
             fn: value => value.s1,
-            validation: Validation.string().length(LENGTH)
+            validation: Validation.string().size(LENGTH)
           }
         });
         const result = morphism(schema, { s1: 'aaa' });
