@@ -257,20 +257,11 @@ export class MorphismSchemaTree<Target, Source> {
 
         if (action.validation) {
           try {
-            result = action.validation.validate(result);
+            const validation = action.validation;
+            result = validation(result);
           } catch (error) {
             if (error instanceof ValidatorError) {
-              const validationError = new ValidationError({ targetProperty, expect: error.expect, value: error.value });
-              if (targetHasErrors(objectToCompute)) {
-                objectToCompute[ERRORS].addError(validationError);
-              } else {
-                if (this.schemaOptions.validation && this.schemaOptions.validation.reporter) {
-                  objectToCompute[ERRORS] = new ValidationErrors(this.schemaOptions.validation.reporter, objectToCompute);
-                } else {
-                  objectToCompute[ERRORS] = new ValidationErrors(reporter, objectToCompute);
-                }
-                objectToCompute[ERRORS].addError(validationError);
-              }
+              this.addErrorToTarget(targetProperty, error, objectToCompute);
             } else {
               throw error;
             }
@@ -280,6 +271,20 @@ export class MorphismSchemaTree<Target, Source> {
       };
     } else if (kind === NodeKind.Property) {
       return null;
+    }
+  }
+
+  private addErrorToTarget(targetProperty: string, error: { expect: string; value: any }, objectToCompute: any) {
+    const validationError = new ValidationError({ targetProperty, expect: error.expect, value: error.value });
+    if (targetHasErrors(objectToCompute)) {
+      objectToCompute[ERRORS].addError(validationError);
+    } else {
+      if (this.schemaOptions.validation && this.schemaOptions.validation.reporter) {
+        objectToCompute[ERRORS] = new ValidationErrors(this.schemaOptions.validation.reporter, objectToCompute);
+      } else {
+        objectToCompute[ERRORS] = new ValidationErrors(reporter, objectToCompute);
+      }
+      objectToCompute[ERRORS].addError(validationError);
     }
   }
 }
