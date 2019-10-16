@@ -1,82 +1,94 @@
-import { BaseValidator, Rule } from './BaseValidator';
-import { isString } from '../../helpers';
 import { ValidatorError } from './ValidatorError';
+import { isString } from '../../helpers';
+import { Rule } from '../types';
 
-export class StringValidator extends BaseValidator<string> {
-  constructor() {
-    super({
-      name: 'string',
-      expect: `value to be typeof string`,
-      test: function(value) {
-        const result = value;
-        if (!isString(result)) {
-          throw new ValidatorError({ value, expect: this.expect });
-        }
-        return result;
-      }
-    });
+export function StringValidator() {
+  const baseRuleName = 'string';
+  const baseRuleExpect = `value to be typeof string`;
+  const baseRuleValidate: Rule<string>['validate'] = value => {
+    const result = value;
+    if (!isString(result)) {
+      throw new ValidatorError({ value, expect: baseRuleExpect });
+    }
+    return result;
+  };
+  const baseRule = {
+    name: baseRuleName,
+    expect: baseRuleExpect,
+    validate: baseRuleValidate
+  };
+  const rules = new Map<string, Rule<string>>([[baseRule.name, baseRule]]);
+  function executeRules(value: any) {
+    return [...rules.values()].reduce((acc, rule) => {
+      return rule.validate(acc);
+    }, value);
   }
 
-  min(val: number) {
-    this.addRule({
-      name: 'min',
-      expect: `value to be greater or equal than ${val}`,
-      test: function(value) {
-        if (value.length < val) {
-          throw new ValidatorError({ value, expect: this.expect });
-        }
-        return value;
-      }
-    });
-    return this;
+  function addRule<T extends string>(rule: Rule<T>) {
+    if (rules.has(rule.name)) throw new Error(`Rule ${rule.name} has already been used`);
+    rules.set(rule.name, rule);
   }
-  max(val: number) {
-    this.addRule({
-      name: 'max',
-      expect: `value to be less or equal than ${val}`,
-      test: function(value) {
-        if (value.length > val) {
-          throw new ValidatorError({ value, expect: this.expect });
-        }
-        return value;
+
+  function createRegexRule(name: string, expect: string, regex: RegExp): Rule<string> {
+    const validate: Rule<string>['validate'] = value => {
+      if (!regex.test(value)) {
+        throw new ValidatorError({ value, expect });
       }
-    });
-    return this;
-  }
-  length(val: number) {
-    this.addRule({
-      name: 'length',
-      expect: `value to be length of ${val}`,
-      test: function(value) {
-        if (value.length !== val) {
-          throw new ValidatorError({ value, expect: this.expect });
-        }
-        return value;
-      }
-    });
-    return this;
-  }
-  private createRegexRule(name: string, expect: string, regex: RegExp): Rule<string> {
-    return {
-      name,
-      expect,
-      test: function(value) {
-        if (!regex.test(value)) {
-          throw new ValidatorError({ value, expect: this.expect });
-        }
-        return value;
-      }
+      return value;
     };
-  }
-  regex(regex: RegExp) {
-    const rule = this.createRegexRule('regex', `value to match pattern: ${regex}`, regex);
-    this.addRule(rule);
-    return this;
+    return { name, expect, validate };
   }
 
-  alphanum() {
-    const rule = this.createRegexRule('regex', `value to contain only alphanumeric characters`, /^[a-z0-9]+$/i);
-    this.addRule(rule);
-    return this;
-  }
+  const api = {
+    min: (val: number) => {
+      const name = 'min';
+      const expect = `value to be greater or equal than ${val}`;
+      const validate: Rule<string>['validate'] = value => {
+        if (value.length < val) {
+          throw new ValidatorError({ value, expect });
+        }
+        return value;
+      };
+
+      addRule({ name, expect, validate });
+      return Object.assign(executeRules, api);
+    },
+    max: (val: number) => {
+      const name = 'max';
+      const expect = `value to be less or equal than ${val}`;
+      const validate: Rule<string>['validate'] = value => {
+        if (value.length > val) {
+          throw new ValidatorError({ value, expect });
+        }
+        return value;
+      };
+
+      addRule({ name, expect, validate });
+      return Object.assign(executeRules, api);
+    },
+    size: (val: number) => {
+      const name = 'length';
+      const expect = `value to be length of ${val}`;
+      const validate: Rule<string>['validate'] = value => {
+        if (value.length !== val) {
+          throw new ValidatorError({ value, expect });
+        }
+        return value;
+      };
+
+      addRule({ name, expect, validate });
+      return Object.assign(executeRules, api);
+    },
+    regex: (regex: RegExp) => {
+      const rule = createRegexRule('regex', `value to match pattern: ${regex}`, regex);
+      addRule(rule);
+      return Object.assign(executeRules, api);
+    },
+    alphanum: () => {
+      const rule = createRegexRule('regex', `value to contain only alphanumeric characters`, /^[a-z0-9]+$/i);
+      addRule(rule);
+      return Object.assign(executeRules, api);
+    }
+  };
+  return Object.assign(executeRules, api);
 }
