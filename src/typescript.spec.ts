@@ -1,4 +1,4 @@
-import Morphism, { morphism, StrictSchema, Schema } from './morphism';
+import Morphism, { morphism, StrictSchema, Schema, createSchema } from './morphism';
 
 describe('Typescript', () => {
   describe('Registry Type Checking', () => {
@@ -183,6 +183,14 @@ describe('Typescript', () => {
       result.forEach((item, idx) => {
         expect(item).toEqual(expected[idx]);
       });
+    });
+
+    it('should accept union types as Target', () => {
+      const schema = createSchema<{ a: string } | { a: string; b: string }, { c: string }>({
+        a: ({ c }) => c
+      });
+
+      expect(morphism(schema, { c: 'result' }).a).toEqual('result');
     });
   });
 
