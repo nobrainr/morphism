@@ -35,7 +35,7 @@ export type StrictSchema<Target = any, Source = any> = {
   /** `destinationProperty` is the name of the property of the target object you want to produce */
   [destinationProperty in keyof Target]:
     | ActionString<Source>
-    | ActionFunction<Target, Source, Target[destinationProperty]>
+    | { (iteratee: Source, source: Source[], target: Target[destinationProperty]): Target[destinationProperty] }
     | ActionAggregator<Source>
     | ActionSelector<Source, Target>
     | StrictSchema<Target[destinationProperty], Source>;
@@ -44,7 +44,7 @@ export type Schema<Target = any, Source = any> = {
   /** `destinationProperty` is the name of the property of the target object you want to produce */
   [destinationProperty in keyof Target]?:
     | ActionString<Source>
-    | ActionFunction<Target, Source, Target[destinationProperty]>
+    | { (iteratee: Source, source: Source[], target: Target[destinationProperty]): Target[destinationProperty] }
     | ActionAggregator<Source>
     | ActionSelector<Source, Target>
     | Schema<Target[destinationProperty], Source>;
