@@ -11,19 +11,19 @@ describe('Mappers Registry', function() {
         streetAddress: '21 2nd Street',
         city: 'New York',
         state: 'NY',
-        postalCode: '10021'
+        postalCode: '10021',
       },
       phoneNumber: [
         {
           type: 'home',
-          number: '212 555-1234'
+          number: '212 555-1234',
         },
         {
           type: 'fax',
-          number: '646 555-4567'
-        }
-      ]
-    }
+          number: '646 555-4567',
+        },
+      ],
+    },
   ];
   beforeEach(() => {
     Morphism.deleteMapper(User);
@@ -41,7 +41,7 @@ describe('Mappers Registry', function() {
 
   it('should return the stored mapper after a registration', function() {
     let schema = {
-      phoneNumber: 'phoneNumber[0].number'
+      phoneNumber: 'phoneNumber[0].number',
     };
     let mapper = Morphism.setMapper(User, schema);
     let mapperSaved = Morphism.getMapper(User);
@@ -57,7 +57,7 @@ describe('Mappers Registry', function() {
 
   it('should allow to map data using a registered mapper', function() {
     let schema = {
-      phoneNumber: 'phoneNumber[0].number'
+      phoneNumber: 'phoneNumber[0].number',
     };
     Morphism.setMapper(User, schema);
     let desiredResult = new User('John', 'Smith', '212 555-1234');
@@ -67,7 +67,7 @@ describe('Mappers Registry', function() {
 
   it('should allow to map data using a mapper updated schema', function() {
     let schema = {
-      phoneNumber: 'phoneNumber[0].number'
+      phoneNumber: 'phoneNumber[0].number',
     };
     let mapper = Morphism.setMapper(User, schema);
     let desiredResult = new User('John', 'Smith', '212 555-1234');

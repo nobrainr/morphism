@@ -1,14 +1,13 @@
-import { ValidatorError } from "./ValidatorError";
-import { isString } from "../../helpers";
-import { ValidatorValidateResult, ValidateFunction } from "../../types";
-import { ValidatorOptions, Rule } from "./types";
-import { LinkedList } from "./LinkedList";
+import { ValidatorError } from './ValidatorError';
+import { isString } from '../../helpers';
+import { ValidatorValidateResult, ValidateFunction } from '../../types';
+import { ValidatorOptions, Rule } from './types';
+import { LinkedList } from './LinkedList';
 
 export function StringValidator(options: ValidatorOptions = {}) {
   let list = new LinkedList<Rule<string>>({
-    name: "string",
-    expect: input =>
-      `Expected value to be a <string> but received <${input.value}>`,
+    name: 'string',
+    expect: input => `Expected value to be a <string> but received <${input.value}>`,
     validate: input => {
       if (isString(input.value)) {
         return true;
@@ -20,7 +19,7 @@ export function StringValidator(options: ValidatorOptions = {}) {
           return false;
         }
       }
-    }
+    },
   });
 
   const validate: ValidateFunction = input => {
@@ -39,7 +38,7 @@ export function StringValidator(options: ValidatorOptions = {}) {
       if (!rule.validate(result)) {
         result.error = new ValidatorError({
           expect: isString(rule.expect) ? rule.expect : rule.expect(result),
-          value: result.value
+          value: result.value,
         });
       }
       current = iterator.next();
@@ -50,61 +49,48 @@ export function StringValidator(options: ValidatorOptions = {}) {
   const rules = {
     min: (value: number) => {
       list.append({
-        name: "min",
-        expect: input =>
-          `Expected value to be greater or equal than <${value}> but received <${input.value}>`,
-        validate: input => input.value.length >= value
+        name: 'min',
+        expect: input => `Expected value to be greater or equal than <${value}> but received <${input.value}>`,
+        validate: input => input.value.length >= value,
       });
       return api;
     },
     max: (value: number) => {
       list.append({
-        name: "max",
-        expect: input =>
-          `Expected value to be less or equal than <${value}> but received <${input.value}>`,
-        validate: input => input.value.length <= value
+        name: 'max',
+        expect: input => `Expected value to be less or equal than <${value}> but received <${input.value}>`,
+        validate: input => input.value.length <= value,
       });
       return api;
     },
     size: (value: number) => {
       list.append({
-        name: "length",
-        expect: input =>
-          `Expected value to be length of <${value}> but received <${input.value}>`,
-        validate: input => input.value.length === value
+        name: 'length',
+        expect: input => `Expected value to be length of <${value}> but received <${input.value}>`,
+        validate: input => input.value.length === value,
       });
       return api;
     },
     regex: (regex: RegExp) => {
-      const rule = createRegexRule(
-        "regex",
-        input =>
-          `Expected value to match pattern: ${regex} but received <${input.value}>`,
-        regex
-      );
+      const rule = createRegexRule('regex', input => `Expected value to match pattern: ${regex} but received <${input.value}>`, regex);
       list.append(rule);
       return api;
     },
     alphanum: () => {
       const rule = createRegexRule(
-        "regex",
-        input =>
-          `Expected value to contain only alphanumeric characters but received <${input.value}>`,
+        'regex',
+        input => `Expected value to contain only alphanumeric characters but received <${input.value}>`,
         /^[a-z0-9]+$/i
       );
       list.append(rule);
       return api;
-    }
+    },
   };
   const api = Object.assign(validate, rules);
   return api;
 }
 
-function createRegexRule(
-  name: Rule["name"],
-  expect: Rule["expect"],
-  regex: RegExp
-): Rule<string> {
-  const validate: Rule<string>["validate"] = input => regex.test(input.value);
+function createRegexRule(name: Rule['name'], expect: Rule['expect'], regex: RegExp): Rule<string> {
+  const validate: Rule<string>['validate'] = input => regex.test(input.value);
   return { name, expect, validate };
 }

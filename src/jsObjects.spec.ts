@@ -9,7 +9,7 @@ describe('Javascript Objects', () => {
     it('should allow to use a mapper as an iteratee first function', function() {
       let mocks = [{ source: 'value' }, { source: 'value' }, { source: 'value' }];
       let schema = {
-        target: 'source'
+        target: 'source',
       };
       const mapper = Morphism(schema);
 
@@ -22,7 +22,7 @@ describe('Javascript Objects', () => {
     it('should allow to use a mapper declaration as an iteratee first function', function() {
       let mocks = [{ source: 'value' }, { source: 'value' }, { source: 'value' }];
       let schema = {
-        target: 'source'
+        target: 'source',
       };
 
       let results = mocks.map(Morphism(schema));
@@ -66,10 +66,10 @@ describe('Javascript Objects', () => {
       foo: string;
     }
     const source: ISource = {
-      bar: 'value'
+      bar: 'value',
     };
     const expected: ITarget = {
-      foo: 'value'
+      foo: 'value',
     };
 
     it('should support a function returning a promise', () => {

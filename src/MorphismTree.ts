@@ -1,9 +1,4 @@
-import {
-  Actions,
-  Schema,
-  StrictSchema,
-  ValidatorValidateResult
-} from "./types";
+import { Actions, Schema, StrictSchema, ValidatorValidateResult } from './types';
 import {
   aggregator,
   get,
@@ -16,33 +11,22 @@ import {
   isString,
   isObject,
   SCHEMA_OPTIONS_SYMBOL,
-  isEmptyObject
-} from "./helpers";
-import {
-  ValidationError,
-  ERRORS,
-  targetHasErrors,
-  ValidationErrors,
-  reporter,
-  Reporter
-} from "./validation/reporter";
-import { ValidatorError } from "./validation/validators/ValidatorError";
-import { isArray } from "util";
+  isEmptyObject,
+} from './helpers';
+import { ValidationError, ERRORS, targetHasErrors, ValidationErrors, reporter, Reporter } from './validation/reporter';
+import { ValidatorError } from './validation/validators/ValidatorError';
+import { isArray } from 'util';
 
 export enum NodeKind {
-  Root = "Root",
-  Property = "Property",
-  ActionFunction = "ActionFunction",
-  ActionAggregator = "ActionAggregator",
-  ActionString = "ActionString",
-  ActionSelector = "ActionSelector"
+  Root = 'Root',
+  Property = 'Property',
+  ActionFunction = 'ActionFunction',
+  ActionAggregator = 'ActionAggregator',
+  ActionString = 'ActionString',
+  ActionSelector = 'ActionSelector',
 }
 
-type PreparedAction = (params: {
-  object: any;
-  items: any;
-  objectToCompute: any;
-}) => any;
+type PreparedAction = (params: { object: any; items: any; objectToCompute: any }) => any;
 interface SchemaNodeData<Target, Source> {
   propertyName: string;
   action: Actions<Target, Source> | null;
@@ -126,12 +110,8 @@ export interface SchemaOptions<Target = any> {
  * @param {StrictSchema} schema
  * @param {SchemaOptions<Target>} [options]
  */
-export function createSchema<Target = any, Source = any>(
-  schema: StrictSchema<Target, Source>,
-  options?: SchemaOptions<Target>
-) {
-  if (options && !isEmptyObject(options))
-    (schema as any)[SCHEMA_OPTIONS_SYMBOL] = options;
+export function createSchema<Target = any, Source = any>(schema: StrictSchema<Target, Source>, options?: SchemaOptions<Target>) {
+  if (options && !isEmptyObject(options)) (schema as any)[SCHEMA_OPTIONS_SYMBOL] = options;
   return schema;
 }
 
@@ -141,74 +121,60 @@ export class MorphismSchemaTree<Target, Source> {
   root: SchemaNode<Target, Source>;
   schema: Schema | StrictSchema | null;
 
-  constructor(
-    schema: Schema<Target, Source> | StrictSchema<Target, Source> | null
-  ) {
+  constructor(schema: Schema<Target, Source> | StrictSchema<Target, Source> | null) {
     this.schema = schema;
     this.schemaOptions = MorphismSchemaTree.getSchemaOptions(this.schema);
 
     this.root = {
       data: {
-        targetPropertyPath: "",
-        propertyName: "MorphismTreeRoot",
+        targetPropertyPath: '',
+        propertyName: 'MorphismTreeRoot',
         action: null,
-        kind: NodeKind.Root
+        kind: NodeKind.Root,
       },
       parent: null,
-      children: []
+      children: [],
     };
     if (schema) {
       this.parseSchema(schema);
     }
   }
 
-  static getSchemaOptions<Target>(
-    schema: Schema | StrictSchema | null
-  ): SchemaOptions<Target> {
+  static getSchemaOptions<Target>(schema: Schema | StrictSchema | null): SchemaOptions<Target> {
     const defaultSchemaOptions: SchemaOptions<Target> = {
       class: { automapping: true },
-      undefinedValues: { strip: false }
+      undefinedValues: { strip: false },
     };
     const options = schema ? (schema as any)[SCHEMA_OPTIONS_SYMBOL] : undefined;
 
     return { ...defaultSchemaOptions, ...options };
   }
 
-  private parseSchema(
-    partialSchema: Partial<Schema | StrictSchema> | string | number,
-    actionKey?: string,
-    parentKeyPath?: string
-  ): void {
+  private parseSchema(partialSchema: Partial<Schema | StrictSchema> | string | number, actionKey?: string, parentKeyPath?: string): void {
     if (isValidAction(partialSchema) && actionKey) {
       this.add(
         {
           propertyName: actionKey,
-          action: partialSchema as Actions<Target, Source>
+          action: partialSchema as Actions<Target, Source>,
         },
         parentKeyPath
       );
-      parentKeyPath = parentKeyPath
-        ? `${parentKeyPath}.${actionKey}`
-        : actionKey;
+      parentKeyPath = parentKeyPath ? `${parentKeyPath}.${actionKey}` : actionKey;
     } else {
       if (actionKey) {
         if (isObject(partialSchema) && isEmptyObject(partialSchema as any))
           throw new Error(
-            `A value of a schema property can't be an empty object. Value ${JSON.stringify(
-              partialSchema
-            )} found for property ${actionKey}`
+            `A value of a schema property can't be an empty object. Value ${JSON.stringify(partialSchema)} found for property ${actionKey}`
           );
         // check if actionKey exists to verify if not root node
         this.add(
           {
             propertyName: actionKey,
-            action: partialSchema as Actions<Target, Source>
+            action: partialSchema as Actions<Target, Source>,
           },
           parentKeyPath
         );
-        parentKeyPath = parentKeyPath
-          ? `${parentKeyPath}.${actionKey}`
-          : actionKey;
+        parentKeyPath = parentKeyPath ? `${parentKeyPath}.${actionKey}` : actionKey;
       }
 
       if (Array.isArray(partialSchema)) {
@@ -243,9 +209,9 @@ export class MorphismSchemaTree<Target, Source> {
     const kind = this.getActionKind(data);
 
     const nodeToAdd: SchemaNode<Target, Source> = {
-      data: { ...data, kind, targetPropertyPath: "" },
+      data: { ...data, kind, targetPropertyPath: '' },
       parent: null,
-      children: []
+      children: [],
     };
     nodeToAdd.data.preparedAction = this.getPreparedAction(nodeToAdd.data);
 
@@ -270,14 +236,10 @@ export class MorphismSchemaTree<Target, Source> {
     if (isActionSelector(data.action)) return NodeKind.ActionSelector;
     if (isActionAggregator(data.action)) return NodeKind.ActionAggregator;
     if (isObject(data.action)) return NodeKind.Property;
-    throw new Error(
-      `The action specified for ${data.propertyName} is not supported.`
-    );
+    throw new Error(`The action specified for ${data.propertyName} is not supported.`);
   }
 
-  getPreparedAction(
-    nodeData: SchemaNodeData<Target, Source>
-  ): PreparedAction | null | undefined {
+  getPreparedAction(nodeData: SchemaNodeData<Target, Source>): PreparedAction | null | undefined {
     const { propertyName: targetProperty, action, kind } = nodeData;
     // iterate on every action of the schema
     if (isActionString(action)) {
@@ -285,8 +247,7 @@ export class MorphismSchemaTree<Target, Source> {
       return ({ object }) => get(object, action);
     } else if (isActionFunction(action)) {
       // Action<Function>: Free Computin - a callback called with the current object and collection [ destination: (object) => {...} ]
-      return ({ object, items, objectToCompute }) =>
-        action.call(undefined, object, items, objectToCompute);
+      return ({ object, items, objectToCompute }) => action.call(undefined, object, items, objectToCompute);
     } else if (isActionAggregator(action)) {
       // Action<Array>: Aggregator - string paths => : [ destination: ['source1', 'source2', 'source3'] ]
       return ({ object }) => aggregator(action, object);
@@ -306,13 +267,7 @@ export class MorphismSchemaTree<Target, Source> {
 
         if (action.fn) {
           try {
-            targetValue = action.fn.call(
-              undefined,
-              targetValue,
-              object,
-              items,
-              objectToCompute
-            );
+            targetValue = action.fn.call(undefined, targetValue, object, items, objectToCompute);
           } catch (e) {
             e.message = `Unable to set target property [${targetProperty}].
             \n An error occured when applying [${action.fn.name}] on property [${action.path}]
@@ -325,21 +280,13 @@ export class MorphismSchemaTree<Target, Source> {
           if (isFunction(action.validation)) {
             const validationResult = action.validation({ value: targetValue });
 
-            this.processValidationResult2(
-              validationResult,
-              targetProperty,
-              objectToCompute
-            );
+            this.processValidationResult2(validationResult, targetProperty, objectToCompute);
             targetValue = validationResult.value;
           } else {
             if (action.validation.validate) {
               const validationResult = action.validation.validate(targetValue);
               // console.log("validation result", validationResult);
-              this.processValidationResult2(
-                validationResult,
-                targetProperty,
-                objectToCompute
-              );
+              this.processValidationResult2(validationResult, targetProperty, objectToCompute);
               targetValue = validationResult.value;
             }
           }
@@ -350,11 +297,7 @@ export class MorphismSchemaTree<Target, Source> {
       return null;
     }
   }
-  private processValidationResult2(
-    validationResult: ValidatorValidateResult,
-    targetProperty: string,
-    objectToCompute: any
-  ) {
+  private processValidationResult2(validationResult: ValidatorValidateResult, targetProperty: string, objectToCompute: any) {
     if (validationResult.error) {
       const error = validationResult.error;
       if (error instanceof ValidatorError) {
@@ -365,32 +308,19 @@ export class MorphismSchemaTree<Target, Source> {
     }
   }
 
-  private addErrorToTarget(
-    targetProperty: string,
-    error: ValidatorError,
-    objectToCompute: any
-  ) {
+  private addErrorToTarget(targetProperty: string, error: ValidatorError, objectToCompute: any) {
     const validationError = new ValidationError({
       targetProperty,
-      innerError: error
+      innerError: error,
     });
 
     if (targetHasErrors(objectToCompute)) {
       objectToCompute[ERRORS].addError(validationError);
     } else {
-      if (
-        this.schemaOptions.validation &&
-        this.schemaOptions.validation.reporter
-      ) {
-        objectToCompute[ERRORS] = new ValidationErrors(
-          this.schemaOptions.validation.reporter,
-          objectToCompute
-        );
+      if (this.schemaOptions.validation && this.schemaOptions.validation.reporter) {
+        objectToCompute[ERRORS] = new ValidationErrors(this.schemaOptions.validation.reporter, objectToCompute);
       } else {
-        objectToCompute[ERRORS] = new ValidationErrors(
-          reporter,
-          objectToCompute
-        );
+        objectToCompute[ERRORS] = new ValidationErrors(reporter, objectToCompute);
       }
       objectToCompute[ERRORS].addError(validationError);
     }

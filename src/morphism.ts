@@ -1,38 +1,15 @@
 /**
  * @module morphism
  */
-import {
-  zipObject,
-  isUndefined,
-  get,
-  set,
-  SCHEMA_OPTIONS_SYMBOL
-} from "./helpers";
-import {
-  Schema,
-  StrictSchema,
-  Constructable,
-  SourceFromSchema,
-  Mapper,
-  DestinationFromSchema
-} from "./types";
-import {
-  MorphismSchemaTree,
-  createSchema,
-  SchemaOptions
-} from "./MorphismTree";
-import { MorphismRegistry, IMorphismRegistry } from "./MorphismRegistry";
-import { decorator } from "./MorphismDecorator";
-import {
-  Reporter,
-  reporter as defaultReporter,
-  Formatter,
-  targetHasErrors,
-  ValidationErrors
-} from "./validation/reporter";
-import { Validation, IValidation } from "./validation/Validation";
-import { ValidatorError } from "./validation/validators/ValidatorError";
-import { Rule } from "./validation/validators/types";
+import { zipObject, isUndefined, get, set, SCHEMA_OPTIONS_SYMBOL } from './helpers';
+import { Schema, StrictSchema, Constructable, SourceFromSchema, Mapper, DestinationFromSchema } from './types';
+import { MorphismSchemaTree, createSchema, SchemaOptions } from './MorphismTree';
+import { MorphismRegistry, IMorphismRegistry } from './MorphismRegistry';
+import { decorator } from './MorphismDecorator';
+import { Reporter, reporter as defaultReporter, Formatter, targetHasErrors, ValidationErrors } from './validation/reporter';
+import { Validation, IValidation } from './validation/Validation';
+import { ValidatorError } from './validation/validators/ValidatorError';
+import { Rule } from './validation/validators/types';
 
 /**
  * Low Level transformer function.
@@ -56,7 +33,7 @@ function transformValuesFromObject<Source, Target>(
     if (preparedAction)
       transformChunks.push({
         targetPropertyPath,
-        preparedAction: preparedAction({ object, objectToCompute, items })
+        preparedAction: preparedAction({ object, objectToCompute, items }),
       });
   }
 
@@ -74,22 +51,12 @@ function transformValuesFromObject<Source, Target>(
       }
     };
 
-    const finalValue = undefinedValueCheck(
-      get(finalObject, chunk.targetPropertyPath),
-      chunk.preparedAction
-    );
+    const finalValue = undefinedValueCheck(get(finalObject, chunk.targetPropertyPath), chunk.preparedAction);
     if (finalValue === undefined) {
       // strip undefined values
       if (options && options.undefinedValues && options.undefinedValues.strip) {
         if (options.undefinedValues.default) {
-          set(
-            finalObject,
-            chunk.targetPropertyPath,
-            options.undefinedValues.default(
-              finalObject,
-              chunk.targetPropertyPath
-            )
-          );
+          set(finalObject, chunk.targetPropertyPath, options.undefinedValues.default(finalObject, chunk.targetPropertyPath));
         }
       } else {
         // do not strip undefined values
@@ -105,10 +72,7 @@ function transformValuesFromObject<Source, Target>(
   }, objectToCompute);
 }
 
-function checkIfValidationShouldThrow<Target>(
-  options: SchemaOptions<Target>,
-  finalObject: Target
-) {
+function checkIfValidationShouldThrow<Target>(options: SchemaOptions<Target>, finalObject: Target) {
   if (options && options.validation && options.validation.throw) {
     if (targetHasErrors(finalObject)) {
       let errors: ValidationErrors | null;
@@ -125,10 +89,7 @@ function checkIfValidationShouldThrow<Target>(
   }
 }
 
-function transformItems<T, TSchema extends Schema<T | {}>>(
-  schema: TSchema,
-  type?: Constructable<T>
-) {
+function transformItems<T, TSchema extends Schema<T | {}>>(schema: TSchema, type?: Constructable<T>) {
   const options = MorphismSchemaTree.getSchemaOptions<T>(schema);
   let tree: MorphismSchemaTree<any, any>;
   if (type && options.class && options.class.automapping) {
@@ -156,12 +117,7 @@ function transformItems<T, TSchema extends Schema<T | {}>>(
       const object = source;
       if (type) {
         const classObject = new type();
-        return transformValuesFromObject<any, T>(
-          object,
-          tree,
-          [object],
-          classObject
-        );
+        return transformValuesFromObject<any, T>(object, tree, [object], classObject);
       } else {
         const jsObject = {};
         return transformValuesFromObject(object, tree, [object], jsObject);
@@ -172,10 +128,7 @@ function transformItems<T, TSchema extends Schema<T | {}>>(
   return mapper;
 }
 
-function getSchemaForClass<T>(
-  type: Constructable<T>,
-  baseSchema: Schema<T>
-): Schema<T> {
+function getSchemaForClass<T>(type: Constructable<T>, baseSchema: Schema<T>): Schema<T> {
   let typeFields = Object.keys(new type());
   let defaultSchema = zipObject(typeFields, typeFields);
   let finalSchema = Object.assign(defaultSchema, baseSchema);
@@ -214,9 +167,7 @@ function morphism<
   Source extends SourceFromSchema<TSchema> = SourceFromSchema<TSchema>
 >(schema: TSchema, data: Source): DestinationFromSchema<TSchema>;
 
-function morphism<
-  TSchema = Schema<DestinationFromSchema<Schema>, SourceFromSchema<Schema>>
->(schema: TSchema): Mapper<TSchema>; // morphism({}) => mapper(S) => T
+function morphism<TSchema = Schema<DestinationFromSchema<Schema>, SourceFromSchema<Schema>>>(schema: TSchema): Mapper<TSchema>; // morphism({}) => mapper(S) => T
 
 function morphism<TSchema extends Schema, TDestination>(
   schema: TSchema,
@@ -224,11 +175,7 @@ function morphism<TSchema extends Schema, TDestination>(
   type: Constructable<TDestination>
 ): Mapper<TSchema, TDestination>; // morphism({}, null, T) => mapper(S) => T
 
-function morphism<TSchema extends Schema, Target>(
-  schema: TSchema,
-  items: SourceFromSchema<TSchema>,
-  type: Constructable<Target>
-): Target; // morphism({}, {}, T) => T
+function morphism<TSchema extends Schema, Target>(schema: TSchema, items: SourceFromSchema<TSchema>, type: Constructable<Target>): Target; // morphism({}, {}, T) => T
 
 function morphism<Target, Source, TSchema extends Schema<Target, Source>>(
   schema: TSchema,
@@ -247,9 +194,7 @@ function morphism<Target, Source, TSchema extends Schema<Target, Source>>(
         if (items !== null) return transformItems(schema, type)(items); // TODO: deprecate this option morphism(schema,null,Type) in favor of createSchema({},options={class: Type})
         return transformItems(schema, type);
       } else {
-        throw new Error(
-          `When using morphism(schema, items, type), type should be defined but value received is ${type}`
-        );
+        throw new Error(`When using morphism(schema, items, type), type should be defined but value received is ${type}`);
       }
     }
   }
@@ -262,10 +207,7 @@ function morphism<Target, Source, TSchema extends Schema<Target, Source>>(
  * @param {Schema<Target>} schema Structure-preserving object from a source data towards a target data
  * @param {Constructable<Target>} [type] Target Class Type
  */
-export function morph<Target>(
-  schema: Schema<Target>,
-  type?: Constructable<Target>
-) {
+export function morph<Target>(schema: Schema<Target>, type?: Constructable<Target>) {
   const mapper = transformItems(schema, type);
   return decorator(mapper);
 }
@@ -284,10 +226,7 @@ export function toJSObject<Target>(schema: StrictSchema<Target>) {
  * @param {Schema<Target>} schema Structure-preserving object from a source data towards a target data
  * @param {Constructable<Target>} [type] Target Class Type
  */
-export function toClassObject<Target>(
-  schema: Schema<Target>,
-  type: Constructable<Target>
-) {
+export function toClassObject<Target>(schema: Schema<Target>, type: Constructable<Target>) {
   const mapper = transformItems(schema, type);
   return decorator(mapper);
 }
@@ -318,6 +257,6 @@ export {
   Validation,
   Rule,
   ValidatorError,
-  IValidation
+  IValidation,
 };
 export default Morphism;

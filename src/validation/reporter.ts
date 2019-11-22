@@ -1,6 +1,6 @@
-import { ValidatorError } from "../morphism";
+import { ValidatorError } from '../morphism';
 
-export const ERRORS = Symbol("errors");
+export const ERRORS = Symbol('errors');
 
 export class ValidationError extends Error {
   targetProperty: string;
@@ -25,7 +25,7 @@ export class ValidationErrors extends Error {
     this.errors.add(error);
     const errors = this.reporter.report(this.target);
     if (errors) {
-      this.message = errors.join("\n");
+      this.message = errors.join('\n');
     }
   }
 }

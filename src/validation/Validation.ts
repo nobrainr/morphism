@@ -20,7 +20,7 @@ const handler: ProxyHandler<IValidation> = {
     } else {
       throw new Error(`The validator ${prop}() does not exist. Did you forget to call Validation.addValidator(name, validator)`);
     }
-  }
+  },
 };
 
 const validators = new Map<ValidatorsKeys, Validators>();
@@ -28,7 +28,7 @@ const Validation = new Proxy(
   {
     addValidator: (name, validator) => {
       validators.set(name, validator);
-    }
+    },
   } as IValidation,
   handler
 );

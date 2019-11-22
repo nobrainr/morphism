@@ -55,7 +55,7 @@ describe('Typescript', () => {
       const schema: StrictSchema<Destination, Source> = {
         fooA: 'inputA',
         fooB: ({ inputB }) => inputB,
-        fooC: 'inputC'
+        fooC: 'inputC',
       };
 
       const mapper = morphism(schema);
@@ -63,7 +63,7 @@ describe('Typescript', () => {
       expect(mapper({ inputA: 'test', inputB: 'test2', inputC: 'test3' })).toEqual({
         fooA: 'test',
         fooB: 'test2',
-        fooC: 'test3'
+        fooC: 'test3',
       });
     });
 
@@ -72,7 +72,7 @@ describe('Typescript', () => {
         inputA: string;
       }
       const schema: Schema<{ foo: string }, Source2> = {
-        foo: 'inputA'
+        foo: 'inputA',
       };
       morphism(schema, { inputA: 'test' });
       morphism(schema, [{ inputA: '' }]);
@@ -86,7 +86,7 @@ describe('Typescript', () => {
         d1: string;
       }
       const schema: StrictSchema<D, S> = {
-        d1: 's1'
+        d1: 's1',
       };
       const a = morphism(schema)([{ s1: 'test' }]);
       const itemA = a.shift();

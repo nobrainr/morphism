@@ -1,19 +1,18 @@
-import { ValidatorError } from "./ValidatorError";
-import { isFunction, isString } from "../../helpers";
-import { ValidatorOptions, Rule } from "./types";
-import { LinkedList } from "./LinkedList";
-import { ValidatorValidateResult, ValidateFunction } from "../../types";
+import { ValidatorError } from './ValidatorError';
+import { isFunction, isString } from '../../helpers';
+import { ValidatorOptions, Rule } from './types';
+import { LinkedList } from './LinkedList';
+import { ValidatorValidateResult, ValidateFunction } from '../../types';
 
 export function BooleanValidator(options: ValidatorOptions = {}) {
   let list = new LinkedList<Rule<boolean>>({
-    name: "boolean",
-    expect: input =>
-      `Expected value to be a <boolean> but received <${input.value}>`,
+    name: 'boolean',
+    expect: input => `Expected value to be a <boolean> but received <${input.value}>`,
     validate: input => {
       if (!options.convert) {
-        return typeof input.value === "boolean";
+        return typeof input.value === 'boolean';
       } else {
-        if (typeof input.value === "boolean") {
+        if (typeof input.value === 'boolean') {
           return input.value;
         } else {
           if (/true/i.test(input.value)) {
@@ -27,7 +26,7 @@ export function BooleanValidator(options: ValidatorOptions = {}) {
           }
         }
       }
-    }
+    },
   });
 
   const validate: ValidateFunction = input => {
@@ -46,7 +45,7 @@ export function BooleanValidator(options: ValidatorOptions = {}) {
       if (!rule.validate(result)) {
         result.error = new ValidatorError({
           expect: isString(rule.expect) ? rule.expect : rule.expect(result),
-          value: result.value
+          value: result.value,
         });
       }
       current = iterator.next();
