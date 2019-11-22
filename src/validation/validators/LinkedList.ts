@@ -13,12 +13,6 @@ export class LinkedList<T> {
     this.tail = this.tail.next;
   }
 
-  prepend(data: T) {
-    const node = new LinkedList(data);
-    node.next = this.head;
-    this.head = node;
-  }
-
   *values() {
     while (this.head !== null) {
       yield this.head.data;
