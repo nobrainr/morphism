@@ -1,4 +1,8 @@
-import { SCHEMA_OPTIONS_SYMBOL, SchemaOptions } from './morphism';
+import {
+  SCHEMA_OPTIONS_SYMBOL,
+  SchemaOptions,
+  ValidatorError
+} from "./morphism";
 
 /**
  * A structure-preserving object from a source data towards a target data.
@@ -50,7 +54,11 @@ export type Schema<Target = any, Source = any> = {
     | Schema<Target[destinationProperty], Source>;
 } & { [SCHEMA_OPTIONS_SYMBOL]?: SchemaOptions<Target | any> };
 
-export type Actions<Target, Source> = ActionFunction<Target, Source> | ActionAggregator | ActionString<Target> | ActionSelector<Source>;
+export type Actions<Target, Source> =
+  | ActionFunction<Target, Source>
+  | ActionAggregator
+  | ActionString<Target>
+  | ActionSelector<Source>;
 
 /**
  * @interface ActionFunction
@@ -129,7 +137,9 @@ export type ActionString<Source> = string | keyof Source; // TODO: ActionString 
  * //=> { fooAndBar: { foo: 'foo', bar: 'bar' } }
  * ```
  */
-export type ActionAggregator<T extends unknown = unknown> = T extends object ? (keyof T)[] | string[] : string[];
+export type ActionAggregator<T extends unknown = unknown> = T extends object
+  ? (keyof T)[] | string[]
+  : string[];
 /**
  * @interface ActionSelector
  * @typeparam Source Source/Input Type
@@ -159,16 +169,42 @@ export type ActionAggregator<T extends unknown = unknown> = T extends object ? (
  */
 export interface ActionSelector<Source = object, Target = any> {
   path?: ActionString<Source> | ActionAggregator<Source>;
-  fn?: (fieldValue: any, object: Source, items: Source, objectToCompute: Target) => Target;
-  validation?: (value: any) => boolean;
+  fn?: (
+    fieldValue: any,
+    object: Source,
+    items: Source,
+    objectToCompute: Target
+  ) => Target;
+  validation?:
+    | ValidateFunction
+    | { validate?: ValidateFunction; sanitize?: SanitizeFunction };
 }
+
+export interface ValidatorValidateResult {
+  value: any;
+  error?: ValidatorError;
+}
+export type ValidateFunction = (input: {
+  value: any;
+}) => ValidatorValidateResult;
+type SanitizeFunction<I extends any = any, O extends any = any> = (
+  value: I
+) => Error | Error[] | O;
 
 export interface Constructable<T> {
   new (...args: any[]): T;
 }
 
-export type SourceFromSchema<T> = T extends StrictSchema<unknown, infer U> | Schema<unknown, infer U> ? U : never;
-export type DestinationFromSchema<T> = T extends StrictSchema<infer U> | Schema<infer U> ? U : never;
+export type SourceFromSchema<T> = T extends
+  | StrictSchema<unknown, infer U>
+  | Schema<unknown, infer U>
+  ? U
+  : never;
+export type DestinationFromSchema<T> = T extends
+  | StrictSchema<infer U>
+  | Schema<infer U>
+  ? U
+  : never;
 
 export type ResultItem<TSchema extends Schema> = DestinationFromSchema<TSchema>;
 
@@ -178,7 +214,10 @@ export type ResultItem<TSchema extends Schema> = DestinationFromSchema<TSchema>;
  * @typeparam TSchema Schema
  * @typeparam TResult Result Type
  */
-export interface Mapper<TSchema extends Schema | StrictSchema, TResult = ResultItem<TSchema>> {
+export interface Mapper<
+  TSchema extends Schema | StrictSchema,
+  TResult = ResultItem<TSchema>
+> {
   (data?: SourceFromSchema<TSchema>[] | null): TResult[];
   (data?: SourceFromSchema<TSchema> | null): TResult;
 }
