@@ -277,19 +277,10 @@ export class MorphismSchemaTree<Target, Source> {
         }
 
         if (action.validation) {
-          if (isFunction(action.validation)) {
-            const validationResult = action.validation({ value: targetValue });
+          const validationResult = action.validation({ value: targetValue });
 
-            this.processValidationResult2(validationResult, targetProperty, objectToCompute);
-            targetValue = validationResult.value;
-          } else {
-            if (action.validation.validate) {
-              const validationResult = action.validation.validate(targetValue);
-              // console.log("validation result", validationResult);
-              this.processValidationResult2(validationResult, targetProperty, objectToCompute);
-              targetValue = validationResult.value;
-            }
-          }
+          this.processValidationResult(validationResult, targetProperty, objectToCompute);
+          targetValue = validationResult.value;
         }
         return targetValue;
       };
@@ -297,7 +288,7 @@ export class MorphismSchemaTree<Target, Source> {
       return null;
     }
   }
-  private processValidationResult2(validationResult: ValidatorValidateResult, targetProperty: string, objectToCompute: any) {
+  private processValidationResult(validationResult: ValidatorValidateResult, targetProperty: string, objectToCompute: any) {
     if (validationResult.error) {
       const error = validationResult.error;
       if (error instanceof ValidatorError) {

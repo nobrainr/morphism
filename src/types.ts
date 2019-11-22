@@ -160,7 +160,7 @@ export type ActionAggregator<T extends unknown = unknown> = T extends object ? (
 export interface ActionSelector<Source = object, Target = any> {
   path?: ActionString<Source> | ActionAggregator<Source>;
   fn?: (fieldValue: any, object: Source, items: Source, objectToCompute: Target) => Target;
-  validation?: ValidateFunction | { validate?: ValidateFunction; sanitize?: SanitizeFunction };
+  validation?: ValidateFunction;
 }
 
 export interface ValidatorValidateResult {
@@ -168,7 +168,6 @@ export interface ValidatorValidateResult {
   error?: ValidatorError;
 }
 export type ValidateFunction = (input: { value: any }) => ValidatorValidateResult;
-type SanitizeFunction<I extends any = any, O extends any = any> = (value: I) => Error | Error[] | O;
 
 export interface Constructable<T> {
   new (...args: any[]): T;
