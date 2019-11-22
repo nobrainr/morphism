@@ -1,14 +1,13 @@
-export const ERRORS = Symbol('errors');
+import { ValidatorError } from "../morphism";
+
+export const ERRORS = Symbol("errors");
 
 export class ValidationError extends Error {
   targetProperty: string;
-  value: unknown;
-  expect: string;
-  constructor(infos: { targetProperty: string; value: unknown; expect: string }) {
-    super(`Invalid value ${infos.value} supplied at property ${infos.targetProperty}. Expecting: ${infos.expect}`);
-    this.targetProperty = infos.targetProperty;
-    this.value = infos.value;
-    this.expect = infos.expect;
+  innerError: ValidatorError;
+  constructor(infos: { targetProperty: string; innerError: ValidatorError }) {
+    super(`Invalid value supplied at property <${infos.targetProperty}>.`);
+    this.innerError = infos.innerError;
   }
 }
 
@@ -26,7 +25,7 @@ export class ValidationErrors extends Error {
     this.errors.add(error);
     const errors = this.reporter.report(this.target);
     if (errors) {
-      this.message = errors.join('\n');
+      this.message = errors.join("\n");
     }
   }
 }
@@ -39,8 +38,8 @@ export function targetHasErrors(target: any): target is Validation {
   return target && target[ERRORS] && target[ERRORS].errors.size > 0;
 }
 export function defaultFormatter(error: ValidationError) {
-  const { message } = error;
-  return message;
+  const { message, innerError } = error;
+  return `${message} Reason: ${innerError.message}`;
 }
 
 /**
