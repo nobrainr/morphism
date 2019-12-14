@@ -1,47 +1,52 @@
-import Morphism, { morphism, StrictSchema, Schema, createSchema } from './morphism';
+import Morphism, {
+  morphism,
+  StrictSchema,
+  Schema,
+  createSchema
+} from "./morphism";
 
-describe('Typescript', () => {
-  describe('Registry Type Checking', () => {
-    it('Should return a Mapper when using Register', () => {
+describe("Typescript", () => {
+  describe("Registry Type Checking", () => {
+    it("Should return a Mapper when using Register", () => {
       class Foo {
         foo: string;
       }
-      const schema = { foo: 'bar' };
-      const source = { bar: 'value' };
+      const schema = { foo: "bar" };
+      const source = { bar: "value" };
       const mapper = Morphism.register(Foo, schema);
 
-      expect(mapper(source).foo).toEqual('value');
-      expect(mapper([source][0]).foo).toEqual('value');
+      expect(mapper(source).foo).toEqual("value");
+      expect(mapper([source][0]).foo).toEqual("value");
     });
   });
 
-  describe('Schema Type Checking', () => {
-    it('Should allow to type the Schema', () => {
+  describe("Schema Type Checking", () => {
+    it("Should allow to type the Schema", () => {
       interface IFoo {
         foo: string;
         bar: number;
       }
-      const schema: Schema<IFoo> = { foo: 'qux' };
-      const source = { qux: 'foo' };
+      const schema: Schema<IFoo> = { foo: "qux" };
+      const source = { qux: "foo" };
       const target = morphism(schema, source);
 
       expect(target.foo).toEqual(source.qux);
     });
 
-    it('Should allow to use a strict Schema', () => {
+    it("Should allow to use a strict Schema", () => {
       interface IFoo {
         foo: string;
         bar: number;
       }
-      const schema: StrictSchema<IFoo> = { foo: 'qux', bar: () => 1 };
-      const source = { qux: 'foo' };
+      const schema: StrictSchema<IFoo> = { foo: "qux", bar: () => 1 };
+      const source = { qux: "foo" };
       const target = morphism(schema, source);
 
       expect(target.foo).toEqual(source.qux);
       expect(target.bar).toEqual(1);
     });
 
-    it('should accept 2 generic parameters on StrictSchema', () => {
+    it("should accept 2 generic parameters on StrictSchema", () => {
       interface Source {
         inputA: string;
         inputB: string;
@@ -53,32 +58,34 @@ describe('Typescript', () => {
         fooC: string;
       }
       const schema: StrictSchema<Destination, Source> = {
-        fooA: 'inputA',
+        fooA: "inputA",
         fooB: ({ inputB }) => inputB,
-        fooC: 'inputC'
+        fooC: "inputC"
       };
 
       const mapper = morphism(schema);
 
-      expect(mapper({ inputA: 'test', inputB: 'test2', inputC: 'test3' })).toEqual({
-        fooA: 'test',
-        fooB: 'test2',
-        fooC: 'test3'
+      expect(
+        mapper({ inputA: "test", inputB: "test2", inputC: "test3" })
+      ).toEqual({
+        fooA: "test",
+        fooB: "test2",
+        fooC: "test3"
       });
     });
 
-    it('should accept 2 generic parameters on Schema', () => {
+    it("should accept 2 generic parameters on Schema", () => {
       interface Source2 {
         inputA: string;
       }
       const schema: Schema<{ foo: string }, Source2> = {
-        foo: 'inputA'
+        foo: "inputA"
       };
-      morphism(schema, { inputA: 'test' });
-      morphism(schema, [{ inputA: '' }]);
+      morphism(schema, { inputA: "test" });
+      morphism(schema, [{ inputA: "" }]);
     });
 
-    it('should accept 2 generic parameters on Schema', () => {
+    it("should accept 2 generic parameters on Schema", () => {
       interface S {
         s1: string;
       }
@@ -86,26 +93,26 @@ describe('Typescript', () => {
         d1: string;
       }
       const schema: StrictSchema<D, S> = {
-        d1: 's1'
+        d1: "s1"
       };
-      const a = morphism(schema)([{ s1: 'test' }]);
+      const a = morphism(schema)([{ s1: "test" }]);
       const itemA = a.shift();
       expect(itemA).toBeDefined();
       if (itemA) {
         itemA.d1;
       }
-      morphism(schema, { s1: 'teest' }).d1.toString();
-      const b = morphism(schema, [{ s1: 'teest' }]);
+      morphism(schema, { s1: "teest" }).d1.toString();
+      const b = morphism(schema, [{ s1: "teest" }]);
       const itemB = b.shift();
       expect(itemB).toBeDefined();
       if (itemB) {
         itemB.d1;
       }
-      morphism(schema, [{ s1: 'teest' }]);
-      morphism(schema, [{ s1: 'test' }]);
+      morphism(schema, [{ s1: "teest" }]);
+      morphism(schema, [{ s1: "test" }]);
     });
 
-    it('should not fail with typescript', () => {
+    it("should not fail with typescript", () => {
       interface S {
         s1: string;
       }
@@ -122,29 +129,45 @@ describe('Typescript', () => {
         namingIsHard: string;
       }
 
-      const a = morphism<StrictSchema<Destination, Source>>({ namingIsHard: 'boring_api_field' }, [{ boring_api_field: 2 }]);
+      const a = morphism<StrictSchema<Destination, Source>>(
+        { namingIsHard: "boring_api_field" },
+        [{ boring_api_field: 2 }]
+      );
       const itemA = a.pop();
       expect(itemA).toBeDefined();
       if (itemA) {
         itemA.namingIsHard;
       }
 
-      const b = morphism<StrictSchema<Destination, Source>>({ namingIsHard: 'boring_api_field' }, { boring_api_field: 2 });
+      const b = morphism<StrictSchema<Destination, Source>>(
+        { namingIsHard: "boring_api_field" },
+        { boring_api_field: 2 }
+      );
       b.namingIsHard;
 
-      const c = morphism<StrictSchema<Destination>>({ namingIsHard: 'boring_api_field' }, [{ boring_api_field: 2 }]);
+      const c = morphism<StrictSchema<Destination>>(
+        { namingIsHard: "boring_api_field" },
+        [{ boring_api_field: 2 }]
+      );
       const itemC = c.pop();
       expect(itemC).toBeDefined();
       if (itemC) {
         itemC.namingIsHard;
       }
 
-      const d = morphism<Destination>({ namingIsHard: 'boring_api_field' }, { boring_api_field: 2 });
+      const d = morphism<Destination>(
+        { namingIsHard: "boring_api_field" },
+        { boring_api_field: 2 }
+      );
       d.namingIsHard;
 
-      morphism({ namingIsHard: 'boring_api_field' });
-      morphism<StrictSchema<Destination, Source>>({ namingIsHard: 'boring_api_field' })({ boring_api_field: 2 });
-      const e = morphism<StrictSchema<Destination>>({ namingIsHard: 'boring_api_field' })([{ boring_api_field: 2 }]);
+      morphism({ namingIsHard: "boring_api_field" });
+      morphism<StrictSchema<Destination, Source>>({
+        namingIsHard: "boring_api_field"
+      })({ boring_api_field: 2 });
+      const e = morphism<StrictSchema<Destination>>({
+        namingIsHard: "boring_api_field"
+      })([{ boring_api_field: 2 }]);
       const itemE = e.pop();
       expect(itemE).toBeDefined();
       if (itemE) {
@@ -162,7 +185,7 @@ describe('Typescript', () => {
       morphism<StrictSchema<D1, S1>>({ a: ({ _a }) => _a.toString() });
     });
 
-    it('shoud infer result type from source when a class is provided', () => {
+    it("shoud infer result type from source when a class is provided", () => {
       class Source {
         constructor(public id: number, public ugly_field: string) {}
       }
@@ -171,13 +194,13 @@ describe('Typescript', () => {
         constructor(public id: number, public field: string) {}
       }
 
-      const source = [new Source(1, 'abc'), new Source(1, 'def')];
+      const source = [new Source(1, "abc"), new Source(1, "def")];
 
       const schema: StrictSchema<Destination, Source> = {
-        id: 'id',
-        field: 'ugly_field'
+        id: "id",
+        field: "ugly_field"
       };
-      const expected = [new Destination(1, 'abc'), new Destination(1, 'def')];
+      const expected = [new Destination(1, "abc"), new Destination(1, "def")];
 
       const result = morphism(schema, source, Destination);
       result.forEach((item, idx) => {
@@ -185,17 +208,20 @@ describe('Typescript', () => {
       });
     });
 
-    it('should accept union types as Target', () => {
-      const schema = createSchema<{ a: string } | { a: string; b: string }, { c: string }>({
+    it("should accept union types as Target", () => {
+      const schema = createSchema<
+        { a: string } | { a: string; b: string },
+        { c: string }
+      >({
         a: ({ c }) => c
       });
 
-      expect(morphism(schema, { c: 'result' }).a).toEqual('result');
+      expect(morphism(schema, { c: "result" }).a).toEqual("result");
     });
   });
 
-  describe('Morphism Function Type Checking', () => {
-    it('should infer target type from array input', () => {
+  describe("Morphism Function Type Checking", () => {
+    it("should infer target type from array input", () => {
       interface Source {
         ID: number;
       }
@@ -206,9 +232,32 @@ describe('Typescript', () => {
 
       const rows: Array<Source> = [{ ID: 1234 }];
 
-      const schema: StrictSchema<Destination, Source> = { id: 'ID' };
+      const schema: StrictSchema<Destination, Source> = { id: "ID" };
       expect(morphism(schema, rows)).toBeDefined();
       expect(morphism(schema, rows)[0].id).toEqual(1234);
+    });
+  });
+
+  describe("Selector Action", () => {
+    it("should match return type of fn with target property", () => {
+      interface Source {
+        foo: string;
+      }
+
+      interface Target {
+        foo: number;
+      }
+
+      const schema: StrictSchema<Target, Source> = {
+        foo: {
+          path: "foo",
+          fn: val => {
+            return Number(val);
+          }
+        }
+      };
+      const source: Source = { foo: "1" };
+      expect(morphism(schema, source)).toEqual({ foo: 1 });
     });
   });
 });
