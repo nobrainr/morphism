@@ -72,7 +72,7 @@
     "tslint": "^5.15.0",
     "tslint-loader": "^3.6.0",
     "typedoc": "^0.15.0",
-    "typedoc-plugin-external-module-name": "^2.0.0",
+    "typedoc-plugin-external-module-name": "^3.0.0",
     "typedoc-plugin-internal-external": "^2.0.1",
     "typescript": "^3.5.3",
     "webpack": "4.41.3",
