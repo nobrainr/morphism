@@ -37,26 +37,25 @@ const webpackconfiguration: webpack.Configuration = {
     libraryTarget: 'umd',
     globalObject: 'this',
     sourceMapFilename: 'morphism.map',
-    library: 'Morphism'
+    library: 'Morphism',
   },
   resolve: {
-    extensions: ['.ts', '.tsx', '.js', '.json']
+    extensions: ['.ts', '.tsx', '.js', '.json'],
   },
   module: {
-    rules: [{ test: /\.(ts|js)x?$/, use: ['babel-loader', 'source-map-loader'], exclude: /node_modules/ }]
+    rules: [{ test: /\.(ts|js)x?$/, use: ['babel-loader', 'source-map-loader'], exclude: /node_modules/ }],
   },
   plugins: [
     new ForkTsCheckerWebpackPlugin({
       async: false,
       checkSyntacticErrors: true,
       reportFiles: ['**', '!**/*.json', '!**/__tests__/**', '!**/?(*.)(spec|test).*'],
-      watch: './src',
-      silent: true
+      silent: true,
     }),
     new NodemonPlugin(),
     new IgnoreNotFoundExportPlugin(),
-    shouldAnalyzeBundle ? new BundleAnalyzerPlugin({ generateStatsFile: true }) : null
-  ].filter(plugin => plugin)
+    shouldAnalyzeBundle ? new BundleAnalyzerPlugin({ generateStatsFile: true }) : null,
+  ].filter(plugin => plugin),
 };
 
 export default webpackconfiguration;
