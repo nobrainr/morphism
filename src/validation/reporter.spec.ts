@@ -1,15 +1,22 @@
 import { morphism, createSchema, Reporter } from '../morphism';
 import { defaultFormatter, reporter, ValidationError, Formatter } from './reporter';
 import { Validation } from './Validation';
+import { ValidatorError } from './validators/ValidatorError';
 
 describe('Reporter', () => {
   describe('Formatter', () => {
     it('should format a ValidationError to human readable message', () => {
       const targetProperty = 'targetProperty';
       const value = undefined;
-      const error = new ValidationError({ targetProperty, expect: 'message', value });
+      const error = new ValidationError({
+        targetProperty,
+        innerError: new ValidatorError({
+          expect: 'message',
+          value,
+        }),
+      });
       const message = defaultFormatter(error);
-      expect(message).toEqual(`Invalid value ${value} supplied at property ${targetProperty}. Expecting: ${error.expect}`);
+      expect(message).toEqual(`Invalid value supplied at property <${targetProperty}>. Reason: ${error.innerError.expect}`);
     });
   });
   describe('Validation', () => {
@@ -25,18 +32,28 @@ describe('Reporter', () => {
 
       const schema = createSchema<T, S>({
         t1: { path: 's1', fn: val => val, validation: Validation.boolean() },
-        t2: { path: 's2', fn: val => val, validation: Validation.number() }
+        t2: { path: 's2', fn: val => val, validation: Validation.number() },
       });
       const result = morphism(schema, JSON.parse('{}'));
       const errors = reporter.report(result);
-      const error1 = new ValidationError({ targetProperty: 't1', expect: 'value to be typeof boolean', value: undefined });
-      const error2 = new ValidationError({ targetProperty: 't2', expect: 'value to be typeof number', value: undefined });
-
+      const error1 = new ValidationError({
+        targetProperty: 't1',
+        innerError: new ValidatorError({
+          expect: `Expected value to be a <boolean> but received <${undefined}>`,
+          value: undefined,
+        }),
+      });
+      const error2 = new ValidationError({
+        targetProperty: 't2',
+        innerError: new ValidatorError({
+          expect: `Expected value to be a <number> but received <${undefined}>`,
+          value: undefined,
+        }),
+      });
       const message1 = defaultFormatter(error1);
       const message2 = defaultFormatter(error2);
       expect(errors).not.toBeNull();
       if (errors) {
-        expect(errors.length).toEqual(2);
         expect(errors[0]).toBe(message1);
         expect(errors[1]).toBe(message2);
       }
@@ -46,7 +63,7 @@ describe('Reporter', () => {
       expect(() => {
         Validation.string()
           .max(1)
-          .max(1);
+          .max(1)({ value: 'a' });
       }).toThrow('Rule max has already been used');
     });
 
@@ -55,14 +72,23 @@ describe('Reporter', () => {
         t1: string;
       }
       const formatter: Formatter = error => {
-        const { expect, targetProperty, value } = error;
-        return `Expected ${expect} but received ${value} for property ${targetProperty}`;
+        const { innerError, targetProperty } = error;
+        return `${innerError.expect} for property ${targetProperty}`;
       };
       const reporter = new Reporter(formatter);
 
-      const schema = createSchema<Target>({ t1: { path: 's1', validation: Validation.string() } });
+      const schema = createSchema<Target>({
+        t1: { path: 's1', validation: Validation.string() },
+      });
       const result = morphism(schema, { s1: 1234 });
-      const error = new ValidationError({ targetProperty: 't1', value: 1234, expect: 'value to be typeof string' });
+      const error = new ValidationError({
+        targetProperty: 't1',
+        innerError: new ValidatorError({
+          value: 1234,
+          expect: `Expected value to be a <string> but received <${1234}>`,
+        }),
+      });
+
       const message = formatter(error);
       const errors = reporter.report(result);
       expect(errors).not.toBeNull();
@@ -76,8 +102,8 @@ describe('Reporter', () => {
         t1: string;
       }
       const formatter: Formatter = error => {
-        const { expect, targetProperty, value } = error;
-        return `Expected ${expect} but received ${value} for property ${targetProperty}`;
+        const { innerError, targetProperty } = error;
+        return `${innerError.expect} for property ${targetProperty}`;
       };
       const reporter = new Reporter(formatter);
 
@@ -86,7 +112,13 @@ describe('Reporter', () => {
         { validation: { throw: true, reporter } }
       );
 
-      const error = new ValidationError({ targetProperty: 't1', value: 1234, expect: 'value to be typeof string' });
+      const error = new ValidationError({
+        targetProperty: 't1',
+        innerError: new ValidatorError({
+          value: 1234,
+          expect: `Expected value to be a <string> but received <${1234}>`,
+        }),
+      });
       const message = formatter(error);
       expect(() => {
         morphism(schema, { s1: 1234 });
@@ -102,9 +134,17 @@ describe('Reporter', () => {
           t1: string;
         }
 
-        const schema = createSchema<T, S>({ t1: { path: 's1', fn: val => val, validation: Validation.string() } });
+        const schema = createSchema<T, S>({
+          t1: { path: 's1', fn: val => val, validation: Validation.string() },
+        });
         const result = morphism(schema, JSON.parse('{}'));
-        const error = new ValidationError({ targetProperty: 't1', expect: 'value to be typeof string', value: undefined });
+        const error = new ValidationError({
+          targetProperty: 't1',
+          innerError: new ValidatorError({
+            expect: `Expected value to be a <string> but received <${undefined}>`,
+            value: undefined,
+          }),
+        });
         const message = defaultFormatter(error);
         const errors = reporter.report(result);
         expect(errors).not.toBeNull();
@@ -122,9 +162,17 @@ describe('Reporter', () => {
           t1: string;
         }
 
-        const schema = createSchema<T, S>({ t1: { fn: value => value.s1, validation: Validation.string().max(3) } });
+        const schema = createSchema<T, S>({
+          t1: { fn: value => value.s1, validation: Validation.string().max(3) },
+        });
         const result = morphism(schema, { s1: 'value' });
-        const error = new ValidationError({ targetProperty: 't1', expect: `value to be less or equal than 3`, value: 'value' });
+        const error = new ValidationError({
+          targetProperty: 't1',
+          innerError: new ValidatorError({
+            expect: `Expected value to be less or equal than <3> but received <value>`,
+            value: 'value',
+          }),
+        });
         const message = defaultFormatter(error);
         const errors = reporter.report(result);
         expect(errors).not.toBeNull();
@@ -142,9 +190,17 @@ describe('Reporter', () => {
           t1: string;
         }
 
-        const schema = createSchema<T, S>({ t1: { fn: value => value.s1, validation: Validation.string().min(3) } });
+        const schema = createSchema<T, S>({
+          t1: { fn: value => value.s1, validation: Validation.string().min(3) },
+        });
         const result = morphism(schema, { s1: 'a' });
-        const error = new ValidationError({ targetProperty: 't1', expect: `value to be greater or equal than 3`, value: 'a' });
+        const error = new ValidationError({
+          targetProperty: 't1',
+          innerError: new ValidatorError({
+            expect: `Expected value to be greater or equal than <3> but received <a>`,
+            value: 'a',
+          }),
+        });
         const message = defaultFormatter(error);
         const errors = reporter.report(result);
         expect(errors).not.toBeNull();
@@ -167,8 +223,8 @@ describe('Reporter', () => {
             fn: value => value.s1,
             validation: Validation.string()
               .min(1)
-              .max(3)
-          }
+              .max(3),
+          },
         });
         const result = morphism(schema, { s1: 'aaa' });
         const errors = reporter.report(result);
@@ -188,11 +244,17 @@ describe('Reporter', () => {
         const schema = createSchema<T, S>({
           t1: {
             fn: value => value.s1,
-            validation: Validation.string().length(LENGTH)
-          }
+            validation: Validation.string().size(LENGTH),
+          },
         });
         const result = morphism(schema, { s1: 'aaa' });
-        const error = new ValidationError({ targetProperty: 't1', expect: `value to be length of ${LENGTH}`, value: 'aaa' });
+        const error = new ValidationError({
+          targetProperty: 't1',
+          innerError: new ValidatorError({
+            expect: `Expected value to be length of <${LENGTH}> but received <aaa>`,
+            value: 'aaa',
+          }),
+        });
         const message = defaultFormatter(error);
         const errors = reporter.report(result);
         expect(errors).not.toBeNull();
@@ -215,11 +277,17 @@ describe('Reporter', () => {
         const schema = createSchema<T, S>({
           t1: {
             fn: value => value.s1,
-            validation: Validation.string().regex(REGEX)
-          }
+            validation: Validation.string().regex(REGEX),
+          },
         });
         const result = morphism(schema, { s1: VALUE });
-        const error = new ValidationError({ targetProperty: 't1', expect: `value to match pattern: ${REGEX}`, value: VALUE });
+        const error = new ValidationError({
+          targetProperty: 't1',
+          innerError: new ValidatorError({
+            expect: `Expected value to match pattern: ${REGEX} but received <${VALUE}>`,
+            value: VALUE,
+          }),
+        });
         const message = defaultFormatter(error);
         const errors = reporter.report(result);
         expect(errors).not.toBeNull();
@@ -241,11 +309,17 @@ describe('Reporter', () => {
         const schema = createSchema<T, S>({
           t1: {
             fn: value => value.s1,
-            validation: Validation.string().alphanum()
-          }
+            validation: Validation.string().alphanum(),
+          },
         });
         const result = morphism(schema, { s1: VALUE });
-        const error = new ValidationError({ targetProperty: 't1', expect: `value to contain only alphanumeric characters`, value: VALUE });
+        const error = new ValidationError({
+          targetProperty: 't1',
+          innerError: new ValidatorError({
+            expect: `Expected value to contain only alphanumeric characters but received <${VALUE}>`,
+            value: VALUE,
+          }),
+        });
         const message = defaultFormatter(error);
         const errors = reporter.report(result);
         expect(errors).not.toBeNull();
@@ -265,9 +339,17 @@ describe('Reporter', () => {
           t1: number;
         }
 
-        const schema = createSchema<T, S>({ t1: { path: 's1', fn: val => val, validation: Validation.number() } });
+        const schema = createSchema<T, S>({
+          t1: { path: 's1', fn: val => val, validation: Validation.number() },
+        });
         const result = morphism(schema, JSON.parse('{}'));
-        const error = new ValidationError({ targetProperty: 't1', expect: 'value to be typeof number', value: undefined });
+        const error = new ValidationError({
+          targetProperty: 't1',
+          innerError: new ValidatorError({
+            expect: `Expected value to be a <number> but received <${undefined}>`,
+            value: undefined,
+          }),
+        });
         const message = defaultFormatter(error);
         const errors = reporter.report(result);
         expect(errors).not.toBeNull();
@@ -284,7 +366,13 @@ describe('Reporter', () => {
           t1: number;
         }
 
-        const schema = createSchema<T, S>({ t1: { path: 's1', fn: val => val, validation: Validation.number() } });
+        const schema = createSchema<T, S>({
+          t1: {
+            path: 's1',
+            fn: val => val,
+            validation: Validation.number({ convert: true }),
+          },
+        });
         const result = morphism(schema, JSON.parse('{ "s1": "1234" }'));
         const errors = reporter.report(result);
         expect(errors).toBeNull();
@@ -304,11 +392,17 @@ describe('Reporter', () => {
         const schema = createSchema<T, S>({
           t1: {
             fn: value => value.s1,
-            validation: Validation.number().max(MAX)
-          }
+            validation: Validation.number().max(MAX),
+          },
         });
         const result = morphism(schema, { s1: VALUE });
-        const error = new ValidationError({ targetProperty: 't1', expect: `value to be less or equal than ${MAX}`, value: VALUE });
+        const error = new ValidationError({
+          targetProperty: 't1',
+          innerError: new ValidatorError({
+            expect: `value to be less or equal than ${MAX}`,
+            value: VALUE,
+          }),
+        });
         const message = defaultFormatter(error);
         const errors = reporter.report(result);
         expect(errors).not.toBeNull();
@@ -331,11 +425,17 @@ describe('Reporter', () => {
         const schema = createSchema<T, S>({
           t1: {
             fn: value => value.s1,
-            validation: Validation.number().min(MIN)
-          }
+            validation: Validation.number().min(MIN),
+          },
         });
         const result = morphism(schema, { s1: VALUE });
-        const error = new ValidationError({ targetProperty: 't1', expect: `value to be greater or equal than ${MIN}`, value: VALUE });
+        const error = new ValidationError({
+          targetProperty: 't1',
+          innerError: new ValidatorError({
+            expect: `value to be greater or equal than ${MIN}`,
+            value: VALUE,
+          }),
+        });
         const message = defaultFormatter(error);
         const errors = reporter.report(result);
         expect(errors).not.toBeNull();
@@ -355,7 +455,9 @@ describe('Reporter', () => {
           t1: boolean;
         }
 
-        const schema = createSchema<T, S>({ t1: { path: 's1', fn: val => val, validation: Validation.boolean() } });
+        const schema = createSchema<T, S>({
+          t1: { path: 's1', fn: val => val, validation: Validation.boolean() },
+        });
         const result = morphism(schema, JSON.parse('{ "s1": true }'));
         const errors = reporter.report(result);
         expect(errors).toBeNull();
@@ -370,7 +472,13 @@ describe('Reporter', () => {
           t1: boolean;
         }
 
-        const schema = createSchema<T, S>({ t1: { path: 's1', fn: val => val, validation: Validation.boolean() } });
+        const schema = createSchema<T, S>({
+          t1: {
+            path: 's1',
+            fn: val => val,
+            validation: Validation.boolean({ convert: true }),
+          },
+        });
         const result = morphism(schema, JSON.parse('{ "s1": "true" }'));
         const errors = reporter.report(result);
         expect(errors).toBeNull();
@@ -385,7 +493,13 @@ describe('Reporter', () => {
           t1: boolean;
         }
 
-        const schema = createSchema<T, S>({ t1: { path: 's1', fn: val => val, validation: Validation.boolean() } });
+        const schema = createSchema<T, S>({
+          t1: {
+            path: 's1',
+            fn: val => val,
+            validation: Validation.boolean({ convert: true }),
+          },
+        });
         const result = morphism(schema, JSON.parse('{ "s1": "false" }'));
         const errors = reporter.report(result);
         expect(errors).toBeNull();
@@ -400,9 +514,17 @@ describe('Reporter', () => {
           t1: boolean;
         }
 
-        const schema = createSchema<T, S>({ t1: { path: 's1', fn: val => val, validation: Validation.boolean() } });
+        const schema = createSchema<T, S>({
+          t1: { path: 's1', fn: val => val, validation: Validation.boolean() },
+        });
         const result = morphism(schema, JSON.parse('{ "s1": "a value" }'));
-        const error = new ValidationError({ targetProperty: 't1', expect: 'value to be typeof boolean', value: 'a value' });
+        const error = new ValidationError({
+          targetProperty: 't1',
+          innerError: new ValidatorError({
+            expect: `Expected value to be a <boolean> but received <a value>`,
+            value: 'a value',
+          }),
+        });
         const message = defaultFormatter(error);
 
         const errors = reporter.report(result);

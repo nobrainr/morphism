@@ -24,7 +24,7 @@ describe('Class Objects', () => {
       let sourceData: any = {
         firstName: 'John',
         lastName: 'Smith',
-        type: undefined // <== this field should fallback to the type constructor default value
+        type: undefined, // <== this field should fallback to the type constructor default value
       };
       let desiredResult = new User('John', 'Smith');
       let mapper = Morphism.register(User);
@@ -40,10 +40,10 @@ describe('Class Objects', () => {
 
     it('should allow straight mapping from a Type with a schema', () => {
       let dataSource = {
-        userName: 'a-user-name'
+        userName: 'a-user-name',
       };
       let schema = {
-        firstName: 'userName'
+        firstName: 'userName',
       };
       let user = Morphism(schema, dataSource, User);
       expect(user).toEqual(new User(dataSource.userName));
@@ -51,7 +51,7 @@ describe('Class Objects', () => {
 
     it('should pass created object context for complex interractions within object', function() {
       let dataSource = {
-        groups: ['main', 'test']
+        groups: ['main', 'test'],
       };
 
       let triggered = false;
@@ -66,7 +66,7 @@ describe('Class Objects', () => {
               constructed.addToGroup(group, trigger);
             }
           }
-        }
+        },
       };
       let user = Morphism(schema, dataSource, User);
 
@@ -85,7 +85,7 @@ describe('Class Objects', () => {
 
     it('should override the default value if source value is defined', function() {
       let sourceData = {
-        phoneNumber: null
+        phoneNumber: null,
       };
 
       let mapper = Morphism.register(User, {});
@@ -97,7 +97,7 @@ describe('Class Objects', () => {
 
     it('should provide an Object as result when Morphism is applied on a typed Object', function() {
       let mock = {
-        number: '12345'
+        number: '12345',
       };
 
       let mapper = Morphism.register(User, { phoneNumber: 'number' });
@@ -108,7 +108,7 @@ describe('Class Objects', () => {
 
     it('should provide an Object as result when Morphism is applied on a typed Object usin .map', function() {
       let mock = {
-        number: '12345'
+        number: '12345',
       };
 
       Morphism.register(User, { phoneNumber: 'number' });
@@ -119,7 +119,7 @@ describe('Class Objects', () => {
 
     it('should provide a List of Objects as result when Morphism is applied on a list', function() {
       let mock = {
-        number: '12345'
+        number: '12345',
       };
 
       Morphism.register(User, { phoneNumber: 'number' });
@@ -130,13 +130,13 @@ describe('Class Objects', () => {
 
     it('should fallback to constructor default value and ignore function when path value is undefined', function() {
       let mock = {
-        lastname: 'user-lastname'
+        lastname: 'user-lastname',
       };
       let schema = {
         type: {
           path: 'unreachable.path',
-          fn: (value: any) => value
-        }
+          fn: (value: any) => value,
+        },
       };
 
       Morphism.register(User, schema);
@@ -287,7 +287,7 @@ describe('Class Objects', () => {
     }
 
     const source: ISource = {
-      bar: 'value'
+      bar: 'value',
     };
 
     it('should create a Class Object when a Promise is used', function() {

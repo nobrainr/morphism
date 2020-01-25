@@ -6,7 +6,7 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "moduleResolution": "node",
-    "lib": ["es2017", "dom"],
+    "lib": ["esnext", "dom"],
     "strict": true,
     "esModuleInterop": true,
     "declarationDir": "dist/types",

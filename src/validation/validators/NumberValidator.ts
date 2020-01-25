@@ -1,45 +1,65 @@
+import { ValidatorValidateResult, ValidateFunction } from '../../types';
+import { LinkedList } from './LinkedList';
+import { ValidatorOptions, Rule } from './types';
 import { ValidatorError } from './ValidatorError';
-import { BaseValidator } from './BaseValidator';
-export class NumberValidator extends BaseValidator<number> {
-  constructor() {
-    super({
-      name: 'number',
-      expect: 'value to be typeof number',
-      test: function(value) {
-        const result = +value;
-        if (isNaN(result)) {
-          throw new ValidatorError({ value, expect: this.expect });
-        } else {
-          return result;
-        }
-      }
-    });
-  }
+import { isString } from '../../helpers';
 
-  min(val: number) {
-    this.addRule({
-      name: 'min',
-      expect: `value to be greater or equal than ${val}`,
-      test: function(value) {
-        if (value < val) {
-          throw new ValidatorError({ value, expect: this.expect });
-        }
-        return value;
+export function NumberValidator(options: ValidatorOptions = {}) {
+  let list = new LinkedList<Rule<number>>({
+    name: 'number',
+    expect: input => `Expected value to be a <number> but received <${input.value}>`,
+    validate: input => {
+      if (!options.convert) {
+        return typeof input.value === 'number';
+      } else {
+        input.value = +input.value;
+        return !isNaN(input.value);
       }
-    });
-    return this;
-  }
-  max(val: number) {
-    this.addRule({
-      name: 'max',
-      expect: `value to be less or equal than ${val}`,
-      test: function(value) {
-        if (value > val) {
-          throw new ValidatorError({ value, expect: this.expect });
-        }
-        return value;
+    },
+  });
+
+  const validate: ValidateFunction = input => {
+    const result: ValidatorValidateResult = input;
+    const iterator = list.values();
+    let current = iterator.next();
+    const usedRules: { [id: string]: Rule<number> } = {};
+
+    while (!result.error && !current.done) {
+      const rule = current.value;
+      if (rule.name in usedRules) {
+        throw new Error(`Rule ${rule.name} has already been used`);
+      } else {
+        usedRules[rule.name] = rule;
       }
-    });
-    return this;
-  }
+      if (!rule.validate(result)) {
+        result.error = new ValidatorError({
+          expect: isString(rule.expect) ? rule.expect : rule.expect(result),
+          value: result.value,
+        });
+      }
+      current = iterator.next();
+    }
+    return result;
+  };
+
+  const rules = {
+    min: (value: any) => {
+      list.append({
+        name: 'min',
+        expect: `value to be greater or equal than ${value}`,
+        validate: input => input.value >= value,
+      });
+      return api;
+    },
+    max: (value: any) => {
+      list.append({
+        name: 'max',
+        expect: `value to be less or equal than ${value}`,
+        validate: input => input.value <= value,
+      });
+      return api;
+    },
+  };
+  const api = Object.assign(validate, rules);
+  return api;
 }

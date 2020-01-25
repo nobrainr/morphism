@@ -7,8 +7,9 @@ import { MorphismSchemaTree, createSchema, SchemaOptions } from './MorphismTree'
 import { MorphismRegistry, IMorphismRegistry } from './MorphismRegistry';
 import { decorator } from './MorphismDecorator';
 import { Reporter, reporter as defaultReporter, Formatter, targetHasErrors, ValidationErrors } from './validation/reporter';
-import { BaseValidator, Rule, Validation } from './validation/Validation';
+import { Validation, IValidation } from './validation/Validation';
 import { ValidatorError } from './validation/validators/ValidatorError';
+import { Rule } from './validation/validators/types';
 
 /**
  * Low Level transformer function.
@@ -29,7 +30,11 @@ function transformValuesFromObject<Source, Target>(
 
   for (const node of tree.traverseBFS()) {
     const { preparedAction, targetPropertyPath } = node.data;
-    if (preparedAction) transformChunks.push({ targetPropertyPath, preparedAction: preparedAction({ object, objectToCompute, items }) });
+    if (preparedAction)
+      transformChunks.push({
+        targetPropertyPath,
+        preparedAction: preparedAction({ object, objectToCompute, items }),
+      });
   }
 
   return transformChunks.reduce((finalObject, chunk) => {
@@ -250,8 +255,8 @@ export {
   defaultReporter as reporter,
   Formatter,
   Validation,
-  BaseValidator,
   Rule,
-  ValidatorError
+  ValidatorError,
+  IValidation,
 };
 export default Morphism;

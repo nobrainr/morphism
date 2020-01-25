@@ -6,11 +6,12 @@ import Morphism, {
   SchemaOptions,
   SCHEMA_OPTIONS_SYMBOL,
   reporter,
-  Validation
+  Validation,
 } from './morphism';
 import { User, MockData } from './utils-test';
 import { ActionSelector, ActionAggregator } from './types';
 import { defaultFormatter, ValidationError } from './validation/reporter';
+import { ValidatorError } from './validation/validators/ValidatorError';
 
 describe('Morphism', () => {
   const dataToCrunch: MockData[] = [
@@ -22,19 +23,19 @@ describe('Morphism', () => {
         streetAddress: '21 2nd Street',
         city: 'New York',
         state: 'NY',
-        postalCode: '10021'
+        postalCode: '10021',
       },
       phoneNumber: [
         {
           type: 'home',
-          number: '212 555-1234'
+          number: '212 555-1234',
         },
         {
           type: 'fax',
-          number: '646 555-4567'
-        }
-      ]
-    }
+          number: '646 555-4567',
+        },
+      ],
+    },
   ];
   beforeEach(() => {
     Morphism.deleteMapper(User);
@@ -90,7 +91,7 @@ describe('Morphism', () => {
       const schema: StrictSchema<Destination, Source> = {
         foo: 'bar',
         bar: 'bar',
-        qux: elem => elem.bar
+        qux: elem => elem.bar,
       };
       const source = { bar: 'value' };
 
@@ -108,14 +109,14 @@ describe('Morphism', () => {
     it('should return undefined when property with function action acts with when nested', () => {
       const source = {
         foo: 'value',
-        bar: 'bar'
+        bar: 'bar',
       };
       const schemaB = {
-        some: 'test'
+        some: 'test',
       };
       let schemaA = {
         f: 'foo',
-        b: (data: any) => morphism(schemaB, data.undefined)
+        b: (data: any) => morphism(schemaB, data.undefined),
       };
 
       const res = morphism(schemaA, source);
@@ -125,10 +126,10 @@ describe('Morphism', () => {
 
     it('should provide a mapper outputting class objects', () => {
       const source = {
-        name: 'value'
+        name: 'value',
       };
       const schema = {
-        firstName: 'name'
+        firstName: 'name',
       };
 
       const mapper = morphism(schema, null, User);
@@ -160,12 +161,12 @@ describe('Morphism', () => {
           fn: (object: any) => {
             let failHere = object.value;
             return failHere;
-          }
-        }
+          },
+        },
       });
       let applyMapping = () =>
         Morphism.map(User, {
-          fieldWillThrow: 'value'
+          fieldWillThrow: 'value',
         });
       expect(applyMapping).toThrow();
     });
@@ -177,12 +178,12 @@ describe('Morphism', () => {
           path: 'fieldWillThrow',
           fn: () => {
             throw err;
-          }
-        }
+          },
+        },
       });
       let applyMapping = () =>
         Morphism.map(User, {
-          fieldWillThrow: 'value'
+          fieldWillThrow: 'value',
         });
       expect(applyMapping).toThrow(err);
     });
@@ -198,30 +199,30 @@ describe('Morphism', () => {
         {
           firstName: 'John',
           lastName: 'Smith',
-          number: '212 555-1234'
+          number: '212 555-1234',
         },
         {
           firstName: 'James',
           lastName: 'Bond',
-          number: '212 555-5678'
-        }
+          number: '212 555-5678',
+        },
       ];
 
       const output = [
         {
           firstName: 'John',
           lastName: 'Smith',
-          phoneNumber: '212 555-1234'
+          phoneNumber: '212 555-1234',
         },
         {
           firstName: 'James',
           lastName: 'Bond',
-          phoneNumber: '212 555-5678'
-        }
+          phoneNumber: '212 555-5678',
+        },
       ];
 
       const schema = {
-        phoneNumber: (object: any) => object.number
+        phoneNumber: (object: any) => object.number,
       };
 
       Morphism.deleteMapper(User);
@@ -254,14 +255,14 @@ describe('Morphism', () => {
     it('should provide a pure idempotent mapper function from the partial application', function() {
       let schema = {
         user: ['firstName', 'lastName'],
-        city: 'address.city'
+        city: 'address.city',
       };
       let desiredResult = {
         user: {
           firstName: 'John',
-          lastName: 'Smith'
+          lastName: 'Smith',
         },
-        city: 'New York'
+        city: 'New York',
       };
       let mapper = Morphism(schema);
       let results = mapper(dataToCrunch);
@@ -281,7 +282,7 @@ describe('Morphism', () => {
         }
         const sample: Source = {
           keySource: 'value',
-          keySource1: 'value1'
+          keySource1: 'value1',
         };
 
         interface Target {
@@ -297,14 +298,14 @@ describe('Morphism', () => {
         }
         const selector: ActionSelector<Source> = {
           path: 'keySource',
-          fn: () => 'value-test'
+          fn: () => 'value-test',
         };
         const aggregator: ActionAggregator<Source> = ['keySource', 'keySource1'];
         const schema: StrictSchema<Target, Source> = {
           keyA: {
             keyA1: [{ keyA11: aggregator, keyA12: selector }],
-            keyA2: 'keySource'
-          }
+            keyA2: 'keySource',
+          },
         };
 
         const target = morphism(schema, sample);
@@ -315,25 +316,25 @@ describe('Morphism', () => {
               {
                 keyA11: {
                   keySource: 'value',
-                  keySource1: 'value1'
+                  keySource1: 'value1',
                 },
-                keyA12: 'value-test'
-              }
+                keyA12: 'value-test',
+              },
             ],
-            keyA2: 'value'
-          }
+            keyA2: 'value',
+          },
         });
       });
       it('should compute function on data from specified path', function() {
         let schema = {
           state: {
             path: 'address.state',
-            fn: (s: any) => s.toLowerCase()
-          }
+            fn: (s: any) => s.toLowerCase(),
+          },
         };
 
         let desiredResult = {
-          state: 'ny' // from NY to ny
+          state: 'ny', // from NY to ny
         };
         let results = Morphism(schema, dataToCrunch);
         expect(results[0]).toEqual(desiredResult);
@@ -354,7 +355,9 @@ describe('Morphism', () => {
         interface Target {
           t1: string;
         }
-        const schema = createSchema<Target>({ t1: { path: 's1', validation: Validation.string() } });
+        const schema = createSchema<Target>({
+          t1: { path: 's1', validation: Validation.string() },
+        });
         const result = morphism(schema, { s1: 1234 });
         const errors = reporter.report(result);
         expect(errors).not.toBeNull();
@@ -376,7 +379,9 @@ describe('Morphism', () => {
         interface Target {
           t1: string;
         }
-        const schema = createSchema<Target>({ t1: { fn: value => value.s1, validation: Validation.string() } });
+        const schema = createSchema<Target>({
+          t1: { fn: value => value.s1, validation: Validation.string() },
+        });
         const result = morphism(schema, { s1: 1234 });
         const errors = reporter.report(result);
         expect(errors).not.toBeNull();
@@ -402,13 +407,13 @@ describe('Morphism', () => {
     describe('Function Predicate', function() {
       it('should support es6 destructuring as function predicate', function() {
         let schema = {
-          target: ({ source }: { source: string }) => source
+          target: ({ source }: { source: string }) => source,
         };
         let mock = {
-          source: 'value'
+          source: 'value',
         };
         let expected = {
-          target: 'value'
+          target: 'value',
         };
         let result = Morphism(schema, mock);
         expect(result).toEqual(expected);
@@ -419,24 +424,24 @@ describe('Morphism', () => {
       it('should support nesting mapping', function() {
         let nestedSchema = {
           target1: 'source',
-          target2: ({ nestedSource }: any) => nestedSource.source
+          target2: ({ nestedSource }: any) => nestedSource.source,
         };
         let schema = {
-          complexTarget: ({ complexSource }: any) => Morphism(nestedSchema, complexSource)
+          complexTarget: ({ complexSource }: any) => Morphism(nestedSchema, complexSource),
         };
         let mock = {
           complexSource: {
             source: 'value1',
             nestedSource: {
-              source: 'value2'
-            }
-          }
+              source: 'value2',
+            },
+          },
         };
         let expected = {
           complexTarget: {
             target1: 'value1',
-            target2: 'value2'
-          }
+            target2: 'value2',
+          },
         };
         let result = Morphism(schema, mock);
         expect(result).toEqual(expected);
@@ -445,22 +450,22 @@ describe('Morphism', () => {
       it('should be resilient when doing nesting mapping and using destructuration on array', function() {
         let nestedSchema = {
           target: 'source',
-          nestedTargets: ({ nestedSources }: any) => Morphism({ nestedTarget: ({ nestedSource }: any) => nestedSource }, nestedSources)
+          nestedTargets: ({ nestedSources }: any) => Morphism({ nestedTarget: ({ nestedSource }: any) => nestedSource }, nestedSources),
         };
         let schema = {
-          complexTarget: ({ complexSource }: any) => Morphism(nestedSchema, complexSource)
+          complexTarget: ({ complexSource }: any) => Morphism(nestedSchema, complexSource),
         };
         let mock: any = {
           complexSource: {
             source: 'value1',
-            nestedSources: []
-          }
+            nestedSources: [],
+          },
         };
         let expected: any = {
           complexTarget: {
             target: 'value1',
-            nestedTargets: []
-          }
+            nestedTargets: [],
+          },
         };
         let result = Morphism(schema, mock);
         expect(result).toEqual(expected);
@@ -487,27 +492,33 @@ describe('Morphism', () => {
         interface Source {
           s1: string;
         }
-        const options: SchemaOptions = { class: { automapping: true }, undefinedValues: { strip: true } };
+        const options: SchemaOptions = {
+          class: { automapping: true },
+          undefinedValues: { strip: true },
+        };
         const schema = createSchema<Target, Source>({ keyA: 's1' }, options);
         const res = morphism(schema, { s1: 'value' });
 
-        expect(schema).toEqual({ keyA: 's1', [SCHEMA_OPTIONS_SYMBOL]: options });
+        expect(schema).toEqual({
+          keyA: 's1',
+          [SCHEMA_OPTIONS_SYMBOL]: options,
+        });
         expect(res).toEqual({ keyA: 'value' });
       });
 
       it('should allow schema options using symbol', () => {
         const source = {
           foo: 'value',
-          bar: 'bar'
+          bar: 'bar',
         };
         const schemaB = {
-          some: 'test'
+          some: 'test',
         };
         const options: SchemaOptions = { undefinedValues: { strip: true } };
         let schemaA = {
           f: 'foo',
           b: (data: any) => morphism(schemaB, data.undefined),
-          [SCHEMA_OPTIONS_SYMBOL]: options
+          [SCHEMA_OPTIONS_SYMBOL]: options,
         };
 
         const res = morphism(schemaA, source);
@@ -518,15 +529,15 @@ describe('Morphism', () => {
       it('should strip undefined values from target when option is provided', () => {
         const source = {
           foo: 'value',
-          bar: 'bar'
+          bar: 'bar',
         };
         const schemaB = {
-          some: 'test'
+          some: 'test',
         };
         let schemaA = createSchema(
           {
             f: 'foo',
-            b: (data: any) => morphism(schemaB, data.undefined)
+            b: (data: any) => morphism(schemaB, data.undefined),
           },
           { undefinedValues: { strip: true } }
         );
@@ -543,8 +554,8 @@ describe('Morphism', () => {
           {
             undefinedValues: {
               strip: true,
-              default: () => null
-            }
+              default: () => null,
+            },
           }
         );
 
@@ -562,12 +573,24 @@ describe('Morphism', () => {
         const schema = createSchema<Target, Source>(
           {
             t1: { fn: value => value.s1, validation: Validation.string() },
-            t2: { fn: value => value.s1, validation: Validation.string() }
+            t2: { fn: value => value.s1, validation: Validation.string() },
           },
           { validation: { throw: true } }
         );
-        const error1 = new ValidationError({ targetProperty: 't1', expect: 'value to be typeof string', value: undefined });
-        const error2 = new ValidationError({ targetProperty: 't2', expect: 'value to be typeof string', value: undefined });
+        const error1 = new ValidationError({
+          targetProperty: 't1',
+          innerError: new ValidatorError({
+            expect: `Expected value to be a <string> but received <${undefined}>`,
+            value: undefined,
+          }),
+        });
+        const error2 = new ValidationError({
+          targetProperty: 't2',
+          innerError: new ValidatorError({
+            expect: `Expected value to be a <string> but received <${undefined}>`,
+            value: undefined,
+          }),
+        });
 
         const message1 = defaultFormatter(error1);
         const message2 = defaultFormatter(error2);
@@ -582,14 +605,14 @@ describe('Morphism', () => {
   describe('Paths Aggregation', function() {
     it('should return a object of aggregated values given a array of paths', function() {
       let schema = {
-        user: ['firstName', 'lastName']
+        user: ['firstName', 'lastName'],
       };
 
       let desiredResult = {
         user: {
           firstName: 'John',
-          lastName: 'Smith'
-        }
+          lastName: 'Smith',
+        },
       };
       let results = Morphism(schema, dataToCrunch);
       expect(results[0]).toEqual(desiredResult);
@@ -597,16 +620,16 @@ describe('Morphism', () => {
 
     it('should return a object of aggregated values given a array of paths (nested path case)', function() {
       let schema = {
-        user: ['firstName', 'address.city']
+        user: ['firstName', 'address.city'],
       };
 
       let desiredResult = {
         user: {
           firstName: 'John',
           address: {
-            city: 'New York'
-          }
-        }
+            city: 'New York',
+          },
+        },
       };
       let results = Morphism(schema, dataToCrunch);
       expect(results[0]).toEqual(desiredResult);
@@ -620,8 +643,8 @@ describe('Morphism', () => {
           fn: (aggregate: any) => {
             expect(aggregate).toEqual({ a: 1, b: { c: 2 } });
             return aggregate;
-          }
-        }
+          },
+        },
       };
       let res = Morphism(rules, data);
 
@@ -644,13 +667,13 @@ describe('Morphism', () => {
       let schema: StrictSchema<Target, Source> = {
         firstName: 'firstName',
         lastName: 'lastName',
-        city: 'address.city'
+        city: 'address.city',
       };
 
       let desiredResult = {
         firstName: 'John',
         lastName: 'Smith',
-        city: 'New York'
+        city: 'New York',
       };
       let results = Morphism(schema, dataToCrunch);
       expect(results[0]).toEqual(desiredResult);
@@ -668,14 +691,14 @@ describe('Morphism', () => {
         firstName: 'firstName',
         lastName: 'lastName',
         city: { path: 'address.city', fn: prop => prop },
-        status: o => o.phoneNumber[0].type
+        status: o => o.phoneNumber[0].type,
       };
 
       let desiredResult = {
         firstName: 'John',
         lastName: 'Smith',
         city: 'New York',
-        status: 'home'
+        status: 'home',
       };
       let results = Morphism(schema, dataToCrunch);
       expect(results[0]).toEqual(desiredResult);
@@ -686,14 +709,16 @@ describe('Morphism', () => {
         keyA: string;
       }
       const sample: Source = {
-        keyA: 'value'
+        keyA: 'value',
       };
 
       interface Target {
         keyA: { keyA1: string };
       }
 
-      const schema: StrictSchema<Target, Source> = { keyA: { keyA1: source => source.keyA } };
+      const schema: StrictSchema<Target, Source> = {
+        keyA: { keyA1: source => source.keyA },
+      };
 
       const target = morphism(schema, sample);
       expect(target).toEqual({ keyA: { keyA1: 'value' } });
@@ -704,7 +729,7 @@ describe('Morphism', () => {
         keySource: string;
       }
       const sample: Source = {
-        keySource: 'value'
+        keySource: 'value',
       };
 
       interface Target {
@@ -721,13 +746,15 @@ describe('Morphism', () => {
       const schema: StrictSchema<Target, Source> = {
         keyA: {
           keyA1: [{ keyA11: 'keySource', keyA12: 'keySource' }],
-          keyA2: 'keySource'
-        }
+          keyA2: 'keySource',
+        },
       };
 
       const target = morphism(schema, sample);
 
-      expect(target).toEqual({ keyA: { keyA1: [{ keyA11: 'value', keyA12: 'value' }], keyA2: 'value' } });
+      expect(target).toEqual({
+        keyA: { keyA1: [{ keyA11: 'value', keyA12: 'value' }], keyA2: 'value' },
+      });
     });
   });
 });

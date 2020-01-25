@@ -1,5 +1,4 @@
-import { SCHEMA_OPTIONS_SYMBOL, SchemaOptions } from './morphism';
-import { BaseValidator } from './validation/validators/BaseValidator';
+import { SCHEMA_OPTIONS_SYMBOL, SchemaOptions, ValidatorError } from './morphism';
 
 /**
  * A structure-preserving object from a source data towards a target data.
@@ -39,7 +38,7 @@ export type StrictSchema<Target = any, Source = any> = {
     | ActionFunction<Target, Source, Target[destinationProperty]>
     | ActionAggregator<Source>
     | ActionSelector<Source, Target>
-    | StrictSchema<Target[destinationProperty], Source>
+    | StrictSchema<Target[destinationProperty], Source>;
 } & { [SCHEMA_OPTIONS_SYMBOL]?: SchemaOptions<Target> };
 export type Schema<Target = any, Source = any> = {
   /** `destinationProperty` is the name of the property of the target object you want to produce */
@@ -48,7 +47,7 @@ export type Schema<Target = any, Source = any> = {
     | ActionFunction<Target, Source, Target[destinationProperty]>
     | ActionAggregator<Source>
     | ActionSelector<Source, Target>
-    | Schema<Target[destinationProperty], Source>
+    | Schema<Target[destinationProperty], Source>;
 } & { [SCHEMA_OPTIONS_SYMBOL]?: SchemaOptions<Target | any> };
 
 export type Actions<Target, Source> = ActionFunction<Target, Source> | ActionAggregator | ActionString<Target> | ActionSelector<Source>;
@@ -161,8 +160,14 @@ export type ActionAggregator<T extends unknown = unknown> = T extends object ? (
 export interface ActionSelector<Source = object, Target = any> {
   path?: ActionString<Source> | ActionAggregator<Source>;
   fn?: (fieldValue: any, object: Source, items: Source, objectToCompute: Target) => Target;
-  validation?: BaseValidator<ReturnType<undefined extends ActionSelector['fn'] ? any : ActionSelector['fn']>>;
+  validation?: ValidateFunction;
 }
+
+export interface ValidatorValidateResult {
+  value: any;
+  error?: ValidatorError;
+}
+export type ValidateFunction = (input: { value: any }) => ValidatorValidateResult;
 
 export interface Constructable<T> {
   new (...args: any[]): T;

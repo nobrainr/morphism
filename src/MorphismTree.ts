@@ -1,4 +1,4 @@
-import { Actions, Schema, StrictSchema } from './types';
+import { Actions, Schema, StrictSchema, ValidatorValidateResult } from './types';
 import {
   aggregator,
   get,
@@ -11,10 +11,11 @@ import {
   isString,
   isObject,
   SCHEMA_OPTIONS_SYMBOL,
-  isEmptyObject
+  isEmptyObject,
 } from './helpers';
 import { ValidationError, ERRORS, targetHasErrors, ValidationErrors, reporter, Reporter } from './validation/reporter';
 import { ValidatorError } from './validation/validators/ValidatorError';
+import { isArray } from 'util';
 
 export enum NodeKind {
   Root = 'Root',
@@ -22,7 +23,7 @@ export enum NodeKind {
   ActionFunction = 'ActionFunction',
   ActionAggregator = 'ActionAggregator',
   ActionString = 'ActionString',
-  ActionSelector = 'ActionSelector'
+  ActionSelector = 'ActionSelector',
 }
 
 type PreparedAction = (params: { object: any; items: any; objectToCompute: any }) => any;
@@ -125,9 +126,14 @@ export class MorphismSchemaTree<Target, Source> {
     this.schemaOptions = MorphismSchemaTree.getSchemaOptions(this.schema);
 
     this.root = {
-      data: { targetPropertyPath: '', propertyName: 'MorphismTreeRoot', action: null, kind: NodeKind.Root },
+      data: {
+        targetPropertyPath: '',
+        propertyName: 'MorphismTreeRoot',
+        action: null,
+        kind: NodeKind.Root,
+      },
       parent: null,
-      children: []
+      children: [],
     };
     if (schema) {
       this.parseSchema(schema);
@@ -135,7 +141,10 @@ export class MorphismSchemaTree<Target, Source> {
   }
 
   static getSchemaOptions<Target>(schema: Schema | StrictSchema | null): SchemaOptions<Target> {
-    const defaultSchemaOptions: SchemaOptions<Target> = { class: { automapping: true }, undefinedValues: { strip: false } };
+    const defaultSchemaOptions: SchemaOptions<Target> = {
+      class: { automapping: true },
+      undefinedValues: { strip: false },
+    };
     const options = schema ? (schema as any)[SCHEMA_OPTIONS_SYMBOL] : undefined;
 
     return { ...defaultSchemaOptions, ...options };
@@ -143,7 +152,13 @@ export class MorphismSchemaTree<Target, Source> {
 
   private parseSchema(partialSchema: Partial<Schema | StrictSchema> | string | number, actionKey?: string, parentKeyPath?: string): void {
     if (isValidAction(partialSchema) && actionKey) {
-      this.add({ propertyName: actionKey, action: partialSchema as Actions<Target, Source> }, parentKeyPath);
+      this.add(
+        {
+          propertyName: actionKey,
+          action: partialSchema as Actions<Target, Source>,
+        },
+        parentKeyPath
+      );
       parentKeyPath = parentKeyPath ? `${parentKeyPath}.${actionKey}` : actionKey;
     } else {
       if (actionKey) {
@@ -152,7 +167,13 @@ export class MorphismSchemaTree<Target, Source> {
             `A value of a schema property can't be an empty object. Value ${JSON.stringify(partialSchema)} found for property ${actionKey}`
           );
         // check if actionKey exists to verify if not root node
-        this.add({ propertyName: actionKey, action: partialSchema as Actions<Target, Source> }, parentKeyPath);
+        this.add(
+          {
+            propertyName: actionKey,
+            action: partialSchema as Actions<Target, Source>,
+          },
+          parentKeyPath
+        );
         parentKeyPath = parentKeyPath ? `${parentKeyPath}.${actionKey}` : actionKey;
       }
 
@@ -190,7 +211,7 @@ export class MorphismSchemaTree<Target, Source> {
     const nodeToAdd: SchemaNode<Target, Source> = {
       data: { ...data, kind, targetPropertyPath: '' },
       parent: null,
-      children: []
+      children: [],
     };
     nodeToAdd.data.preparedAction = this.getPreparedAction(nodeToAdd.data);
 
@@ -233,20 +254,20 @@ export class MorphismSchemaTree<Target, Source> {
     } else if (isActionSelector(action)) {
       // Action<Object>: a path and a function: [ destination : { path: 'source', fn:(fieldValue, items) }]
       return ({ object, items, objectToCompute }) => {
-        let result;
+        let targetValue: any;
         if (action.path) {
           if (Array.isArray(action.path)) {
-            result = aggregator(action.path, object);
+            targetValue = aggregator(action.path, object);
           } else if (isString(action.path)) {
-            result = get(object, action.path);
+            targetValue = get(object, action.path);
           }
         } else {
-          result = object;
+          targetValue = object;
         }
 
         if (action.fn) {
           try {
-            result = action.fn.call(undefined, result, object, items, objectToCompute);
+            targetValue = action.fn.call(undefined, targetValue, object, items, objectToCompute);
           } catch (e) {
             e.message = `Unable to set target property [${targetProperty}].
             \n An error occured when applying [${action.fn.name}] on property [${action.path}]
@@ -256,30 +277,43 @@ export class MorphismSchemaTree<Target, Source> {
         }
 
         if (action.validation) {
-          try {
-            result = action.validation.validate(result);
-          } catch (error) {
-            if (error instanceof ValidatorError) {
-              const validationError = new ValidationError({ targetProperty, expect: error.expect, value: error.value });
-              if (targetHasErrors(objectToCompute)) {
-                objectToCompute[ERRORS].addError(validationError);
-              } else {
-                if (this.schemaOptions.validation && this.schemaOptions.validation.reporter) {
-                  objectToCompute[ERRORS] = new ValidationErrors(this.schemaOptions.validation.reporter, objectToCompute);
-                } else {
-                  objectToCompute[ERRORS] = new ValidationErrors(reporter, objectToCompute);
-                }
-                objectToCompute[ERRORS].addError(validationError);
-              }
-            } else {
-              throw error;
-            }
-          }
+          const validationResult = action.validation({ value: targetValue });
+
+          this.processValidationResult(validationResult, targetProperty, objectToCompute);
+          targetValue = validationResult.value;
         }
-        return result;
+        return targetValue;
       };
     } else if (kind === NodeKind.Property) {
       return null;
+    }
+  }
+  private processValidationResult(validationResult: ValidatorValidateResult, targetProperty: string, objectToCompute: any) {
+    if (validationResult.error) {
+      const error = validationResult.error;
+      if (error instanceof ValidatorError) {
+        this.addErrorToTarget(targetProperty, error, objectToCompute);
+      } else {
+        throw error;
+      }
+    }
+  }
+
+  private addErrorToTarget(targetProperty: string, error: ValidatorError, objectToCompute: any) {
+    const validationError = new ValidationError({
+      targetProperty,
+      innerError: error,
+    });
+
+    if (targetHasErrors(objectToCompute)) {
+      objectToCompute[ERRORS].addError(validationError);
+    } else {
+      if (this.schemaOptions.validation && this.schemaOptions.validation.reporter) {
+        objectToCompute[ERRORS] = new ValidationErrors(this.schemaOptions.validation.reporter, objectToCompute);
+      } else {
+        objectToCompute[ERRORS] = new ValidationErrors(reporter, objectToCompute);
+      }
+      objectToCompute[ERRORS].addError(validationError);
     }
   }
 }

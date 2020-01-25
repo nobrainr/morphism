@@ -9,15 +9,17 @@
     "build": "run-p build:js build:types",
     "start": "run-p watch:*",
     "build:js": "TS_NODE_PROJECT=\"tsconfig.webpack.json\" webpack --mode=production",
-    "watch:js": "npm run build:js -- -w --display \"errors-only\"",
+    "watch:js": "yarn run build:js -w --display \"errors-only\"",
     "build:types": "tsc -p tsconfig.prod.json --emitDeclarationOnly",
-    "watch:types": "npm run build:types -- -w >/dev/null",
+    "watch:types": "yarn run build:types  -w >/dev/null",
     "test": "jest",
     "test:types": "tsc --emitDeclarationOnly",
-    "test:coverage": "npm run test -- --coverage",
+    "test:coverage": "yarn run test --coverage",
     "semantic-release": "semantic-release",
     "docs": "typedoc",
-    "docs:deploy": "now ./docs/typedoc -A ../../now.json --public --team $TEAM_NAME --token $NOW_TOKEN && now alias --team $TEAM_NAME --token $NOW_TOKEN"
+    "docs:deploy": "now ./docs/typedoc -A ../../now.json --public --team $TEAM_NAME --token $NOW_TOKEN && now alias --team $TEAM_NAME --token $NOW_TOKEN",
+    "analyze-bundle:dev": "WEBPACK_ANALYZE=true TS_NODE_PROJECT=\"tsconfig.webpack.json\" webpack",
+    "analyze-bundle:prod": "WEBPACK_ANALYZE=true TS_NODE_PROJECT=\"tsconfig.webpack.json\" webpack  --mode=production"
   },
   "release": {
     "branches": [
@@ -56,17 +58,23 @@
     "@babel/plugin-proposal-object-rest-spread": "^7.6.2",
     "@babel/preset-env": "7.7.0",
     "@babel/preset-typescript": "^7.7.0",
+    "@hapi/joi": "^16.1.7",
+    "@types/hapi__joi": "^16.0.1",
     "@types/jest": "24.0.25",
     "@types/node": "^13.1.0",
+    "@types/validator": "^10.11.3",
     "@types/webpack": "^4.4.27",
+    "@types/webpack-bundle-analyzer": "^2.13.3",
     "babel-loader": "^8.0.5",
     "fork-ts-checker-webpack-plugin": "^4.0.1",
     "jest": "24.7.1",
+    "lint-staged": "^9.4.3",
     "nodemon": "^2.0.0",
     "nodemon-webpack-plugin": "^4.2.2",
     "now": "^16.7.2",
     "npm-run-all": "^4.1.5",
-    "semantic-release": "^16.0.0-beta.22",
+    "prettier": "1.19.1",
+    "semantic-release": "^16.0.0-beta.26",
     "source-map-loader": "^0.2.4",
     "ts-node": "^8.0.3",
     "tslint": "^5.15.0",
@@ -74,8 +82,10 @@
     "typedoc": "^0.16.0",
     "typedoc-plugin-external-module-name": "^3.0.0",
     "typedoc-plugin-internal-external": "^2.0.1",
-    "typescript": "^3.5.3",
+    "typescript": "^3.7.2",
+    "validator": "^11.1.0",
     "webpack": "4.41.5",
+    "webpack-bundle-analyzer": "^3.5.2",
     "webpack-cli": "^3.3.0"
   },
   "eslintConfig": {
@@ -85,5 +95,16 @@
     }
   },
   "repository": "nobrainr/morphism",
-  "license": "MIT"
+  "license": "MIT",
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.{ts,js,css,json,md}": [
+      "prettier --write",
+      "git add"
+    ]
+  }
 }
