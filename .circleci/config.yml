@@ -6,7 +6,7 @@ version: 2
 jobs:
   test-job:
     docker:
-      - image: circleci/node:8-browsers
+      - image: circleci/node:10
     working_directory: ~/repo
     steps:
       - checkout
@@ -29,7 +29,7 @@ jobs:
 
   deploy-docs:
     docker:
-      - image: circleci/node:9
+      - image: circleci/node:10
     working_directory: ~/repo
     steps:
       - checkout
@@ -45,7 +45,7 @@ jobs:
 
   publish-job:
     docker:
-      - image: circleci/node:9
+      - image: circleci/node:10
     working_directory: ~/repo
     steps:
       - checkout
