@@ -27,6 +27,19 @@ jobs:
           name: Build Tests Types
           command: yarn run test:types
 
+  test-docs:
+    docker:
+      - image: circleci/node:10
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "yarn.lock" }}
+      - run:
+          name: Build Docs
+          command: yarn run docs
+
   deploy-docs:
     docker:
       - image: circleci/node:10
@@ -64,9 +77,11 @@ workflows:
   test:
     jobs:
       - test-job
+      - test-docs
       - publish-job:
           requires:
             - test-job
+            - test-docs
           filters:
             branches:
               only:
