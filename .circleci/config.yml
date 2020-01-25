@@ -66,6 +66,7 @@ jobs:
       - restore_cache:
           keys:
             - v1-dependencies-{{ checksum "yarn.lock" }}
+      - run: yarn install
       - run:
           name: Build
           command: yarn run build
