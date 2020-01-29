@@ -68,7 +68,7 @@
     "babel-loader": "^8.0.5",
     "fork-ts-checker-webpack-plugin": "^4.0.1",
     "jest": "24.7.1",
-    "lint-staged": "^9.4.3",
+    "lint-staged": "^10.0.3",
     "nodemon": "^2.0.0",
     "nodemon-webpack-plugin": "^4.2.2",
     "now": "^16.7.2",
