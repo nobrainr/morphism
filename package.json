@@ -84,7 +84,7 @@
     "typedoc-plugin-internal-external": "^2.0.1",
     "typescript": "^3.7.2",
     "validator": "^11.1.0",
-    "webpack": "4.41.5",
+    "webpack": "4.41.6",
     "webpack-bundle-analyzer": "^3.5.2",
     "webpack-cli": "^3.3.0"
   },
