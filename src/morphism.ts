@@ -175,7 +175,17 @@ function morphism<TSchema extends Schema, TDestination>(
   type: Constructable<TDestination>
 ): Mapper<TSchema, TDestination>; // morphism({}, null, T) => mapper(S) => T
 
-function morphism<TSchema extends Schema, Target>(schema: TSchema, items: SourceFromSchema<TSchema>, type: Constructable<Target>): Target; // morphism({}, {}, T) => T
+function morphism<
+  TSchema = Schema<DestinationFromSchema<Schema>, SourceFromSchema<Schema>>,
+  Target = never,
+  Source extends SourceFromSchema<TSchema> = SourceFromSchema<TSchema>
+>(schema: TSchema, items: Source, type: Constructable<Target>): Target; // morphism({}, {}, T) => T
+
+function morphism<
+  TSchema = Schema<DestinationFromSchema<Schema>, SourceFromSchema<Schema>>,
+  Target = never,
+  Source extends SourceFromSchema<TSchema> = SourceFromSchema<TSchema>
+>(schema: TSchema, items: Source[], type: Constructable<Target>): Target[]; // morphism({}, [], T) => T[]
 
 function morphism<Target, Source, TSchema extends Schema<Target, Source>>(
   schema: TSchema,
