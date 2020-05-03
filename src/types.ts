@@ -35,18 +35,22 @@ export type StrictSchema<Target = any, Source = any> = {
   /** `destinationProperty` is the name of the property of the target object you want to produce */
   [destinationProperty in keyof Target]:
     | ActionString<Source>
-    | ActionFunction<Target, Source, Target[destinationProperty]>
+    | {
+        (iteratee: Source, source: Source[], target: Target[destinationProperty]): Target[destinationProperty];
+      }
     | ActionAggregator<Source>
-    | ActionSelector<Source, Target>
+    | ActionSelector<Source, Target, destinationProperty>
     | StrictSchema<Target[destinationProperty], Source>;
 } & { [SCHEMA_OPTIONS_SYMBOL]?: SchemaOptions<Target> };
 export type Schema<Target = any, Source = any> = {
   /** `destinationProperty` is the name of the property of the target object you want to produce */
   [destinationProperty in keyof Target]?:
     | ActionString<Source>
-    | ActionFunction<Target, Source, Target[destinationProperty]>
+    | {
+        (iteratee: Source, source: Source[], target: Target[destinationProperty]): Target[destinationProperty];
+      }
     | ActionAggregator<Source>
-    | ActionSelector<Source, Target>
+    | ActionSelector<Source, Target, destinationProperty>
     | Schema<Target[destinationProperty], Source>;
 } & { [SCHEMA_OPTIONS_SYMBOL]?: SchemaOptions<Target | any> };
 
@@ -157,9 +161,9 @@ export type ActionAggregator<T extends unknown = unknown> = T extends object ? (
  *```
  *
  */
-export interface ActionSelector<Source = object, Target = any> {
+export interface ActionSelector<Source = object, Target = any, TargetProperty extends keyof Target = any> {
   path?: ActionString<Source> | ActionAggregator<Source>;
-  fn?: (fieldValue: any, object: Source, items: Source, objectToCompute: Target) => Target;
+  fn?: (fieldValue: any, object: Source, items: Source, objectToCompute: Target) => Target[TargetProperty];
   validation?: ValidateFunction;
 }
 

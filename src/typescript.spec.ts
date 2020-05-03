@@ -1,4 +1,4 @@
-import Morphism, { morphism, StrictSchema, Schema } from './morphism';
+import Morphism, { morphism, StrictSchema, Schema, createSchema } from './morphism';
 
 describe('Typescript', () => {
   describe('Registry Type Checking', () => {
@@ -143,8 +143,12 @@ describe('Typescript', () => {
       d.namingIsHard;
 
       morphism({ namingIsHard: 'boring_api_field' });
-      morphism<StrictSchema<Destination, Source>>({ namingIsHard: 'boring_api_field' })({ boring_api_field: 2 });
-      const e = morphism<StrictSchema<Destination>>({ namingIsHard: 'boring_api_field' })([{ boring_api_field: 2 }]);
+      morphism<StrictSchema<Destination, Source>>({
+        namingIsHard: 'boring_api_field',
+      })({ boring_api_field: 2 });
+      const e = morphism<StrictSchema<Destination>>({
+        namingIsHard: 'boring_api_field',
+      })([{ boring_api_field: 2 }]);
       const itemE = e.pop();
       expect(itemE).toBeDefined();
       if (itemE) {
@@ -160,6 +164,37 @@ describe('Typescript', () => {
 
       morphism<StrictSchema<D1, S1>>({ a: ({ _a }) => _a.toString() });
       morphism<StrictSchema<D1, S1>>({ a: ({ _a }) => _a.toString() });
+    });
+
+    it('shoud infer result type from source when a class is provided', () => {
+      class Source {
+        constructor(public id: number, public ugly_field: string) {}
+      }
+
+      class Destination {
+        constructor(public id: number, public field: string) {}
+      }
+
+      const source = [new Source(1, 'abc'), new Source(1, 'def')];
+
+      const schema: StrictSchema<Destination, Source> = {
+        id: 'id',
+        field: 'ugly_field',
+      };
+      const expected = [new Destination(1, 'abc'), new Destination(1, 'def')];
+
+      const result = morphism(schema, source, Destination);
+      result.forEach((item, idx) => {
+        expect(item).toEqual(expected[idx]);
+      });
+    });
+
+    it('should accept union types as Target', () => {
+      const schema = createSchema<{ a: string } | { a: string; b: string }, { c: string }>({
+        a: ({ c }) => c,
+      });
+
+      expect(morphism(schema, { c: 'result' }).a).toEqual('result');
     });
   });
 
@@ -178,6 +213,29 @@ describe('Typescript', () => {
       const schema: StrictSchema<Destination, Source> = { id: 'ID' };
       expect(morphism(schema, rows)).toBeDefined();
       expect(morphism(schema, rows)[0].id).toEqual(1234);
+    });
+  });
+
+  describe('Selector Action', () => {
+    it('should match return type of fn with target property', () => {
+      interface Source {
+        foo: string;
+      }
+
+      interface Target {
+        foo: number;
+      }
+
+      const schema: StrictSchema<Target, Source> = {
+        foo: {
+          path: 'foo',
+          fn: val => {
+            return Number(val);
+          },
+        },
+      };
+      const source: Source = { foo: '1' };
+      expect(morphism(schema, source)).toEqual({ foo: 1 });
     });
   });
 });

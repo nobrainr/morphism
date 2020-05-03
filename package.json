@@ -1,7 +1,7 @@
 {
   "name": "morphism",
   "version": "1.0.0",
-  "description": "Do not repeat anymore your objects transformations.",
+  "description": "Type-safe object transformer for JavaScript, TypeScript & Node.js. ",
   "homepage": "https://github.com/nobrainr/morphism",
   "main": "./dist/morphism.js",
   "types": "./dist/types/morphism.d.ts",
