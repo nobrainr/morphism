@@ -89,6 +89,7 @@ workflows:
               only:
                 - next
                 - master
+                - beta
       - deploy-docs:
           requires:
             - publish-job

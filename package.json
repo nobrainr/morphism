@@ -24,7 +24,11 @@
   "release": {
     "branches": [
       "master",
-      "next"
+      "next",
+      {
+        "name": "beta",
+        "prerelease": true
+      }
     ]
   },
   "author": {
