@@ -160,7 +160,10 @@ export type ActionAggregator<T extends unknown = unknown> = T extends object ? (
 export interface ActionSelector<Source = object, Target = any> {
   path?: ActionString<Source> | ActionAggregator<Source>;
   fn?: (fieldValue: any, object: Source, items: Source, objectToCompute: Target) => Target;
-  validation?: ValidateFunction;
+  validation?: {
+    source?: ValidateFunction;
+    target?: ValidateFunction;
+  };
 }
 
 export interface ValidatorValidateResult {

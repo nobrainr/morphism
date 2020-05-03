@@ -64,7 +64,7 @@ describe('Validation', () => {
     const length = 2;
     const source: S = { s1: ['a', 'b', 'c'] };
     const schema = createSchema<T, S>({
-      t1: { path: 's1', validation: Validation.test().max(length) },
+      t1: { path: 's1', validation: { target: Validation.test().max(length) } },
     });
 
     const result = morphism(schema, source);
@@ -97,23 +97,57 @@ describe('Validation', () => {
     const schema = createSchema<T, S>({
       t1: {
         path: 's1',
-        validation: input => {
-          if (isEmail(input.value)) {
-            return { value: input.value };
-          } else {
-            return {
-              value: input.value,
-              error: new ValidatorError({
+        validation: {
+          target: input => {
+            if (isEmail(input.value)) {
+              return { value: input.value };
+            } else {
+              return {
                 value: input.value,
-                expect: `Expected value to be an <email> but received <${input.value}>`,
-              }),
-            };
-          }
+                error: new ValidatorError({
+                  value: input.value,
+                  expect: `Expected value to be an <email> but received <${input.value}>`,
+                }),
+              };
+            }
+          },
         },
       },
     });
     const expected: T = { t1: source.s1 };
     const result = morphism(schema, source);
     expect(result).toEqual(expected);
+  });
+
+  it('should throw on source field validation', () => {
+    interface S {
+      s1: number;
+    }
+    interface T {
+      t1: number;
+    }
+
+    const source: S = { s1: 14 };
+    const schema = createSchema<T, S>(
+      {
+        t1: {
+          path: 's1',
+          fn: () => 20 as any, // Fix this by merging master into next branch
+          validation: { source: Validation.number().min(18) },
+        },
+      },
+      { validation: { throw: true } }
+    );
+    const error = new ValidationError({
+      targetProperty: 't1',
+      innerError: new ValidatorError({
+        expect: `value to be greater or equal than 18`,
+        value: source.s1,
+      }),
+    });
+    const message = defaultFormatter(error);
+
+    const fn = () => morphism(schema, source);
+    expect(fn).toThrow(message);
   });
 });

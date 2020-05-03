@@ -255,19 +255,27 @@ export class MorphismSchemaTree<Target, Source> {
       // Action<Object>: a path and a function: [ destination : { path: 'source', fn:(fieldValue, items) }]
       return ({ object, items, objectToCompute }) => {
         let targetValue: any;
+        let sourceValue: any;
         if (action.path) {
           if (Array.isArray(action.path)) {
-            targetValue = aggregator(action.path, object);
+            sourceValue = aggregator(action.path, object);
           } else if (isString(action.path)) {
-            targetValue = get(object, action.path);
+            sourceValue = get(object, action.path);
           }
+          targetValue = sourceValue;
         } else {
-          targetValue = object;
+          sourceValue = object;
         }
 
+        if (action.validation?.source) {
+          const validationResult = action.validation.source({ value: sourceValue });
+
+          this.processValidationResult(validationResult, targetProperty, objectToCompute);
+          sourceValue = validationResult.value;
+        }
         if (action.fn) {
           try {
-            targetValue = action.fn.call(undefined, targetValue, object, items, objectToCompute);
+            targetValue = action.fn.call(undefined, sourceValue, object, items, objectToCompute);
           } catch (e) {
             e.message = `Unable to set target property [${targetProperty}].
             \n An error occured when applying [${action.fn.name}] on property [${action.path}]
@@ -276,8 +284,8 @@ export class MorphismSchemaTree<Target, Source> {
           }
         }
 
-        if (action.validation) {
-          const validationResult = action.validation({ value: targetValue });
+        if (action.validation?.target) {
+          const validationResult = action.validation.target({ value: targetValue });
 
           this.processValidationResult(validationResult, targetProperty, objectToCompute);
           targetValue = validationResult.value;

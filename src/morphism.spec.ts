@@ -356,7 +356,7 @@ describe('Morphism', () => {
           t1: string;
         }
         const schema = createSchema<Target>({
-          t1: { path: 's1', validation: Validation.string() },
+          t1: { path: 's1', validation: { target: Validation.string() } },
         });
         const result = morphism(schema, { s1: 1234 });
         const errors = reporter.report(result);
@@ -380,7 +380,7 @@ describe('Morphism', () => {
           t1: string;
         }
         const schema = createSchema<Target>({
-          t1: { fn: value => value.s1, validation: Validation.string() },
+          t1: { fn: value => value.s1, validation: { target: Validation.string() } },
         });
         const result = morphism(schema, { s1: 1234 });
         const errors = reporter.report(result);
@@ -572,8 +572,8 @@ describe('Morphism', () => {
         }
         const schema = createSchema<Target, Source>(
           {
-            t1: { fn: value => value.s1, validation: Validation.string() },
-            t2: { fn: value => value.s1, validation: Validation.string() },
+            t1: { fn: value => value.s1, validation: { target: Validation.string() } },
+            t2: { fn: value => value.s1, validation: { target: Validation.string() } },
           },
           { validation: { throw: true } }
         );
