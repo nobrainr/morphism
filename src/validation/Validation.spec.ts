@@ -132,7 +132,7 @@ describe('Validation', () => {
       {
         t1: {
           path: 's1',
-          fn: () => 20 as any, // Fix this by merging master into next branch
+          fn: () => 20 as any, // TODO: Fix this by merging master into next branch
           validation: { source: Validation.number().min(18) },
         },
       },

@@ -33,7 +33,7 @@ export function isValidAction(action: any) {
 
 export const aggregator = (paths: string[], object: any) => {
   return paths.reduce((delta, path) => {
-    set(delta, path, get(object, path)); // TODO: ensure set will return the mutated object
+    set(delta, path, get(object, path));
     return delta;
   }, {});
 };
