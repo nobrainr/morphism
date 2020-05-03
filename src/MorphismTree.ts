@@ -61,7 +61,7 @@ export interface SchemaOptions<Target = any> {
    */
   class?: {
     /**
-     * Specify wether ES6 Class fields should be automapped if names on source and target match
+     * Specify wether ES6 Class fields should be automatically mapped if names on source and target match
      * @default true
      * @type {boolean}
      */
