@@ -150,4 +150,15 @@ describe('Validation', () => {
     const fn = () => morphism(schema, source);
     expect(fn).toThrow(message);
   });
+
+  it('should report when the source is not valid', () => {
+    type Source = { value: number };
+    type Target = { value: string };
+    const schema = createSchema<Target, Source>({
+      value: ({ value }) => {
+        return '' + value;
+      },
+    });
+    expect(true).toBe(false); // TODO:
+  });
 });
