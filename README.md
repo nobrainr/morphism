@@ -10,7 +10,6 @@
 [![CircleCI (all branches)](https://img.shields.io/circleci/project/github/nobrainr/morphism/master.svg?style=for-the-badge)][circleci-url]
 [![Deps](https://img.shields.io/david/nobrainr/morphism.svg?style=for-the-badge)][deps-url]
 
-
 > In many fields of mathematics, morphism refers to a structure-preserving map from one mathematical structure to another. A morphism **f** with source **X** and target **Y** is written **f : X → Y**. Thus a morphism is represented by an arrow from its **source** to its **target**.
 
 _https://en.wikipedia.org/wiki/Morphism_
@@ -47,11 +46,11 @@ _https://en.wikipedia.org/wiki/Morphism_
     - [Function over a source property](#Function-over-a-source-property)
     - [Properties Aggregation](#Properties-Aggregation)
   - [Registry API](#Registry-API)
-      - [Register](#Register)
-      - [Map](#Map)
-      - [Get or Set an existing mapper configuration](#Get-or-Set-an-existing-mapper-configuration)
-      - [Delete a registered mapper](#Delete-a-registered-mapper)
-      - [List registered mappers](#List-registered-mappers)
+    - [Register](#Register)
+    - [Map](#Map)
+    - [Get or Set an existing mapper configuration](#Get-or-Set-an-existing-mapper-configuration)
+    - [Delete a registered mapper](#Delete-a-registered-mapper)
+    - [List registered mappers](#List-registered-mappers)
   - [Contribution](#Contribution)
   - [Similar Projects](#Similar-Projects)
   - [License](#License)
@@ -82,8 +81,8 @@ const schema = {
   targetProperty: 'sourceProperty'
 };
 ```
-Then use the `morphism` function along with the **schema** to transform any **source** to your desired **target**
 
+Then use the `morphism` function along with the **schema** to transform any **source** to your desired **target**
 
 ```typescript
 import { morphism } from 'morphism';
@@ -103,20 +102,20 @@ morphism(schema, source);
 }
 ```
 
-You may specify properties deep within the source object to be copied to your desired target by using dot notation in the mapping `value`. 
+You may specify properties deep within the source object to be copied to your desired target by using dot notation in the mapping `value`.
 This is [one of the actions available](#schema-actions) to transform the source data
 
 ```typescript
 const schema = {
   foo: 'deep.foo',
   bar: {
-	baz: 'deep.foo'
+    baz: 'deep.foo'
   }
 };
 
 const source = {
   deep: {
-	foo: 'value'
+    foo: 'value'
   }
 };
 
@@ -206,7 +205,6 @@ When you type your schema, this library will require you to specify each transfo
 
 ![schema-required-fields](https://raw.githubusercontent.com/nobrainr/morphism/master/images/schema-required-fields.png)
 
-
 This library uses TypeScript extensively. The target type will be inferred from the defined schema.
 
 ![inferred field type](https://raw.githubusercontent.com/nobrainr/morphism/master/images/inferred-field-type.png)
@@ -284,9 +282,9 @@ morphism(schema, input);
 
 ▶️ [Test with Repl.it](https://repl.it/@yrnd1/Morphism-Schema-Options)
 
-⏩ [More Schema examples](#more-schema-examples-%F0%9F%92%A1)
+⏩ [More Schema examples](#more-schema-examples)
 
-📚 [Schema Docs](https://morphism.now.sh/interfaces/morphism.schema)
+📚 [Schema Docs](https://morphism.now.sh/classes/_morphismtree_.morphismschematree)
 
 #### 1.1 Using a strict Schema
 
@@ -322,6 +320,7 @@ import { morphism } from 'morphism';
 morphism(schema: Schema, items?: any, type?: any): any
 ```
 
+<!-- ! Broken link -->
 📚 [Currying Function Docs](https://morphism.now.sh/modules/morphism#morphism-1)
 
 #### Currying Function Example
@@ -475,6 +474,8 @@ class Service {
 // }
 ```
 
+📚 [Morphism Function as Decorators Docs](https://morphism.now.sh/modules/_morphism_)
+
 ### 4. Default export: Morphism object
 
 Morphism comes along with an internal registry you can use to save your schema attached to a specific **ES6 Class**.
@@ -594,7 +595,7 @@ morphism(schema, source);
 
 ## Registry API
 
-📚 [Registry API Documentation](https://morphism.now.sh/classes/morphism.morphismregistry.html)
+📚 [Registry API Documentation](https://morphism.now.sh/classes/_morphismregistry_.morphismregistry)
 
 #### Register
 
