@@ -31,8 +31,8 @@ describe('Reporter', () => {
       }
 
       const schema = createSchema<T, S>({
-        t1: { path: 's1', fn: val => val, validation: Validation.boolean() },
-        t2: { path: 's2', fn: val => val, validation: Validation.number() },
+        t1: { path: 's1', fn: val => val, validation: { target: Validation.boolean() } },
+        t2: { path: 's2', fn: val => val, validation: { target: Validation.number() } },
       });
       const result = morphism(schema, JSON.parse('{}'));
       const errors = reporter.report(result);
@@ -78,7 +78,7 @@ describe('Reporter', () => {
       const reporter = new Reporter(formatter);
 
       const schema = createSchema<Target>({
-        t1: { path: 's1', validation: Validation.string() },
+        t1: { path: 's1', validation: { target: Validation.string() } },
       });
       const result = morphism(schema, { s1: 1234 });
       const error = new ValidationError({
@@ -108,7 +108,7 @@ describe('Reporter', () => {
       const reporter = new Reporter(formatter);
 
       const schema = createSchema<Target>(
-        { t1: { path: 's1', validation: Validation.string() } },
+        { t1: { path: 's1', validation: { target: Validation.string() } } },
         { validation: { throw: true, reporter } }
       );
 
@@ -135,7 +135,7 @@ describe('Reporter', () => {
         }
 
         const schema = createSchema<T, S>({
-          t1: { path: 's1', fn: val => val, validation: Validation.string() },
+          t1: { path: 's1', fn: val => val, validation: { target: Validation.string() } },
         });
         const result = morphism(schema, JSON.parse('{}'));
         const error = new ValidationError({
@@ -163,7 +163,7 @@ describe('Reporter', () => {
         }
 
         const schema = createSchema<T, S>({
-          t1: { fn: value => value.s1, validation: Validation.string().max(3) },
+          t1: { fn: value => value.s1, validation: { target: Validation.string().max(3) } },
         });
         const result = morphism(schema, { s1: 'value' });
         const error = new ValidationError({
@@ -191,7 +191,7 @@ describe('Reporter', () => {
         }
 
         const schema = createSchema<T, S>({
-          t1: { fn: value => value.s1, validation: Validation.string().min(3) },
+          t1: { fn: value => value.s1, validation: { target: Validation.string().min(3) } },
         });
         const result = morphism(schema, { s1: 'a' });
         const error = new ValidationError({
@@ -221,9 +221,11 @@ describe('Reporter', () => {
         const schema = createSchema<T, S>({
           t1: {
             fn: value => value.s1,
-            validation: Validation.string()
-              .min(1)
-              .max(3),
+            validation: {
+              target: Validation.string()
+                .min(1)
+                .max(3),
+            },
           },
         });
         const result = morphism(schema, { s1: 'aaa' });
@@ -244,7 +246,7 @@ describe('Reporter', () => {
         const schema = createSchema<T, S>({
           t1: {
             fn: value => value.s1,
-            validation: Validation.string().size(LENGTH),
+            validation: { target: Validation.string().size(LENGTH) },
           },
         });
         const result = morphism(schema, { s1: 'aaa' });
@@ -277,7 +279,7 @@ describe('Reporter', () => {
         const schema = createSchema<T, S>({
           t1: {
             fn: value => value.s1,
-            validation: Validation.string().regex(REGEX),
+            validation: { target: Validation.string().regex(REGEX) },
           },
         });
         const result = morphism(schema, { s1: VALUE });
@@ -309,7 +311,7 @@ describe('Reporter', () => {
         const schema = createSchema<T, S>({
           t1: {
             fn: value => value.s1,
-            validation: Validation.string().alphanum(),
+            validation: { target: Validation.string().alphanum() },
           },
         });
         const result = morphism(schema, { s1: VALUE });
@@ -340,7 +342,7 @@ describe('Reporter', () => {
         }
 
         const schema = createSchema<T, S>({
-          t1: { path: 's1', fn: val => val, validation: Validation.number() },
+          t1: { path: 's1', fn: val => val, validation: { target: Validation.number() } },
         });
         const result = morphism(schema, JSON.parse('{}'));
         const error = new ValidationError({
@@ -370,7 +372,7 @@ describe('Reporter', () => {
           t1: {
             path: 's1',
             fn: val => val,
-            validation: Validation.number({ convert: true }),
+            validation: { target: Validation.number({ convert: true }) },
           },
         });
         const result = morphism(schema, JSON.parse('{ "s1": "1234" }'));
@@ -392,7 +394,7 @@ describe('Reporter', () => {
         const schema = createSchema<T, S>({
           t1: {
             fn: value => value.s1,
-            validation: Validation.number().max(MAX),
+            validation: { target: Validation.number().max(MAX) },
           },
         });
         const result = morphism(schema, { s1: VALUE });
@@ -425,7 +427,7 @@ describe('Reporter', () => {
         const schema = createSchema<T, S>({
           t1: {
             fn: value => value.s1,
-            validation: Validation.number().min(MIN),
+            validation: { target: Validation.number().min(MIN) },
           },
         });
         const result = morphism(schema, { s1: VALUE });
@@ -456,7 +458,7 @@ describe('Reporter', () => {
         }
 
         const schema = createSchema<T, S>({
-          t1: { path: 's1', fn: val => val, validation: Validation.boolean() },
+          t1: { path: 's1', fn: val => val, validation: { target: Validation.boolean() } },
         });
         const result = morphism(schema, JSON.parse('{ "s1": true }'));
         const errors = reporter.report(result);
@@ -476,7 +478,7 @@ describe('Reporter', () => {
           t1: {
             path: 's1',
             fn: val => val,
-            validation: Validation.boolean({ convert: true }),
+            validation: { target: Validation.boolean({ convert: true }) },
           },
         });
         const result = morphism(schema, JSON.parse('{ "s1": "true" }'));
@@ -497,7 +499,7 @@ describe('Reporter', () => {
           t1: {
             path: 's1',
             fn: val => val,
-            validation: Validation.boolean({ convert: true }),
+            validation: { target: Validation.boolean({ convert: true }) },
           },
         });
         const result = morphism(schema, JSON.parse('{ "s1": "false" }'));
@@ -515,7 +517,7 @@ describe('Reporter', () => {
         }
 
         const schema = createSchema<T, S>({
-          t1: { path: 's1', fn: val => val, validation: Validation.boolean() },
+          t1: { path: 's1', fn: val => val, validation: { target: Validation.boolean() } },
         });
         const result = morphism(schema, JSON.parse('{ "s1": "a value" }'));
         const error = new ValidationError({

@@ -163,8 +163,12 @@ export type ActionAggregator<T extends unknown = unknown> = T extends object ? (
  */
 export interface ActionSelector<Source = object, Target = any, TargetProperty extends keyof Target = any> {
   path?: ActionString<Source> | ActionAggregator<Source>;
+  // TODO: fieldValue should be of type Target if path is not defined. Try to infer fieldValue if path is defined.
   fn?: (fieldValue: any, object: Source, items: Source, objectToCompute: Target) => Target[TargetProperty];
-  validation?: ValidateFunction;
+  validation?: {
+    source?: ValidateFunction;
+    target?: ValidateFunction;
+  };
 }
 
 export interface ValidatorValidateResult {

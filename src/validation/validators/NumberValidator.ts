@@ -2,12 +2,15 @@ import { ValidatorValidateResult, ValidateFunction } from '../../types';
 import { LinkedList } from './LinkedList';
 import { ValidatorOptions, Rule } from './types';
 import { ValidatorError } from './ValidatorError';
-import { isString } from '../../helpers';
+import { isString, isObject } from '../../helpers';
 
 export function NumberValidator(options: ValidatorOptions = {}) {
   let list = new LinkedList<Rule<number>>({
     name: 'number',
-    expect: input => `Expected value to be a <number> but received <${input.value}>`,
+    expect: input =>
+      isObject(input.value)
+        ? `Expected value to be a <number> but received: \n${JSON.stringify(input.value, null, 2)}`
+        : `Expected value to be a <number> but received <${input.value}>`,
     validate: input => {
       if (!options.convert) {
         return typeof input.value === 'number';
