@@ -193,7 +193,7 @@ morphism(schema, sources);
 
 ## Motivation
 
-We live in a era where we deal with mutiple data contracts coming from several sources (Rest API, Services, Raw JSON...). When it comes to transform multiple data contracts to match with your domain objects, it's common to create your objects with `Object.assign`, `new Object(sourceProperty1, sourceProperty2)` or by simply assigning each source properties to your destination. This can leads you to have your business logic spread all over the place.
+We live in a era where we deal with mutiple data contracts coming from several sources (Rest API, Services, Raw JSON...). When it comes to transform multiple data contracts to match with your domain objects, it's common to create your objects with `Object.assign`, `new Object(sourceProperty1, sourceProperty2)` or by simply assigning each source properties to your destination. This can result in your business logic being spread all over the place.
 
 `Morphism` allows you to keep this business logic centralized and brings you a top-down view of your data transformation. When a contract change occurs, it helps to track the bug since you just need to refer to your `schema`
 
