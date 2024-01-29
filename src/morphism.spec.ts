@@ -229,24 +229,24 @@ describe('Morphism', () => {
       const mapUser = Morphism.register(User, schema);
       const results = mapUser(input);
       results.forEach((res, index) => {
-        expect(res).toEqual(jasmine.objectContaining(output[index]));
+        expect(res).toEqual(expect.objectContaining(output[index]));
       });
 
       const mapUser2 = Morphism(schema, null, User);
       const results2 = mapUser2(input);
 
       results2.forEach((res, index) => {
-        expect(res).toEqual(jasmine.objectContaining(output[index]));
+        expect(res).toEqual(expect.objectContaining(output[index]));
       });
 
       const results3 = Morphism.map(User, input);
       results3.forEach((res, index) => {
-        expect(res).toEqual(jasmine.objectContaining(output[index]));
+        expect(res).toEqual(expect.objectContaining(output[index]));
       });
 
       const results4 = input.map(userInput => Morphism.map(User, userInput));
       results4.forEach((res, index) => {
-        expect(res).toEqual(jasmine.objectContaining(output[index]));
+        expect(res).toEqual(expect.objectContaining(output[index]));
       });
     });
   });

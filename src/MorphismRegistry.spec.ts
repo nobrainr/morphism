@@ -30,7 +30,7 @@ describe('Mappers Registry', function() {
     Morphism.register(User);
   });
   it('should throw an exception when using Registration function without parameters', function() {
-    expect(() => Morphism.register(null as any, null)).toThrow();
+    expect(() => Morphism.register(null as any, undefined)).toThrow();
   });
 
   it('should throw an exception when trying to register a mapper type more than once', function() {
