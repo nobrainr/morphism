@@ -129,7 +129,7 @@ function transformItems<T, TSchema extends Schema<T | {}>>(schema: TSchema, type
 }
 
 function getSchemaForClass<T>(type: Constructable<T>, baseSchema: Schema<T>): Schema<T> {
-  let typeFields = Object.keys(new type());
+  let typeFields = Object.keys(new type() as any);
   let defaultSchema = zipObject(typeFields, typeFields);
   let finalSchema = Object.assign(defaultSchema, baseSchema);
   return finalSchema;
@@ -167,7 +167,7 @@ function morphism<
   Source extends SourceFromSchema<TSchema> = SourceFromSchema<TSchema>
 >(schema: TSchema, data: Source): DestinationFromSchema<TSchema>;
 
-function morphism<TSchema = Schema<DestinationFromSchema<Schema>, SourceFromSchema<Schema>>>(schema: TSchema): Mapper<TSchema>; // morphism({}) => mapper(S) => T
+function morphism<TSchema extends Schema<any, any> | StrictSchema<any, any> = Schema<DestinationFromSchema<Schema>, SourceFromSchema<Schema>>>(schema: TSchema): Mapper<TSchema>; // morphism({}) => mapper(S) => T
 
 function morphism<TSchema extends Schema, TDestination>(
   schema: TSchema,
