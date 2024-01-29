@@ -1,5 +1,5 @@
 import { Constructable, Schema, Mapper } from './types';
-import { morphism } from './morphism';
+import { StrictSchema, morphism } from './morphism';
 
 export interface IMorphismRegistry {
   /**
@@ -10,7 +10,7 @@ export interface IMorphismRegistry {
    *
    */
   register<Target>(type: Constructable<Target>): Mapper<Schema<Target>, Target>;
-  register<Target, TSchema>(type: Constructable<Target>, schema?: TSchema): Mapper<TSchema, Target>;
+  register<Target, TSchema extends Schema<any, any> | StrictSchema<any, any>>(type: Constructable<Target>, schema?: TSchema): Mapper<TSchema, Target>;
 
   /**
    * Transform any input in the specified Class

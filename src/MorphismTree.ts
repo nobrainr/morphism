@@ -268,7 +268,7 @@ export class MorphismSchemaTree<Target, Source> {
         if (action.fn) {
           try {
             targetValue = action.fn.call(undefined, targetValue, object, items, objectToCompute);
-          } catch (e) {
+          } catch (e: any) {
             e.message = `Unable to set target property [${targetProperty}].
             \n An error occured when applying [${action.fn.name}] on property [${action.path}]
             \n Internal error: ${e.message}`;
